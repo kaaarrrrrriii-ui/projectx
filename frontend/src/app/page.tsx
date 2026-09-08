@@ -5,7 +5,7 @@ export default async function Home() {
 
   return (
     <main>
-      <div className="/">fdfd</div>
+      <div className="/">fdfgdfgdfgd</div>
     </main>
   );
 }
