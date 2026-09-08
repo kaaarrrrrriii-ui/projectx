@@ -144,10 +144,11 @@ func (p *ImageProcessor) Sanitize(ctx context.Context, src io.Reader, dst io.Wri
 	}
 
 	result := models.SanitizedImage{
-		Format:    format,
-		Width:     width,
-		Height:    height,
-		SizeBytes: size,
+		Format:            format,
+		Width:             width,
+		Height:            height,
+		OriginalSizeBytes: written,
+		SizeBytes:         size,
 	}
 	if format == models.ImageFormatJPEG {
 		result.MIMEType = "image/jpeg"
