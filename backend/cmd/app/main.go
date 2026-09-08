@@ -12,6 +12,8 @@ import (
 )
 
 func main() {
+	ciTestFailure()
+
 	_ = godotenv.Load(".env", "../.env")
 
 	port := os.Getenv("PORT")
