@@ -1,18 +1,16 @@
-import type { Metadata } from "next";
-import type { ReactNode } from "react";
 
-import "./globals.css";
+import './globals.css';
 
-export const metadata: Metadata = {
-  title: "German",
-  description: "German project frontend",
-};
-
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="ru">
-      <body>{children}</body>
+    <html lang="en">
+      <body>
+        {children}
+      </body>
     </html>
   );
 }
-
