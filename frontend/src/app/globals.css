@@ -1,0 +1,76 @@
+:root {
+  color-scheme: dark;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #0b1020;
+  color: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 20%, rgb(37 99 235 / 25%), transparent 35%),
+    #0b1020;
+}
+
+.card {
+  width: min(100%, 680px);
+  padding: clamp(32px, 6vw, 64px);
+  border: 1px solid rgb(148 163 184 / 20%);
+  border-radius: 24px;
+  background: rgb(15 23 42 / 80%);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 35%);
+}
+
+.eyebrow {
+  margin: 0 0 16px;
+  color: #60a5fa;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(36px, 7vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.description {
+  margin: 24px 0 32px;
+  color: #cbd5e1;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+.dotOnline {
+  background: #22c55e;
+  box-shadow: 0 0 14px #22c55e;
+}
+
