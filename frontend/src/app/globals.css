@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
 
@@ -7,15 +7,55 @@
 }
 
 body {
-  font-family: "Montserrat", Arial, Helvetica, sans-serif;
   overflow-x: hidden;
+  
+  
   width: 100%;
   min-height: 100%;
+  background-color: var(--background-color);
+  
 }
 
 * {
+  font-family: "Montserrat", Arial, Helvetica, sans-serif;
   box-sizing: border-box;
   padding: 0;
   margin: 0;
 }
 
+:root{
+  --primary-color: #4562F0
+}
+:root{
+  --secondary-color: #DEE7FD
+}
+:root{
+  --background-color: #F7F9FE
+}
+:root{
+  --text-color: #000828
+}
+:root{
+  --text-color-secondary: #FCFDFF
+}
+/* :root{                         ЧЕТ НЕ ПОШЛО С РУТАМИ 
+  --body-size: 16px;
+  --h1-size: 48px;
+  --h2-size: 36px;
+  --h3-size: 28px;
+  --h4-size: 21px;
+} */
+
+:root{
+  --default-color: #4562F0;
+  --hoover-color: #4F71FC;
+  --pressed-color: #374ECC;
+  --disabled-color: #B5C0F9;
+}
+
+:root{
+  --default-color-wborder: #FCFDFF;
+  --hoover-color-wborder: #EDF0FC;
+  --pressed-color-wborder: #DEE3F7;
+  --disabled-color-wborder: #FEFEFF;
+}
