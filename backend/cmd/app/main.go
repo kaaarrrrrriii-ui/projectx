@@ -1,14 +1,17 @@
 package main
 
 import (
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
 
+	"example.com/german/backend/internal/database"
 	"example.com/german/backend/internal/handlers"
 	"example.com/german/backend/internal/service"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -18,6 +21,11 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+	db, err := database.New()
+	if err != nil {
+		log.Fatal("❌ ", err)
+	}
+	defer db.Close()
 
 	healthService := service.NewHealthService()
 	healthHandler := handlers.NewHealthHandler(healthService)
