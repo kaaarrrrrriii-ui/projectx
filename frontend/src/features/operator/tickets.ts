@@ -65,6 +65,57 @@ export const operatorTickets: OperatorTicket[] = [
   },
 ];
 
+export const returnedTickets: OperatorTicket[] = [
+  {
+    track: "ОТКЛ-6767-0676",
+    status: "returned",
+    category: "конфликт с родителями",
+    applicant: "schoolchild",
+    waiting: "1 час",
+    priority: "urgent",
+    submittedAt: "09.09.2026, 12:44",
+    description:
+      "После первого ответа ситуация дома не изменилась. Мне всё ещё трудно разговаривать с родителями без ссор, поэтому я прошу помочь ещё раз.",
+    clarifications: [
+      { question: "Что не помогло в первом ответе?", answer: "Не получилось начать спокойный разговор" },
+      { question: "Нужна ли повторная консультация?", answer: "Да" },
+    ],
+    attachments: [],
+  },
+  {
+    track: "ОТКЛ-4821-3095",
+    status: "returned",
+    category: "кибербуллинг",
+    applicant: "student",
+    waiting: "2 часа 18 минут",
+    priority: "standard",
+    submittedAt: "09.09.2026, 11:26",
+    description:
+      "Оскорбительные сообщения продолжают приходить с новых аккаунтов. Предыдущих рекомендаций оказалось недостаточно, нужна дополнительная помощь.",
+    clarifications: [
+      { question: "Сохранились ли доказательства?", answer: "Да, есть новые скриншоты" },
+      { question: "Обращались ли к администрации площадки?", answer: "Да" },
+    ],
+    attachments: ["новые-сообщения.png"],
+  },
+  {
+    track: "ОТКЛ-7314-5520",
+    status: "returned",
+    category: "давление и угрозы",
+    applicant: "parent",
+    waiting: "3 часа 05 минут",
+    priority: "low",
+    submittedAt: "09.09.2026, 10:39",
+    description:
+      "После консультации появились новые обстоятельства. Хочу уточнить, как безопасно действовать дальше и к кому ещё можно обратиться.",
+    clarifications: [
+      { question: "Появились ли новые угрозы?", answer: "Нет, но давление продолжается" },
+      { question: "Требуется ли срочная помощь?", answer: "Нет" },
+    ],
+    attachments: [],
+  },
+];
+
 export const applicantLabels: Record<string, string> = {
   schoolchild: "Школьник",
   parent: "Родитель",
@@ -72,5 +123,5 @@ export const applicantLabels: Record<string, string> = {
 };
 
 export function getOperatorTicket(track: string) {
-  return operatorTickets.find((ticket) => ticket.track === track);
+  return [...operatorTickets, ...returnedTickets].find((ticket) => ticket.track === track);
 }
