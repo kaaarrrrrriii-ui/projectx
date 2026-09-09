@@ -19,12 +19,6 @@ const statuses = [
   { value: "answer-ready", label: "Ответ готов" },
 ];
 
-const experts = [
-  "Анна Петрова — психолог",
-  "Мария Соколова — социальный педагог",
-  "Илья Воронов — юрист",
-];
-
 const colors: Record<TicketPriority, { text: string; soft: string; solid: string; outline: string; focus: string }> = {
   urgent: {
     text: "text-[#d70d14]",
@@ -51,19 +45,13 @@ const colors: Record<TicketPriority, { text: string; soft: string; solid: string
 
 const actionBase = "h-10 w-full cursor-pointer rounded-[8px] border px-4 text-sm font-medium transition-colors focus-visible:outline-3 focus-visible:outline-offset-3";
 
-export default function TicketDetail({ ticket }: { ticket: OperatorTicket }) {
+export default function TicketDetail({ ticket, initialExpert = "" }: { ticket: OperatorTicket; initialExpert?: string }) {
   const [priority, setPriority] = useState<TicketPriority>(ticket.priority);
   const [status, setStatus] = useState(ticket.status);
-  const [expertDraft, setExpertDraft] = useState("");
-  const [assignedExpert, setAssignedExpert] = useState("");
+  const [assignedExpert] = useState(initialExpert);
   const [notice, setNotice] = useState("");
   const accent = colors[priority];
-
-  function saveExpert() {
-    if (!expertDraft) return;
-    setAssignedExpert(expertDraft);
-    setNotice(`Исполнитель назначен: ${expertDraft}`);
-  }
+  const assignHref = "/operator/queueNew.tsx/" + encodeURIComponent(ticket.track) + "/assign";
 
   return (
     <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_480px] max-[1249px]:grid-cols-1">
@@ -151,12 +139,8 @@ export default function TicketDetail({ ticket }: { ticket: OperatorTicket }) {
           <div className="mt-7">
             <h3 className="text-sm text-[#30384f]">Исполнитель</h3>
             <p className="mt-1.5 text-sm text-[#4562f0]">{assignedExpert || "Не назначен"}</p>
-            <select value={expertDraft} onChange={(event) => setExpertDraft(event.target.value)} aria-label="Выбрать исполнителя" className="mt-2 h-10 w-full rounded-[8px] border border-[#4562f0] bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-[#4562f0]/15">
-              <option value="">Выберите исполнителя</option>
-              {experts.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
-            <Button text="Изменить исполнителя" variant="secondary" size="small" disabled={!expertDraft} onClick={saveExpert} className="mt-2.5 h-9 w-full rounded-[8px] text-sm font-normal" />
-            <Button text="Добавить исполнителя" variant="primary" size="small" disabled={!expertDraft || Boolean(assignedExpert)} onClick={saveExpert} className="mt-2.5 h-9 w-full rounded-[8px] text-sm font-normal" />
+            <Button text="Изменить исполнителя" variant="secondary" size="small" link={assignHref} className="mt-2.5 h-9 w-full rounded-[8px] text-sm font-normal" />
+            <Button text="Добавить исполнителя" variant="primary" size="small" link={assignHref} disabled={Boolean(assignedExpert)} className="mt-2.5 h-9 w-full rounded-[8px] text-sm font-normal" />
           </div>
         </section>
 
