@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/shared/ui/button";
+import { getAppealRoute } from "@/features/appeal/routes";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -281,12 +282,12 @@ export default function MediaUpload({
             text="Отправить обращение"
             variant="secondary"
             size="default"
-            link={`/appeal/appeal2/appeal3/appeal4/mediaAdd/success?role=${role}`}
+            link={getAppealRoute("success", role)}
             className="h-[44px] w-[234px] rounded-[11px] px-5 text-[15px] font-normal"
           />
 
           <Link
-            href={`/appeal/appeal2/appeal3/appeal4?role=${role}`}
+            href={getAppealRoute("details", role)}
             className="absolute top-[43px] left-0 rounded-[3px] text-[15px] leading-[22px] text-[#9196a7] transition-colors hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-primary)] max-[699px]:static"
           >
             Вернуться назад

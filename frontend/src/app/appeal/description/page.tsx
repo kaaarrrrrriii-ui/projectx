@@ -1,6 +1,7 @@
 import Button from "@/shared/ui/button";
 import Link from "next/link";
 import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
+import { getAppealRoute } from "@/features/appeal/routes";
 import SiteHeader from "@/widgets/site-header/site-header";
 import Image from "next/image";
 
@@ -138,11 +139,11 @@ export default async function AppealDescription({
               text="Продолжить"
               variant="primary"
               size="default"
-              link={`/appeal/appeal2/appeal3/appeal4?role=${role.id}`}
+              link={getAppealRoute("details", role.id)}
             />
 
             <Link
-              href={`/appeal/appeal2?role=${role.id}`}
+              href={getAppealRoute("topics", role.id)}
               className="
                 ml-[25px]
                 self-start

@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/shared/ui/button";
+import { getAppealRoute } from "@/features/appeal/routes";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -159,16 +160,16 @@ export default function ClarifyingQuestions({
             className="relative mt-[17px] flex w-full flex-col items-center max-[699px]:mt-8"
             aria-label="Навигация по обращению"
           >
-            <Button text="Продолжить" variant="primary" size="default" link={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}`} />
+            <Button text="Продолжить" variant="primary" size="default" link={getAppealRoute("attachments", role)} />
             <Link
               className="mt-2.5 rounded-[3px] text-[14px] leading-5 font-normal text-[#9296a4] no-underline transition-colors duration-150 hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none"
-              href={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}`}
+              href={getAppealRoute("attachments", role)}
             >
               Пропустить
             </Link>
             <Link
               className="absolute bottom-0 left-0 rounded-[3px] text-[14px] leading-5 font-normal text-[#9296a4] no-underline transition-colors duration-150 hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none max-[699px]:static max-[699px]:mt-5"
-              href={`/appeal/appeal2/appeal3?role=${role}`}
+              href={getAppealRoute("description", role)}
             >
               Вернуться назад
             </Link>

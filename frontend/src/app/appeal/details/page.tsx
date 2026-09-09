@@ -1,6 +1,6 @@
 import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
+import ClarifyingQuestions from "@/features/appeal/clarifying-questions";
 import SiteHeader from "@/widgets/site-header/site-header";
-import ClarifyingQuestions from "./clarifying-questions";
 
 export default async function AppealDetails({ searchParams }: {
   searchParams: Promise<{ role?: string | string[] }>;

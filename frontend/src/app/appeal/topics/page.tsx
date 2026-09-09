@@ -4,6 +4,7 @@ import Input from "@/shared/ui/input";
 import Link from "next/link";
 import { appealCategories } from "@/features/appeal/categories";
 import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
+import { getAppealRoute } from "@/features/appeal/routes";
 import SiteHeader from "@/widgets/site-header/site-header";
 
 export default async function AppealTopics({
@@ -48,7 +49,7 @@ export default async function AppealTopics({
             id="topics-description"
             className="mt-[5px] text-[14px] leading-[22px] text-[#151515]"
           >
-            Можно выбрать одну или несколько тем, которые ближе всего к {formal ? "вашей" : "твоей"}
+            {formal ? "Можете" : "Можешь"} {" "} выбрать одну или несколько тем, которые ближе всего к {formal ? "вашей" : "твоей"}
             {" "}ситуации.
           </p>
 
@@ -136,11 +137,11 @@ export default async function AppealTopics({
                 text="Продолжить"
                 variant="primary"
                 size="default"
-                link={`/appeal/appeal2/appeal3?role=${role.id}`}
+                link={getAppealRoute("description", role.id)}
               />
 
               <Link
-                href={`/appeal/appeal2/appeal3?role=${role.id}`}
+                href={getAppealRoute("description", role.id)}
                 className="
                   rounded-sm
                   text-[14px]
@@ -159,7 +160,7 @@ export default async function AppealTopics({
             </div>
 
             <Link
-              href={`/appeal?role=${role.id}`}
+              href={getAppealRoute("role", role.id)}
               className="
                 rounded-sm
                 text-[14px]
