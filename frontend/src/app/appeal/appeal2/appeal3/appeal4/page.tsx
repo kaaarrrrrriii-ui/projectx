@@ -8,7 +8,7 @@ export default async function AppealDetails({ searchParams }: {
   const role = getAppealRole((await searchParams).role);
 
   return (
-    <main className="flex min-h-dvh min-w-[320px] flex-col bg-[#f7f9fe] text-[#11131a]">
+    <main className="flex min-h-dvh flex-col bg-[#f7f9fe] text-[#11131a]">
       <SiteHeader />
 
       <ClarifyingQuestions role={role.id} />
