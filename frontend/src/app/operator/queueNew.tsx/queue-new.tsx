@@ -4,6 +4,8 @@ import Button from "@/shared/ui/button";
 import Checkbox from "@/shared/ui/checkbox";
 import Input from "@/shared/ui/input";
 import { appealCategories } from "@/features/appeal/categories";
+import { operatorTickets, type OperatorTicket } from "@/features/operator/tickets";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type FilterKey = "priority" | "status" | "category" | "applicant";
@@ -12,15 +14,6 @@ type FilterOption = {
   value: string;
   label: string;
   color?: "red" | "yellow" | "green";
-};
-
-type Ticket = {
-  track: string;
-  status: string;
-  category: string;
-  applicant: string;
-  waiting: string;
-  priority: string;
 };
 
 const priorityOptions: FilterOption[] = [
@@ -57,33 +50,6 @@ const filterGroups: Record<FilterKey, FilterOption[]> = {
   category: categoryOptions,
   applicant: applicantOptions,
 };
-
-const initialTickets: Ticket[] = [
-  {
-    track: "ОТКЛ-2471-9382",
-    status: "new",
-    category: "кибербуллинг",
-    applicant: "schoolchild",
-    waiting: "12 минут",
-    priority: "urgent",
-  },
-  {
-    track: "ОТКЛ-5138-2047",
-    status: "assigned",
-    category: "конфликт с родителями",
-    applicant: "parent",
-    waiting: "34 минуты",
-    priority: "standard",
-  },
-  {
-    track: "ОТКЛ-9054-6713",
-    status: "clarification",
-    category: "давление и угрозы",
-    applicant: "student",
-    waiting: "1 час 08 минут",
-    priority: "low",
-  },
-];
 
 const filterLabels: Record<FilterKey, string> = {
   priority: "Выбор приоритетов",
@@ -200,7 +166,7 @@ export default function QueueNew() {
     category: [],
     applicant: [],
   });
-  const [ticketItems, setTicketItems] = useState<Ticket[]>(initialTickets);
+  const [ticketItems, setTicketItems] = useState<OperatorTicket[]>(operatorTickets);
   const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
 
   useEffect(() => {
@@ -384,7 +350,12 @@ export default function QueueNew() {
                           label={<span className="sr-only">Выбрать обращение {ticket.track}</span>}
                           className="shrink-0 [&>span:first-of-type]:h-[17px] [&>span:first-of-type]:w-[17px] [&>span:first-of-type]:rounded-[4px] [&>span:first-of-type]:border-[#4562f0] [&>span:last-child]:sr-only"
                         />
-                        <span>{ticket.track}</span>
+                        <Link
+                          href={`/operator/queueNew.tsx/${encodeURIComponent(ticket.track)}`}
+                          className="rounded-sm font-medium underline-offset-4 hover:text-[#4562f0] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
+                        >
+                          {ticket.track}
+                        </Link>
                       </div>
                     </td>
                     <td className="border-r border-[#4562f0] px-2 text-center">
