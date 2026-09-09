@@ -11,7 +11,22 @@
 body {
   width: 100%;
   min-height: 100dvh;
-  
+}
+
+.app-page-background {
+  background-color: var(--color-background);
+  background-image: url("/images/background.png");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+@media (max-width: 699px) {
+  .app-page-background {
+    background-attachment: scroll;
+    background-position: center top;
+  }
 }
 
 button, input, textarea, select {

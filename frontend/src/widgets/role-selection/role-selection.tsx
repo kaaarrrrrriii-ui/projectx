@@ -44,9 +44,9 @@ export default function RoleSelection({
         <fieldset
           aria-labelledby="role-heading"
           className="
-            grid w-full min-w-0
+            grid w-full max-w-[1080px] min-w-0
             grid-cols-3 items-stretch
-            gap-3 border-0 p-0
+            gap-5 border-0 p-0
 
             max-[699px]:grid-cols-1
             max-[699px]:gap-3.5

@@ -1,0 +1,158 @@
+"use client";
+
+import { useState } from "react";
+import Button from "@/shared/ui/button";
+import Input from "@/shared/ui/input";
+import AppealNavigation from "@/shared/ui/appeal-navigation";
+import TopicOption from "./topic-option";
+
+const topics = [
+  "травля и оскорбления",
+  "кибербуллинг",
+  "конфликт с родителями",
+  "конфликт с одноклассниками",
+  "конфликт с учителем",
+  "давление и угрозы",
+  "юридический вопрос",
+  "конфликт с сестрой/братом",
+  "я не знаю, как это назвать",
+] as const;
+
+function ActionIcon({ name }: { name: "edit" | "delete" }) {
+  if (name === "delete") {
+    return (
+      <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4" fill="none">
+        <path d="M3.5 5.5h13M8 3h4l1 2.5H7L8 3Zm-2 2.5.7 11h6.6l.7-11M8.5 8v5.5m3-5.5v5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" className="h-4 w-4" fill="none">
+      <path d="m4 13.8-.7 3 3-.7L15.4 7 13 4.6 4 13.8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="m11.8 5.8 2.4 2.4" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+export default function TopicSelection({ roleId, initialTopic = "" }: { roleId: string; initialTopic?: string }) {
+  const initialCustomTopic = initialTopic && !topics.includes(initialTopic as (typeof topics)[number]) ? initialTopic : "";
+  const [selectedTopic, setSelectedTopic] = useState(initialTopic);
+  const [customTopic, setCustomTopic] = useState(initialCustomTopic);
+  const [draft, setDraft] = useState(initialCustomTopic);
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState("");
+
+  function openEditor() {
+    setDraft(customTopic);
+    setError("");
+    setIsEditing(true);
+  }
+
+  function saveCustomTopic() {
+    const nextTopic = draft.trim().replace(/\s+/g, " ");
+    if (!nextTopic) {
+      setError("Напиши, как ты хочешь назвать тему");
+      return;
+    }
+
+    setCustomTopic(nextTopic);
+    setSelectedTopic(nextTopic);
+    setError("");
+    setIsEditing(false);
+  }
+
+  function deleteCustomTopic() {
+    if (selectedTopic === customTopic) setSelectedTopic("");
+    setCustomTopic("");
+    setDraft("");
+    setError("");
+    setIsEditing(false);
+  }
+
+  return (
+    <form action="/appeal/appeal2/appeal3" method="get" className="flex flex-1 flex-col">
+      <input type="hidden" name="role" value={roleId} />
+
+      <fieldset aria-describedby="topics-description" className="mt-10 min-w-0 sm:mt-[84px]">
+        <legend className="sr-only">Выбор одной темы обращения</legend>
+        <div className="grid grid-cols-1 gap-x-4 gap-y-[22px] sm:grid-cols-2 lg:grid-cols-3">
+          {topics.map((topic) => (
+            <TopicOption
+              key={topic}
+              value={topic}
+              label={topic}
+              checked={selectedTopic === topic}
+              onChange={setSelectedTopic}
+              required
+            />
+          ))}
+
+          {customTopic && !isEditing && (
+            <TopicOption
+              value={customTopic}
+              label={customTopic}
+              checked={selectedTopic === customTopic}
+              onChange={setSelectedTopic}
+              required
+            >
+              <span className="absolute inset-y-0 right-2 flex items-center gap-1">
+                <button type="button" onClick={openEditor} aria-label="Редактировать свою тему" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-[#4562f0] hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-[#4562f0]">
+                  <ActionIcon name="edit" />
+                </button>
+                <button type="button" onClick={deleteCustomTopic} aria-label="Удалить свою тему" className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-[#d92d20] hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-[#d92d20]">
+                  <ActionIcon name="delete" />
+                </button>
+              </span>
+            </TopicOption>
+          )}
+        </div>
+      </fieldset>
+
+      {isEditing ? (
+        <div className="mt-6 max-w-[620px] rounded-2xl border border-[#cbd3f5] bg-white/70 p-4">
+          <label htmlFor="custom-topic" className="mb-2 block text-sm font-medium text-[#000828]">
+            {customTopic ? "Измени свою тему" : "Добавь свою тему"}
+          </label>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Input
+              id="custom-topic"
+              type="text"
+              value={draft}
+              onChange={(event) => { setDraft(event.target.value); setError(""); }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  saveCustomTopic();
+                }
+              }}
+              maxLength={120}
+              autoFocus
+              placeholder="Например: трудно адаптироваться"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "custom-topic-error" : undefined}
+              className="flex-1 text-left"
+            />
+            <div className="flex gap-2">
+              <Button text="Сохранить" variant="primary" size="small" onClick={saveCustomTopic} />
+              <Button text="Отмена" variant="secondary" size="small" onClick={() => { setIsEditing(false); setError(""); }} />
+            </div>
+          </div>
+          {error && <p id="custom-topic-error" role="alert" className="mt-2 text-sm text-[#b42318]">{error}</p>}
+        </div>
+      ) : !customTopic ? (
+        <button type="button" onClick={openEditor} className="mt-[21px] flex w-fit cursor-pointer items-center gap-[14px] rounded-sm py-1 text-sm text-[#151515] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4562f0]">
+          <span aria-hidden="true" className="text-[28px] leading-5 font-extralight">+</span>
+          Добавить свою тему
+        </button>
+      ) : null}
+
+      <AppealNavigation
+        backHref={`/appeal?role=${roleId}`}
+        skipHref={`/appeal/appeal2/appeal3?role=${roleId}`}
+        primaryText="Продолжить"
+        primaryType="submit"
+      />
+    </form>
+  );
+}

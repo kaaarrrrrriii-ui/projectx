@@ -1,21 +1,31 @@
+"use client";
+
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import SiteHeader from "@/widgets/site-header/site-header";
+import { FormEvent, useState } from "react";
 
-export default async function Status() {
-  const trackNumber: string = "сиксевен-6767-6767";
-  const status: string = "послан нахуй";
-  const sentDate: string = "09/09/09";
-  const category: string = " кибербулинг олега";
+export default function Status() {
+  const [trackNumber, setTrackNumber] = useState("");
+  const [checkedTrackNumber, setCheckedTrackNumber] = useState("");
+  const status = "Ответ специалиста готов";
+  const sentDate = "09.09.2026";
+  const category = "Кибербуллинг";
+
+  function checkStatus(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const normalizedTrackNumber = trackNumber.trim();
+    if (!normalizedTrackNumber) return;
+    setCheckedTrackNumber(normalizedTrackNumber);
+  }
 
   return (
-    <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
+    <main className="app-page-background flex min-h-dvh flex-col">
       <SiteHeader />
 
       <section
         className="
           flex flex-1 flex-col justify-center
-          bg-[radial-gradient(ellipse_at_0%_30%,#eef3ff_0%,transparent_32%),radial-gradient(ellipse_at_100%_85%,#eef2ff_0%,transparent_38%)]
           px-5 py-2
           sm:px-[5%]
         "
@@ -46,6 +56,7 @@ export default async function Status() {
             </h1>
 
             <form
+              onSubmit={checkStatus}
               className="
                 mt-4
                 grid grid-cols-1
@@ -62,6 +73,11 @@ export default async function Status() {
                 <Input
                   name="trackCode"
                   type="text"
+                  value={trackNumber}
+                  onChange={(event) => {
+                    setTrackNumber(event.target.value);
+                    setCheckedTrackNumber("");
+                  }}
                   placeholder="Введите номер обращения"
                   className="!w-full"
                 />
@@ -72,13 +88,15 @@ export default async function Status() {
                 type="submit"
                 variant="primary"
                 size="small"
+                disabled={!trackNumber.trim()}
                 className="w-full"
               />
             </form>
           </section>
 
-          <section
+          {checkedTrackNumber && <section
             aria-labelledby="appeal-status-heading"
+            aria-live="polite"
             className="
               mt-4
               rounded-[12px]
@@ -110,7 +128,7 @@ export default async function Status() {
               </h2>
 
               <span className="text-[20px] font-medium text-[#4562F0]">
-                {trackNumber}
+                {checkedTrackNumber}
               </span>
             </header>
 
@@ -169,7 +187,7 @@ export default async function Status() {
                 className="w-full"
               />
             </div>
-          </section>
+          </section>}
 
           <div className="flex justify-center py-4">
             <Button

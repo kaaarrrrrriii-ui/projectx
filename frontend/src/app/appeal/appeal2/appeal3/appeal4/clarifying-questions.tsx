@@ -1,7 +1,6 @@
 "use client";
 
-import Button from "@/shared/ui/button";
-import Link from "next/link";
+import AppealNavigation from "@/shared/ui/appeal-navigation";
 import { useState } from "react";
 
 type QuestionKey = "place" | "duration" | "askedForHelp";
@@ -30,7 +29,7 @@ const questions: Question[] = [
   },
 ];
 
-export default function ClarifyingQuestions({ role }: { role: string }) {
+export default function ClarifyingQuestions({ role, topic = "" }: { role: string; topic?: string }) {
   const [answers, setAnswers] = useState<Record<QuestionKey, string>>({
     place: "",
     duration: "",
@@ -41,6 +40,7 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
     duration: false,
     askedForHelp: false,
   });
+  const topicQuery = topic ? `&topic=${encodeURIComponent(topic)}` : "";
 
   const setAnswer = (question: QuestionKey, answer: string) => {
     setAnswers((current) => ({ ...current, [question]: answer }));
@@ -58,10 +58,10 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
 
   return (
     <section
-      className="flex-1 bg-[#f7f9fe] px-5 pt-8 pb-8 sm:px-[4.8%] sm:pt-[55px] sm:pb-[39px]"
+      className="flex flex-1 flex-col px-5 pt-8 pb-7 sm:px-[4.8%] sm:pt-[55px] sm:pb-[38px]"
       aria-labelledby="details-heading"
     >
-      <div className="mx-auto w-full max-w-[1440px]">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
         <header>
           <h1
             id="details-heading"
@@ -74,7 +74,7 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
           </p>
         </header>
 
-        <form className="mt-5">
+        <form className="mt-5 flex flex-1 flex-col">
           <div className="w-full max-w-[772px]">
             {questions.map((question, questionIndex) => {
               const isSkipped = skipped[question.key];
@@ -143,24 +143,12 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
             })}
           </div>
 
-          <nav
-            className="relative mt-[17px] flex w-full flex-col items-center max-[699px]:mt-8"
-            aria-label="Навигация по обращению"
-          >
-            <Button text="Продолжить" variant="primary" size="default" link={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}`} />
-            <Link
-              className="mt-2.5 rounded-[3px] text-[14px] leading-5 font-normal text-[#9296a4] no-underline transition-colors duration-150 hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none"
-              href="/"
-            >
-              Пропустить
-            </Link>
-            <Link
-              className="absolute bottom-0 left-0 rounded-[3px] text-[14px] leading-5 font-normal text-[#9296a4] no-underline transition-colors duration-150 hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none max-[699px]:static max-[699px]:mt-5"
-              href={`/appeal/appeal2/appeal3?role=${role}`}
-            >
-              Вернуться назад
-            </Link>
-          </nav>
+          <AppealNavigation
+            backHref={`/appeal/appeal2/appeal3?role=${role}${topicQuery}`}
+            skipHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}${topicQuery}`}
+            primaryText="Продолжить"
+            primaryHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}${topicQuery}`}
+          />
         </form>
       </div>
     </section>

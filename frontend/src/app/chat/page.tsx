@@ -4,12 +4,12 @@ import SiteHeader from "@/widgets/site-header/site-header";
 
 export default function ChatPage() {
   return (
-    <main className="flex min-h-dvh min-w-[320px] flex-col bg-[var(--color-background)] text-[var(--color-text)]">
+    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col text-[var(--color-text)]">
       <SiteHeader />
 
       <section
         aria-labelledby="specialist-answer-heading"
-        className="flex flex-1 bg-[radial-gradient(ellipse_at_0%_35%,rgba(224,232,255,0.9)_0%,transparent_32%),radial-gradient(ellipse_at_100%_65%,rgba(231,237,255,0.8)_0%,transparent_30%)]"
+        className="flex flex-1"
       >
         <h1 id="specialist-answer-heading" className="sr-only">
           Ответ специалиста

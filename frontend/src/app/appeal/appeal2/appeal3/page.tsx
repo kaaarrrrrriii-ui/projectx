@@ -1,5 +1,4 @@
-import Button from "@/shared/ui/button";
-import Link from "next/link";
+import AppealNavigation from "@/shared/ui/appeal-navigation";
 import { getAppealRole } from "@/features/appeal/roles";
 import SiteHeader from "@/widgets/site-header/site-header";
 import Image from "next/image";
@@ -7,27 +6,28 @@ import Image from "next/image";
 export default async function AppealDescription({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string | string[] }>;
+  searchParams: Promise<{ role?: string | string[]; topic?: string | string[] }>;
 }) {
-  const role = getAppealRole((await searchParams).role);
+  const params = await searchParams;
+  const role = getAppealRole(params.role);
+  const topic = typeof params.topic === "string" ? params.topic : "";
+  const topicQuery = topic ? `&topic=${encodeURIComponent(topic)}` : "";
 
   return (
-    <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
+    <main className="app-page-background flex min-h-dvh flex-col">
       <SiteHeader />
 
       <section
         aria-labelledby="description-heading"
         className="
-          flex-1
-          bg-[url('/images/appeal-description-bg.svg')]
-          bg-cover bg-center bg-no-repeat
+          flex flex-1 flex-col
           px-[4.88%] pt-14 pb-[38px]
 
           max-[699px]:px-5
           max-[699px]:py-8
         "
       >
-        <div className="mx-auto w-full max-w-[1440px]">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
           <h1
             id="description-heading"
             className="
@@ -124,41 +124,12 @@ export default async function AppealDescription({
             </p>
           </aside>
 
-          <nav
-            aria-label="Навигация по обращению"
-            className="mt-[26px] flex flex-col items-center gap-[13px]"
-          >
-            <Button
-              text="Продолжить"
-              variant="primary"
-              size="default"
-              link={`/appeal/appeal2/appeal3/appeal4?role=${role.id}`}
-            />
-
-            <Link
-              href={`/appeal/appeal2?role=${role.id}`}
-              className="
-                ml-[25px]
-                self-start
-                rounded-[3px]
-
-                text-[15px]
-                leading-[22px]
-                text-[#85899b]
-
-                hover:text-[#4562F0]
-
-                focus-visible:outline-2
-                focus-visible:outline-offset-4
-                focus-visible:outline-[#4562F0]
-
-                max-[699px]:ml-0
-                max-[699px]:self-center
-              "
-            >
-              Вернуться назад
-            </Link>
-          </nav>
+          <AppealNavigation
+            backHref={`/appeal/appeal2?role=${role.id}${topicQuery}`}
+            skipHref={`/appeal/appeal2/appeal3/appeal4?role=${role.id}${topicQuery}`}
+            primaryText="Продолжить"
+            primaryHref={`/appeal/appeal2/appeal3/appeal4?role=${role.id}${topicQuery}`}
+          />
         </div>
       </section>
     </main>

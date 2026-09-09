@@ -38,7 +38,6 @@ export default function SubmissionSuccess({
       aria-labelledby="success-heading"
       className="
         relative isolate flex flex-1 overflow-hidden
-        bg-[radial-gradient(ellipse_at_0%_12%,rgba(222,230,255,0.9)_0%,transparent_19%),radial-gradient(ellipse_at_100%_19%,rgba(247,243,238,0.92)_0%,transparent_24%),radial-gradient(ellipse_at_13%_84%,rgba(227,234,255,0.75)_0%,transparent_25%),radial-gradient(ellipse_at_93%_84%,rgba(232,237,255,0.82)_0%,transparent_28%)]
         px-[4.6vw] pt-[58px] pb-[18px]
 
         max-[699px]:overflow-visible

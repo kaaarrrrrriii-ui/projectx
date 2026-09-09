@@ -3,20 +3,26 @@ import Link from "next/link";
 
 export default function SiteHeader() {
   return (
-    <header className="border-b border-[#a9b3ff] bg-[var(--color-surface)]">
+    <header
+      className="
+        relative z-20 box-border h-[100px] w-full
+        rounded-b-[30px] border border-[#4562f0] bg-white
+        px-5 pt-[30px] pb-[15px]
+
+        max-[699px]:h-[82px]
+        max-[699px]:rounded-b-[24px]
+        max-[699px]:px-5
+        max-[699px]:pt-4
+        max-[699px]:pb-2.5
+      "
+    >
       <div
         className="
-          mx-auto flex min-h-16 max-w-[1600px]
-          items-center justify-between gap-8
-          px-3 py-2.5
+          flex h-full w-full items-center justify-between gap-[50px]
 
-          max-[699px]:min-h-[72px]
           max-[699px]:gap-5
-          max-[699px]:px-5
-          max-[699px]:py-3
 
           max-[379px]:gap-3
-          max-[379px]:px-4
         "
       >
         <Link
