@@ -18,7 +18,7 @@ export default async function AppealTopics({ searchParams }: {
         <div className="">
             <div className=""></div>
         </div>
-        <Button text="Продолжить" fill link="/" />
+        <Button text="Продолжить" fill link="/appeal/appeal2/appeal3" />
       </div>
     </main>
   );
