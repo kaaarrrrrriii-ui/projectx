@@ -31,7 +31,7 @@
   line-height: 1.25;
 }
 .copy p {
-  margin-top: 8px;
+  margin-top: var(--info-card-copy-gap, 8px);
   color: var(--color-text-muted);
   font-size: var(--info-card-text-size, 15px);
   line-height: 1.45;

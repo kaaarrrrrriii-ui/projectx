@@ -2,7 +2,6 @@ import Button from "@/shared/ui/button";
 import Icon, { type IconName } from "@/shared/ui/icon";
 import InfoCard from "@/shared/ui/info-card";
 import PageHeading from "@/shared/ui/page-heading";
-import Surface from "@/shared/ui/surface";
 import styles from "./home-information.module.css";
 
 const information: { title: string; description: string; icon: IconName }[] = [
@@ -37,12 +36,12 @@ function HomeActions() {
 
 export default function HomeInformation() {
   return (
-    <Surface as="section" labelledBy="important-heading" className={styles.panel}>
+    <section aria-labelledby="important-heading" className={styles.panel}>
       <PageHeading id="important-heading" title="Что важно знать?" />
       <div className={styles.cards}>
         {information.map(({ icon, ...card }) => <InfoCard key={icon} {...card} icon={<Icon name={icon} />} />)}
       </div>
       <HomeActions />
-    </Surface>
+    </section>
   );
 }
