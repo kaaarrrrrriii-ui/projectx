@@ -162,7 +162,7 @@ export default async function Status() {
               />
 
               <Button
-                text="Перейти в чат с специалистом"
+                text="Перейти к ответу специалиста"
                 variant="primary"
                 size="default"
                 link="/chat"

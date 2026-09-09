@@ -13,22 +13,7 @@ export default async function AppealDescription({
 
   return (
     <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
-      <div className="
-        [&_header>div]:min-h-[89px]
-        [&_header>div]:px-[19px]
-        [&_header>div]:py-4
-        [&_header_p]:text-[15px]
-        [&_header_p]:font-medium
-        [&_header_p]:whitespace-normal
-
-        max-[699px]:[&_header>div]:min-h-[72px]
-        max-[699px]:[&_header>div]:gap-4
-        max-[699px]:[&_header>div]:px-5
-        max-[699px]:[&_header>div]:py-3
-        max-[699px]:[&_header_p]:text-[11px]
-      ">
-        <SiteHeader />
-      </div>
+      <SiteHeader />
 
       <section
         aria-labelledby="description-heading"

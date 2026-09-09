@@ -45,16 +45,14 @@ export default function SiteHeader() {
 
         <p
           className="
-            flex-1 text-right
+            min-w-0 flex-1 text-right
             text-[clamp(14px,1.4vw,18px)]
             font-semibold
             leading-[1.5]
             text-[var(--color-primary)]
-            whitespace-nowrap
 
             max-[699px]:max-w-[260px]
             max-[699px]:text-xs
-            max-[699px]:whitespace-normal
 
             max-[379px]:text-[9px]
           "
