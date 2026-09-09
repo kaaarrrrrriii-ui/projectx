@@ -9,8 +9,6 @@ import (
 	"image/png"
 	"io"
 	"os"
-
-	"example.com/german/backend/internal/models"
 )
 
 const (
@@ -27,6 +25,23 @@ var (
 	ErrImageTooManyPixels  = errors.New("image dimensions exceed the limit")
 	ErrImageOutputTooLarge = errors.New("sanitized image is too large")
 )
+
+type ImageFormat string
+
+const (
+	ImageFormatJPEG ImageFormat = "jpeg"
+	ImageFormatPNG  ImageFormat = "png"
+)
+
+type SanitizedImage struct {
+	Format            ImageFormat
+	MIMEType          string
+	Extension         string
+	Width             int
+	Height            int
+	OriginalSizeBytes int64
+	SizeBytes         int64
+}
 
 type ImageProcessorConfig struct {
 	MaxInputBytes  int64
@@ -72,85 +87,85 @@ func NewImageProcessor(config ImageProcessorConfig) (*ImageProcessor, error) {
 
 // Sanitize writes to dst only after a complete sanitized image has been
 // produced. Callers that persist dst must still use an atomic storage write.
-func (p *ImageProcessor) Sanitize(ctx context.Context, src io.Reader, dst io.Writer) (models.SanitizedImage, error) {
+func (p *ImageProcessor) Sanitize(ctx context.Context, src io.Reader, dst io.Writer) (SanitizedImage, error) {
 	input, err := secureTempFile("attachment-source-*")
 	if err != nil {
-		return models.SanitizedImage{}, fmt.Errorf("create image input buffer: %w", err)
+		return SanitizedImage{}, fmt.Errorf("create image input buffer: %w", err)
 	}
 	defer removeTempFile(input)
 
 	written, err := copyWithContext(ctx, input, io.LimitReader(src, p.config.MaxInputBytes+1))
 	if err != nil {
-		return models.SanitizedImage{}, fmt.Errorf("buffer image input: %w", err)
+		return SanitizedImage{}, fmt.Errorf("buffer image input: %w", err)
 	}
 	if written > p.config.MaxInputBytes {
-		return models.SanitizedImage{}, ErrImageInputTooLarge
+		return SanitizedImage{}, ErrImageInputTooLarge
 	}
 	if _, err := input.Seek(0, io.SeekStart); err != nil {
-		return models.SanitizedImage{}, fmt.Errorf("rewind image input: %w", err)
+		return SanitizedImage{}, fmt.Errorf("rewind image input: %w", err)
 	}
 
 	if err := p.acquire(ctx); err != nil {
-		return models.SanitizedImage{}, err
+		return SanitizedImage{}, err
 	}
 	defer p.release()
 
 	format, err := detectImageFormat(input)
 	if err != nil {
-		return models.SanitizedImage{}, err
+		return SanitizedImage{}, err
 	}
 	if _, err := input.Seek(0, io.SeekStart); err != nil {
-		return models.SanitizedImage{}, fmt.Errorf("rewind image input: %w", err)
+		return SanitizedImage{}, fmt.Errorf("rewind image input: %w", err)
 	}
 
 	width, height, err := decodeImageConfig(input, format)
 	if err != nil {
-		return models.SanitizedImage{}, ErrInvalidImage
+		return SanitizedImage{}, ErrInvalidImage
 	}
 	if width <= 0 || height <= 0 || uint64(width)*uint64(height) > p.config.MaxPixels {
-		return models.SanitizedImage{}, ErrImageTooManyPixels
+		return SanitizedImage{}, ErrImageTooManyPixels
 	}
 	if _, err := input.Seek(0, io.SeekStart); err != nil {
-		return models.SanitizedImage{}, fmt.Errorf("rewind image input: %w", err)
+		return SanitizedImage{}, fmt.Errorf("rewind image input: %w", err)
 	}
 
 	decoded, err := decodeImage(input, format)
 	if err != nil {
-		return models.SanitizedImage{}, ErrInvalidImage
+		return SanitizedImage{}, ErrInvalidImage
 	}
 
 	output, err := secureTempFile("attachment-sanitized-*")
 	if err != nil {
-		return models.SanitizedImage{}, fmt.Errorf("create image output buffer: %w", err)
+		return SanitizedImage{}, fmt.Errorf("create image output buffer: %w", err)
 	}
 	defer removeTempFile(output)
 
 	limited := &limitWriter{writer: output, remaining: p.config.MaxOutputBytes}
 	if err := encodeImage(limited, decoded, format, p.config.JPEGQuality); err != nil {
 		if errors.Is(err, ErrImageOutputTooLarge) {
-			return models.SanitizedImage{}, err
+			return SanitizedImage{}, err
 		}
-		return models.SanitizedImage{}, fmt.Errorf("encode sanitized image: %w", err)
+		return SanitizedImage{}, fmt.Errorf("encode sanitized image: %w", err)
 	}
 	size, err := output.Seek(0, io.SeekCurrent)
 	if err != nil {
-		return models.SanitizedImage{}, fmt.Errorf("measure sanitized image: %w", err)
+		return SanitizedImage{}, fmt.Errorf("measure sanitized image: %w", err)
 	}
 	if _, err := output.Seek(0, io.SeekStart); err != nil {
-		return models.SanitizedImage{}, fmt.Errorf("rewind sanitized image: %w", err)
+		return SanitizedImage{}, fmt.Errorf("rewind sanitized image: %w", err)
 	}
 	if _, err := copyWithContext(ctx, dst, output); err != nil {
-		return models.SanitizedImage{}, fmt.Errorf("write sanitized image: %w", err)
+		return SanitizedImage{}, fmt.Errorf("write sanitized image: %w", err)
 	}
 
-	result := models.SanitizedImage{
+	result := SanitizedImage{
 		Format:            format,
 		Width:             width,
 		Height:            height,
 		OriginalSizeBytes: written,
 		SizeBytes:         size,
 	}
-	if format == models.ImageFormatJPEG {
+	if format == ImageFormatJPEG {
 		result.MIMEType = "image/jpeg"
 		result.Extension = ".jpg"
 	} else {
@@ -174,7 +189,7 @@ func (p *ImageProcessor) release() {
 	<-p.semaphore
 }
 
-func detectImageFormat(input io.Reader) (models.ImageFormat, error) {
+func detectImageFormat(input io.Reader) (ImageFormat, error) {
 	header := make([]byte, 8)
 	n, err := io.ReadFull(input, header)
 	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
@@ -183,16 +198,16 @@ func detectImageFormat(input io.Reader) (models.ImageFormat, error) {
 	header = header[:n]
 
 	if len(header) >= 3 && header[0] == 0xff && header[1] == 0xd8 && header[2] == 0xff {
-		return models.ImageFormatJPEG, nil
+		return ImageFormatJPEG, nil
 	}
 	if len(header) == 8 && string(header) == "\x89PNG\r\n\x1a\n" {
-		return models.ImageFormatPNG, nil
+		return ImageFormatPNG, nil
 	}
 	return "", ErrUnsupportedImage
 }
 
-func decodeImageConfig(input io.Reader, format models.ImageFormat) (int, int, error) {
-	if format == models.ImageFormatJPEG {
+func decodeImageConfig(input io.Reader, format ImageFormat) (int, int, error) {
+	if format == ImageFormatJPEG {
 		config, err := jpeg.DecodeConfig(input)
 		return config.Width, config.Height, err
 	}
@@ -200,15 +215,15 @@ func decodeImageConfig(input io.Reader, format models.ImageFormat) (int, int, er
 	return config.Width, config.Height, err
 }
 
-func decodeImage(input io.Reader, format models.ImageFormat) (image.Image, error) {
-	if format == models.ImageFormatJPEG {
+func decodeImage(input io.Reader, format ImageFormat) (image.Image, error) {
+	if format == ImageFormatJPEG {
 		return jpeg.Decode(input)
 	}
 	return png.Decode(input)
 }
 
-func encodeImage(dst io.Writer, src image.Image, format models.ImageFormat, jpegQuality int) error {
-	if format == models.ImageFormatJPEG {
+func encodeImage(dst io.Writer, src image.Image, format ImageFormat, jpegQuality int) error {
+	if format == ImageFormatJPEG {
 		return jpeg.Encode(dst, src, &jpeg.Options{Quality: jpegQuality})
 	}
 	return png.Encode(dst, src)

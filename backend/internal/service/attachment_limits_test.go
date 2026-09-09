@@ -3,19 +3,17 @@ package service
 import (
 	"errors"
 	"testing"
-
-	"example.com/german/backend/internal/models"
 )
 
 func TestValidateAttachmentBatchAcceptsExactLimits(t *testing.T) {
 	t.Parallel()
 
 	limits := DefaultAttachmentLimits()
-	existing := []models.AttachmentCandidate{
+	existing := []AttachmentCandidate{
 		{OriginalSizeBytes: 2 * 1024 * 1024},
 		{OriginalSizeBytes: 2 * 1024 * 1024},
 	}
-	incoming := []models.AttachmentCandidate{
+	incoming := []AttachmentCandidate{
 		{OriginalSizeBytes: 2 * 1024 * 1024},
 		{OriginalSizeBytes: 2 * 1024 * 1024},
 		{OriginalSizeBytes: 2 * 1024 * 1024},
@@ -29,7 +27,7 @@ func TestValidateAttachmentBatchAcceptsExactLimits(t *testing.T) {
 func TestValidateAttachmentBatchRejectsSixFiles(t *testing.T) {
 	t.Parallel()
 
-	files := make([]models.AttachmentCandidate, 6)
+	files := make([]AttachmentCandidate, 6)
 	if err := ValidateAttachmentBatch(DefaultAttachmentLimits(), nil, files); !errors.Is(err, ErrTooManyAttachments) {
 		t.Fatalf("ValidateAttachmentBatch() error = %v, want %v", err, ErrTooManyAttachments)
 	}
@@ -38,7 +36,7 @@ func TestValidateAttachmentBatchRejectsSixFiles(t *testing.T) {
 func TestValidateAttachmentBatchRejectsTotalOverLimit(t *testing.T) {
 	t.Parallel()
 
-	files := []models.AttachmentCandidate{{OriginalSizeBytes: DefaultMaxBatchBytes + 1}}
+	files := []AttachmentCandidate{{OriginalSizeBytes: DefaultMaxBatchBytes + 1}}
 	if err := ValidateAttachmentBatch(DefaultAttachmentLimits(), nil, files); !errors.Is(err, ErrAttachmentBatchTooLarge) {
 		t.Fatalf("ValidateAttachmentBatch() error = %v, want %v", err, ErrAttachmentBatchTooLarge)
 	}
@@ -47,7 +45,7 @@ func TestValidateAttachmentBatchRejectsTotalOverLimit(t *testing.T) {
 func TestValidateAttachmentBatchRejectsNegativeSize(t *testing.T) {
 	t.Parallel()
 
-	files := []models.AttachmentCandidate{{OriginalSizeBytes: -1}}
+	files := []AttachmentCandidate{{OriginalSizeBytes: -1}}
 	if err := ValidateAttachmentBatch(DefaultAttachmentLimits(), nil, files); !errors.Is(err, ErrInvalidAttachmentSize) {
 		t.Fatalf("ValidateAttachmentBatch() error = %v, want %v", err, ErrInvalidAttachmentSize)
 	}

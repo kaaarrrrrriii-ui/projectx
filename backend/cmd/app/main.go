@@ -11,7 +11,6 @@ import (
 	"example.com/german/backend/internal/handlers"
 	"example.com/german/backend/internal/service"
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -29,9 +28,11 @@ func main() {
 
 	healthService := service.NewHealthService()
 	healthHandler := handlers.NewHealthHandler(healthService)
+	readinessHandler := handlers.NewReadinessHandler(db)
 
 	mux := http.NewServeMux()
 	healthHandler.RegisterRoutes(mux)
+	readinessHandler.RegisterRoutes(mux)
 
 	server := &http.Server{
 		Addr:              ":" + port,

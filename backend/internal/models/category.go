@@ -1,10 +1,7 @@
 package models
 
-import "github.com/google/uuid"
-
+// Category maps to the categories table.
 type Category struct {
-	ID     uuid.UUID `json:"id"`
-	Name   string    `json:"name"`
-	Slug   string    `json:"slug"`
-	Active bool      `json:"active"`
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
 }
