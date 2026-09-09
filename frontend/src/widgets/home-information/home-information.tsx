@@ -48,8 +48,8 @@ function HomeActions() {
           max-[419px]:flex-col
         "
       >
-        <Button text="Подать обращение" fill link="/appeal" />
-        <Button text="Проверить статус" link="/status" />
+        <Button text="Подать обращение" fill link="/appeal"  padLarge />
+        <Button text="Проверить статус" link="/status" padLarge/>
       </div>
 
       <span
