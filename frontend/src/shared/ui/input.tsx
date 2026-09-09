@@ -15,6 +15,7 @@ export default function Input({
         box-border
         h-[42px]
         w-[279px]
+        max-w-full
         rounded-[15px]
         border
         border-[#000828]

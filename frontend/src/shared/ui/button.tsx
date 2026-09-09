@@ -109,13 +109,18 @@ export default function Button({
 
           disabled:border-[#4562F0]/40
           disabled:bg-transparent
-          disabled:text-[#4562F0]/40
+    disabled:text-[#4562F0]/40
         `;
 
   const classes = `
     ${baseClasses}
     ${sizeClasses}
     ${variantClasses}
+    max-[419px]:h-auto
+    max-[419px]:min-h-12
+    max-[419px]:whitespace-normal
+    max-[419px]:text-center
+    max-[419px]:leading-[1.25]
     ${className}
   `;
 

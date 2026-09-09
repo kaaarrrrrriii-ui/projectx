@@ -261,7 +261,7 @@ export default function MediaUpload({ role }: { role: string }) {
             text="Отправить обращение"
             variant="secondary"
             size="default"
-            link={`/status?role=${role}`}
+            link={`/appeal/appeal2/appeal3/appeal4/mediaAdd/success?role=${role}`}
             className="h-[44px] w-[234px] rounded-[11px] px-5 text-[15px] font-normal"
           />
 

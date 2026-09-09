@@ -58,14 +58,14 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
 
   return (
     <section
-      className="flex-1 bg-[#f7f9fe] px-[61px] pt-[55px] pb-[39px]"
+      className="flex-1 bg-[#f7f9fe] px-5 pt-8 pb-8 sm:px-[4.8%] sm:pt-[55px] sm:pb-[39px]"
       aria-labelledby="details-heading"
     >
       <div className="mx-auto w-full max-w-[1440px]">
         <header>
           <h1
             id="details-heading"
-            className="m-0 text-[34px] leading-[41px] font-extrabold tracking-[-0.035em] text-[#4562f0]"
+            className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.035em] text-[#4562f0] sm:text-[34px] sm:leading-[41px]"
           >
             Пару уточнений
           </h1>
@@ -75,7 +75,7 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
         </header>
 
         <form className="mt-5">
-          <div className="w-[772px]">
+          <div className="w-full max-w-[772px]">
             {questions.map((question, questionIndex) => {
               const isSkipped = skipped[question.key];
 
@@ -93,9 +93,7 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
                   </legend>
 
                   <div
-                    className={`mt-[9px] grid grid-cols-[repeat(3,246px)] ${
-                      questionIndex === 0 ? "w-[772px] gap-x-[17px]" : "w-[755px] gap-x-[8.5px]"
-                    }`}
+                    className="mt-[9px] grid w-full grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-x-[10px]"
                   >
                     {question.options.map((option, optionIndex) => {
                       const inputId = `${question.key}-${optionIndex}`;
@@ -112,7 +110,7 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
                             type="radio"
                             value={option}
                           />
-                          <span className="flex h-[38px] w-[246px] items-center justify-center rounded-[14px] border border-[#18223f] bg-white/20 text-[14px] leading-5 font-normal text-[#18213e] transition-[border-color,background-color,color] duration-150 hover:border-[#4562f0] hover:bg-[#eef1ff] peer-checked:border-[#4562f0] peer-checked:bg-[#4562f0] peer-checked:text-white peer-disabled:cursor-default peer-disabled:border-[#b9becb] peer-disabled:bg-transparent peer-disabled:text-[#b8bbc5] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-[#4562f0] motion-reduce:transition-none">
+                          <span className="flex min-h-[38px] w-full items-center justify-center rounded-[14px] border border-[#18223f] bg-white/20 px-3 py-2 text-center text-[14px] leading-5 font-normal text-[#18213e] transition-[border-color,background-color,color] duration-150 hover:border-[#4562f0] hover:bg-[#eef1ff] peer-checked:border-[#4562f0] peer-checked:bg-[#4562f0] peer-checked:text-white peer-disabled:cursor-default peer-disabled:border-[#b9becb] peer-disabled:bg-transparent peer-disabled:text-[#b8bbc5] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-[#4562f0] motion-reduce:transition-none">
                             {option}
                           </span>
                         </label>
@@ -146,7 +144,7 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
           </div>
 
           <nav
-            className="relative mt-[17px] flex w-full flex-col items-center"
+            className="relative mt-[17px] flex w-full flex-col items-center max-[699px]:mt-8"
             aria-label="Навигация по обращению"
           >
             <Button text="Продолжить" variant="primary" size="default" link={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}`} />
@@ -157,7 +155,7 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
               Пропустить
             </Link>
             <Link
-              className="absolute bottom-0 left-0 rounded-[3px] text-[14px] leading-5 font-normal text-[#9296a4] no-underline transition-colors duration-150 hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none"
+              className="absolute bottom-0 left-0 rounded-[3px] text-[14px] leading-5 font-normal text-[#9296a4] no-underline transition-colors duration-150 hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none max-[699px]:static max-[699px]:mt-5"
               href={`/appeal/appeal2/appeal3?role=${role}`}
             >
               Вернуться назад

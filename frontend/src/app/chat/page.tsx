@@ -1,7 +1,80 @@
+import ChatWorkspace from "@/features/chat/chat-workspace";
+import SpecialistMessage from "@/features/chat/specialist-message";
+import SiteHeader from "@/widgets/site-header/site-header";
+
 export default function ChatPage() {
   return (
-    <main className="min-h-dvh bg-[var(--color-background)]">
-      <h1>Чат со специалистом</h1>
+    <main className="flex min-h-dvh min-w-[320px] flex-col bg-[var(--color-background)] text-[var(--color-text)]">
+      <SiteHeader />
+
+      <section
+        aria-labelledby="specialist-answer-heading"
+        className="flex flex-1 bg-[radial-gradient(ellipse_at_0%_35%,rgba(224,232,255,0.9)_0%,transparent_32%),radial-gradient(ellipse_at_100%_65%,rgba(231,237,255,0.8)_0%,transparent_30%)]"
+      >
+        <h1 id="specialist-answer-heading" className="sr-only">
+          Ответ специалиста
+        </h1>
+
+        <ChatWorkspace>
+          <SpecialistMessage>
+            <p>Здравствуйте.</p>
+            <p>
+              Спасибо, что поделился этой историей. Поверь, то, что ты
+              чувствуешь — страх, злость, растерянность или даже стыд —
+              абсолютно нормально в такой ситуации. Кибербуллинг ранит не
+              меньше, чем оскорбления вживую, а иногда даже больнее, потому что
+              кажется, что от него не скрыться.
+            </p>
+            <p>
+              Я внимательно прочитал твой рассказ. Хочу, чтобы ты знал: ты не
+              виноват в том, что происходит. Никто не имеет права унижать тебя,
+              угрожать или высмеивать, даже через экран. Это не «шутки» и не
+              «просто слова» — это агрессия, и ты имеешь право защищать себя.
+            </p>
+            <p>Вот что можно сделать прямо сейчас, шаг за шагом:</p>
+
+            <ol className="list-decimal space-y-1.5 pl-6 marker:font-medium">
+              <li>
+                <span className="font-medium">Не отвечай агрессией на агрессию.</span>
+                <p>
+                  Обидчики часто ждут твоей бурной реакции — она их
+                  подпитывает. Постарайся не вступать в переписку, не
+                  оправдываться и не угрожать в ответ. Это трудно, но так ты
+                  лишаешь их главного оружия.
+                </p>
+              </li>
+              <li>
+                <span className="font-medium">Сохрани доказательства.</span>
+                <p>
+                  Сделай скриншоты всех сообщений, комментариев и угроз. Они
+                  пригодятся, если ты решишь обратиться к взрослым или в
+                  правоохранительные органы. Эти скриншоты — твоя страховка.
+                </p>
+              </li>
+              <li>
+                <span className="font-medium">Заблокируй обидчика и настрой приватность.</span>
+                <p>
+                  В социальных сетях и мессенджерах есть функция блокировки и
+                  ограничения комментариев. Сделай свой профиль закрытым для
+                  незнакомцев — это разумная граница.
+                </p>
+              </li>
+              <li>
+                <span className="font-medium">Расскажи тому, кому доверяешь.</span>
+                <p>
+                  Это может быть родитель, учитель, школьный психолог или
+                  старший друг. Просить помощи в такой ситуации нормально.
+                </p>
+              </li>
+            </ol>
+
+            <p>
+              Ты уже сделал важный шаг, рассказав об этом. Если захочешь,
+              можешь дополнить обращение — я внимательно прочитаю твой ответ.
+            </p>
+          </SpecialistMessage>
+        </ChatWorkspace>
+      </section>
     </main>
   );
 }
