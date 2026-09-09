@@ -37,7 +37,7 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
     askedForHelp: "",
   });
   const [skipped, setSkipped] = useState<Record<QuestionKey, boolean>>({
-    place: true,
+    place: false,
     duration: false,
     askedForHelp: false,
   });
