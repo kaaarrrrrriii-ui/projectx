@@ -1,0 +1,28 @@
+.navigation {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+}
+.back {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; margin-left: -12px;
+  border-radius: 12px; color: var(--color-primary);
+}
+.back:hover {
+  background: var(--color-primary-soft);
+}
+.back:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 4px;
+}
+.progress {
+  width: 112px;
+  height: 7px;
+  justify-self: center;
+  border-radius: 999px;
+  background: var(--color-progress-track);
+}
+.progress::before {
+  content: ""; display: block; width: 28%; height: 100%;
+  border-radius: inherit; background: var(--color-primary);
+}

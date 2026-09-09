@@ -1,0 +1,43 @@
+:root {
+  --color-primary: #4562f0;
+  --color-primary-hover: #4f71fc;
+  --color-primary-active: #374ecc;
+  --color-primary-soft: #eef1ff;
+  --color-primary-soft-hover: #edf0fc;
+  --color-primary-soft-active: #dee3f7;
+  --color-primary-disabled: #b5c0f9;
+  --color-background: #f7f9fe;
+  --color-surface: #ffffff;
+  --color-text: #000828;
+  --color-text-muted: #646d86;
+  --color-text-subtle: #9199af;
+  --color-on-primary: var(--color-surface);
+  --color-border: #edf0f8;
+  --color-border-panel: #e9edfa;
+  --color-border-hover: var(--color-primary-disabled);
+  --color-progress-track: #edf0fa;
+  --color-shadow-panel: #23377708;
+  --color-shadow-selected: #4562f00d;
+
+  --radius-panel: 32px;
+  --radius-card: 20px;
+  --radius-control: 16px;
+  --shadow-panel: 0 16px 60px var(--color-shadow-panel);
+  --shadow-selected: 0 3px 12px var(--color-shadow-selected);
+  --font-family: "Montserrat", Arial, Helvetica, sans-serif;
+
+  /* Compatibility aliases for screens that still use the original names. */
+  --primary-color: var(--color-primary);
+  --secondary-color: var(--color-primary-soft);
+  --background-color: var(--color-background);
+  --text-color: var(--color-text);
+  --text-color-secondary: var(--color-on-primary);
+  --default-color: var(--color-primary);
+  --hoover-color: var(--color-primary-hover);
+  --pressed-color: var(--color-primary-active);
+  --disabled-color: var(--color-primary-disabled);
+  --default-color-wborder: var(--color-surface);
+  --hoover-color-wborder: var(--color-primary-soft-hover);
+  --pressed-color-wborder: var(--color-primary-soft-active);
+  --disabled-color-wborder: var(--color-surface);
+}

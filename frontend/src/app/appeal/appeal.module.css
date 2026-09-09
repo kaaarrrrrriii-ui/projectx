@@ -1,0 +1,17 @@
+.page {
+  min-height: 100dvh;
+  background: var(--color-surface);
+}
+@media (min-width: 640px) {
+  .page {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: var(--color-background);
+  }
+}
+@media (min-width: 640px) and (max-height: 850px) {
+  .page {
+    padding: 16px;
+  }
+}

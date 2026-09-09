@@ -1,0 +1,7 @@
+.surface {
+  min-width: 0;
+  border: var(--surface-border-width, 1px) solid var(--color-border-panel);
+  border-radius: var(--surface-radius, var(--radius-panel));
+  background: var(--color-surface);
+  box-shadow: var(--surface-shadow, var(--shadow-panel));
+}

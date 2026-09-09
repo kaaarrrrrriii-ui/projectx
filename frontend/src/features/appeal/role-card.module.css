@@ -1,0 +1,99 @@
+.option {
+  position: relative;
+  cursor: pointer;
+}
+.radio {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.card {
+  display: grid; grid-template-columns: 92px minmax(0, 1fr) 20px;
+  align-items: center; gap: 12px; min-height: 124px; padding-right: 12px;
+  overflow: hidden; border: 2px solid var(--color-border);
+  border-radius: var(--radius-card); background: var(--color-surface);
+  transition: border-color 150ms, background-color 150ms, box-shadow 150ms;
+}
+.option:hover .card {
+  border-color: var(--color-border-hover);
+}
+.radio:checked + .card {
+  border-color: var(--color-primary); background: var(--color-primary-soft);
+  box-shadow: var(--shadow-selected);
+}
+.radio:checked + .card .chevron {
+  color: var(--color-primary);
+}
+.radio:focus-visible + .card {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 4px;
+}
+.portrait {
+  position: relative;
+  align-self: stretch;
+  min-height: 120px;
+  background: var(--color-primary-soft);
+}
+.image {
+  object-fit: cover;
+  object-position: center top;
+}
+.copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  padding-block: 16px;
+}
+.title {
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+.description {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.chevron {
+  color: var(--color-text-subtle);
+}
+@media (min-width: 640px) {
+  .card {
+    grid-template-columns: 120px minmax(0, 1fr) 20px;
+    min-height: 132px;
+  }
+  .title {
+    font-size: 19px;
+  }
+  .description {
+    font-size: 14px;
+  }
+}
+@media (max-width: 359px) {
+  .card {
+    grid-template-columns: 76px minmax(0, 1fr) 16px;
+    gap: 10px;
+    padding-right: 10px;
+  }
+  .title {
+    font-size: 16px;
+  }
+}
+@media (min-width: 640px) and (max-height: 850px) {
+  .card {
+    min-height: 116px;
+  }
+  .portrait {
+    min-height: 112px;
+  }
+  .copy {
+    padding-block: 12px;
+  }
+  .title {
+    font-size: 18px;
+  }
+  .description {
+    font-size: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }

@@ -1,0 +1,68 @@
+.page {
+  min-height: 100dvh;
+  background: var(--color-background);
+}
+.layout {
+  max-width: 1920px;
+  margin-inline: auto;
+  padding: 28px 20px;
+}
+.information {
+  max-width: 880px;
+  margin-inline: auto;
+}
+@media (max-width: 639px) {
+  .page {
+    background: var(--color-surface);
+  }
+}
+@media (min-width: 640px) {
+  .layout {
+    padding: 32px;
+  }
+  .information {
+    --heading-size: 36px;
+  }
+}
+@media (min-width: 1024px) {
+  .page {
+    --heading-size: clamp(30px, 4.8dvh, 46px);
+    --home-panel-padding: clamp(16px, 2.3dvh, 28px);
+    --home-stack-gap: clamp(14px, 2dvh, 24px);
+    --home-card-gap: clamp(10px, 1.6dvh, 18px);
+    --info-card-padding: clamp(12px, 1.5dvh, 20px);
+    --info-card-title-size: clamp(18px, 2.5dvh, 24px);
+    --info-card-text-size: clamp(14px, 1.8dvh, 18px);
+    --info-card-icon-size: clamp(44px, 5.8dvh, 56px);
+    --button-height: clamp(48px, 6dvh, 58px);
+    --button-font-size: clamp(16px, 2dvh, 19px);
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 40px;
+    padding: clamp(16px, 2.5dvh, 32px) clamp(32px, 3.3vw, 64px);
+  }
+  /* The first column is reserved for a future illustration. */
+  .information {
+    grid-column: 2;
+    width: 100%;
+    min-width: 0;
+    --heading-size: inherit;
+  }
+}
+@media (min-width: 1024px) and (max-height: 740px), (min-width: 1024px) and (max-width: 1199px) {
+  .page {
+    --heading-size: 30px;
+    --home-stack-gap: 12px;
+    --home-panel-padding: 14px;
+    --info-card-padding: 10px;
+    --info-card-gap: 12px;
+    --info-card-title-size: 17px;
+    --info-card-text-size: 14px;
+    --info-card-icon-size: 40px;
+  }
+  .layout {
+    padding-block: 12px;
+  }
+}
