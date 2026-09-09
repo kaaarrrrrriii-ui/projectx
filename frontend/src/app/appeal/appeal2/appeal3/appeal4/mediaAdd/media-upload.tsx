@@ -28,7 +28,7 @@ function isSupportedFile(file: File) {
   );
 }
 
-export default function MediaUpload({ role, topic = "" }: { role: string; topic?: string }) {
+export default function MediaUpload({ role, topic = "", formal = false }: { role: string; topic?: string; formal?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrls = useRef(new Set<string>());
   const [items, setItems] = useState<UploadItem[]>([]);

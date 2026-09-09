@@ -57,37 +57,6 @@ export default function CloseAppealFlow({
     );
   }
 
-  if (stage === "result") {
-    return (
-      <DialogShell labelledBy="result-heading" className="max-w-[884px]">
-        <h2
-          id="result-heading"
-          className="text-center text-[30px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[var(--color-primary)] max-[599px]:text-[23px]"
-        >
-          {formal
-            ? "Мы помогли вам решить вашу проблему?"
-            : "Мы помогли тебе решить твою проблему?"}
-        </h2>
-        <div className="mx-auto mt-10 grid max-w-[666px] grid-cols-2 gap-2.5 max-[499px]:mt-7 max-[499px]:grid-cols-1">
-          <Button
-            text="Нет"
-            variant="secondary"
-            size="small"
-            onClick={() => setStage("feedback")}
-            className="w-full"
-          />
-          <Button
-            text="Да"
-            variant="secondary"
-            size="small"
-            onClick={() => setStage("closed")}
-            className="w-full"
-          />
-        </div>
-      </DialogShell>
-    );
-  }
-
   if (stage === "feedback") {
     return (
       <DialogShell labelledBy="feedback-heading" className="max-w-[704px]">

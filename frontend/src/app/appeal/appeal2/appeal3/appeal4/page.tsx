@@ -7,13 +7,14 @@ export default async function AppealDetails({ searchParams }: {
 }) {
   const params = await searchParams;
   const role = getAppealRole(params.role);
+  const formal = isFormalAppealRole(role.id);
   const topic = typeof params.topic === "string" ? params.topic : "";
 
   return (
     <main className="app-page-background flex min-h-dvh flex-col text-[#11131a]">
-      <SiteHeader />
+      <SiteHeader formal={formal} />
 
-      <ClarifyingQuestions role={role.id} topic={topic} />
+      <ClarifyingQuestions role={role.id} topic={topic} formal={formal} />
     </main>
   );
 }

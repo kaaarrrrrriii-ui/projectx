@@ -1,5 +1,5 @@
 import AppealNavigation from "@/shared/ui/appeal-navigation";
-import { getAppealRole } from "@/features/appeal/roles";
+import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
 import SiteHeader from "@/widgets/site-header/site-header";
 import Image from "next/image";
 
@@ -10,12 +10,13 @@ export default async function AppealDescription({
 }) {
   const params = await searchParams;
   const role = getAppealRole(params.role);
+  const formal = isFormalAppealRole(role.id);
   const topic = typeof params.topic === "string" ? params.topic : "";
   const topicQuery = topic ? `&topic=${encodeURIComponent(topic)}` : "";
 
   return (
     <main className="app-page-background flex min-h-dvh flex-col">
-      <SiteHeader />
+      <SiteHeader formal={formal} />
 
       <section
         aria-labelledby="description-heading"

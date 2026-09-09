@@ -5,18 +5,7 @@ import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import AppealNavigation from "@/shared/ui/appeal-navigation";
 import TopicOption from "./topic-option";
-
-const topics = [
-  "травля и оскорбления",
-  "кибербуллинг",
-  "конфликт с родителями",
-  "конфликт с одноклассниками",
-  "конфликт с учителем",
-  "давление и угрозы",
-  "юридический вопрос",
-  "конфликт с сестрой/братом",
-  "я не знаю, как это назвать",
-] as const;
+import { appealCategories as topics } from "./categories";
 
 function ActionIcon({ name }: { name: "edit" | "delete" }) {
   if (name === "delete") {
@@ -35,7 +24,7 @@ function ActionIcon({ name }: { name: "edit" | "delete" }) {
   );
 }
 
-export default function TopicSelection({ roleId, initialTopic = "" }: { roleId: string; initialTopic?: string }) {
+export default function TopicSelection({ roleId, initialTopic = "", formal = false }: { roleId: string; initialTopic?: string; formal?: boolean }) {
   const initialCustomTopic = initialTopic && !topics.includes(initialTopic as (typeof topics)[number]) ? initialTopic : "";
   const [selectedTopic, setSelectedTopic] = useState(initialTopic);
   const [customTopic, setCustomTopic] = useState(initialCustomTopic);
@@ -52,7 +41,7 @@ export default function TopicSelection({ roleId, initialTopic = "" }: { roleId: 
   function saveCustomTopic() {
     const nextTopic = draft.trim().replace(/\s+/g, " ");
     if (!nextTopic) {
-      setError("Напиши, как ты хочешь назвать тему");
+      setError(formal ? "Напишите, как вы хотите назвать тему" : "Напиши, как ты хочешь назвать тему");
       return;
     }
 
@@ -112,7 +101,9 @@ export default function TopicSelection({ roleId, initialTopic = "" }: { roleId: 
       {isEditing ? (
         <div className="mt-6 max-w-[620px] rounded-2xl border border-[#cbd3f5] bg-white/70 p-4">
           <label htmlFor="custom-topic" className="mb-2 block text-sm font-medium text-[#000828]">
-            {customTopic ? "Измени свою тему" : "Добавь свою тему"}
+            {customTopic
+              ? (formal ? "Измените свою тему" : "Измени свою тему")
+              : (formal ? "Добавьте свою тему" : "Добавь свою тему")}
           </label>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Input
@@ -143,7 +134,7 @@ export default function TopicSelection({ roleId, initialTopic = "" }: { roleId: 
       ) : !customTopic ? (
         <button type="button" onClick={openEditor} className="mt-[21px] flex w-fit cursor-pointer items-center gap-[14px] rounded-sm py-1 text-sm text-[#151515] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4562f0]">
           <span aria-hidden="true" className="text-[28px] leading-5 font-extralight">+</span>
-          Добавить свою тему
+          {formal ? "Добавить свою тему" : "Добавить свою тему"}
         </button>
       ) : null}
 

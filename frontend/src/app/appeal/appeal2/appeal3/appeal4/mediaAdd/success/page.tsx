@@ -12,7 +12,7 @@ export default async function SubmissionSuccessPage({
 
   return (
     <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col overflow-hidden text-[var(--color-text)]">
-      <SiteHeader />
+      <SiteHeader formal={formal} />
 
       <SubmissionSuccess
         trackNumber="НАШК-УАЫВ-АВАМ-ВАФВ"

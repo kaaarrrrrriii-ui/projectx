@@ -29,7 +29,7 @@ const questions: Question[] = [
   },
 ];
 
-export default function ClarifyingQuestions({ role, topic = "" }: { role: string; topic?: string }) {
+export default function ClarifyingQuestions({ role, topic = "", formal = false }: { role: string; topic?: string; formal?: boolean }) {
   const [answers, setAnswers] = useState<Record<QuestionKey, string>>({
     place: "",
     duration: "",
@@ -67,7 +67,7 @@ export default function ClarifyingQuestions({ role, topic = "" }: { role: string
             id="details-heading"
             className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.035em] text-[#4562f0] sm:text-[34px] sm:leading-[41px]"
           >
-            Пару уточнений
+            {formal ? "Несколько уточнений" : "Пару уточнений"}
           </h1>
           <p className="mt-px mb-0 text-[14px] leading-5 font-normal text-[#17191f]">
             Эти вопросы необязательные, но помогут лучше понять ситуацию.

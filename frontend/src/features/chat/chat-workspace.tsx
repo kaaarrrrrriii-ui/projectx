@@ -7,12 +7,6 @@ import { useState } from "react";
 import CloseAppealFlow from "./close-appeal-flow";
 import SpecialistCard from "./specialist-card";
 
-type SentMessage = {
-  id: number;
-  text: string;
-  fileNames: string[];
-};
-
 export default function ChatWorkspace({
   children,
   role,
@@ -22,16 +16,7 @@ export default function ChatWorkspace({
   role: string;
   formal: boolean;
 }) {
-  const [activeDialog, setActiveDialog] = useState<"reply" | "close" | null>(null);
-  const [messages, setMessages] = useState<SentMessage[]>([]);
-
-  function addMessage(text: string, fileNames: string[] = []) {
-    setMessages((current) => [
-      ...current,
-      { id: Date.now(), text, fileNames },
-    ]);
-    setActiveDialog(null);
-  }
+  const [activeDialog, setActiveDialog] = useState<"helped" | "not-helped" | null>(null);
 
   return (
     <>
@@ -60,22 +45,6 @@ export default function ChatWorkspace({
           <div className="space-y-4" aria-live="polite">
             {children}
 
-            {messages.map((message) => (
-              <article
-                key={message.id}
-                aria-label={formal ? "Ваше сообщение" : "Твоё сообщение"}
-                className="ml-auto max-w-[72%] rounded-[15px] bg-[var(--color-primary)] px-5 py-3 text-[15px] leading-[1.45] text-white max-[599px]:max-w-[88%] max-[499px]:px-4 max-[499px]:text-[14px]"
-              >
-                {message.text && <p className="whitespace-pre-wrap">{message.text}</p>}
-                {message.fileNames.length > 0 && (
-                  <ul className={`${message.text ? "mt-2" : ""} grid gap-1 text-[12px] text-white/85`}>
-                    {message.fileNames.map((fileName) => (
-                      <li key={fileName} className="truncate">📎 {fileName}</li>
-                    ))}
-                  </ul>
-                )}
-              </article>
-            ))}
           </div>
 
           <section
@@ -86,7 +55,7 @@ export default function ChatWorkspace({
               id="helpfulness-heading"
               className="text-center text-[clamp(18px,2vw,24px)] leading-[1.25] font-extrabold tracking-[-0.025em] text-[#4562f0]"
             >
-              Мы помогли тебе решить твою проблему?
+              {formal ? "Мы помогли вам решить вашу проблему?" : "Мы помогли тебе решить твою проблему?"}
             </h2>
             <div className="mt-8 grid w-full max-w-[560px] grid-cols-2 gap-2 max-[479px]:mt-6">
               <Button
@@ -108,15 +77,7 @@ export default function ChatWorkspace({
         </div>
       </div>
 
-      {activeDialog === "reply" && (
-        <ReplyModal
-          formal={formal}
-          onClose={() => setActiveDialog(null)}
-          onSend={addMessage}
-        />
-      )}
-
-      {activeDialog === "close" && (
+      {activeDialog && (
         <CloseAppealFlow
           formal={formal}
           trackNumber="НАШК-УАЫВ-АВАМ-ВАФВ"

@@ -9,13 +9,14 @@ export default async function MediaAddPage({
 }) {
   const params = await searchParams;
   const role = getAppealRole(params.role);
+  const formal = isFormalAppealRole(role.id);
   const topic = typeof params.topic === "string" ? params.topic : "";
 
   return (
     <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col text-[var(--color-text)]">
-      <SiteHeader />
+      <SiteHeader formal={formal} />
 
-      <MediaUpload role={role.id} topic={topic} />
+      <MediaUpload role={role.id} topic={topic} formal={formal} />
     </main>
   );
 }
