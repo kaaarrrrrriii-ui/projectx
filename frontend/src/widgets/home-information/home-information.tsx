@@ -2,6 +2,7 @@ import Button from "@/shared/ui/button";
 import Image from "next/image";
 import InfoCard from "@/shared/ui/info-card";
 import PageHeading from "@/shared/ui/page-heading";
+import Link from "next/link";
 
 const information = [
   {
@@ -68,16 +69,20 @@ function HomeActions() {
         />
       </div>
 
-      <span
+      <Link
+        href="/staff"
         className="
-          py-0.5 text-center
+          rounded-md py-0.5 text-center underline-offset-4
           text-[clamp(11px,1.2vw,14px)]
           text-[var(--color-text-subtle)]
+          transition-colors hover:text-[var(--color-primary)] hover:underline
+          focus-visible:outline-2 focus-visible:outline-[var(--color-primary)]
+          focus-visible:outline-offset-4
           max-[699px]:text-xs
         "
       >
         Вход для сотрудников
-      </span>
+      </Link>
     </div>
   );
 }
