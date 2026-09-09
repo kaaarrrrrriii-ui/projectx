@@ -9,22 +9,16 @@ export default async function AppealDescription({ searchParams }: {
 }) {
   const role = getAppealRole((await searchParams).role);
 
+  
   return (
     <main className="flex min-h-dvh flex-col bg-[var(--color-background)] [--color-primary:#465fff]">
       <div className="[&_header>div]:min-h-[89px] [&_header>div]:px-[19px] [&_header>div]:py-4 [&_header_p]:text-[15px] [&_header_p]:font-medium [&_header_p]:whitespace-normal max-[699px]:[&_header>div]:min-h-[72px] max-[699px]:[&_header>div]:gap-4 max-[699px]:[&_header>div]:px-5 max-[699px]:[&_header>div]:py-3 max-[699px]:[&_header_p]:text-[11px]">
         <SiteHeader />
       </div>
-      <section
-        className="flex-1 bg-[url('/images/appeal-description-bg.svg')] bg-cover bg-center bg-no-repeat px-[4.88%] pt-14 pb-[38px] max-[699px]:px-5 max-[699px]:py-8"
-        aria-labelledby="description-heading"
-      >
+      <section className="flex-1 bg-[url('/images/appeal-description-bg.svg')] bg-cover bg-center bg-no-repeat px-[4.88%] pt-14 pb-[38px] max-[699px]:px-5 max-[699px]:py-8" aria-labelledby="description-heading">
         <div className="mx-auto w-full max-w-[1440px]">
-          <h1 id="description-heading" className="text-[36px] leading-[1.2] font-black tracking-[-0.025em] text-[var(--color-primary)] max-[699px]:text-[28px]">
-            Расскажи, что происходит
-          </h1>
-          <p id="description-intro" className="mt-1 text-[15px] leading-[22px] text-[#151515] max-[699px]:mt-2.5 max-[699px]:text-[14px]">
-            Опиши ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаешь, с чего начать - просто напиши, что чувствуешь.
-          </p>
+          <h1 id="description-heading" className="text-[36px] leading-[1.2] font-black tracking-[-0.025em] text-[var(--color-primary)] max-[699px]:text-[28px]">Расскажи, что происходит</h1>
+          <p id="description-intro" className="mt-1 text-[15px] leading-[22px] text-[#151515] max-[699px]:mt-2.5 max-[699px]:text-[14px]">Опиши ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаешь, с чего начать - просто напиши, что чувствуешь.</p>
           <textarea
             name="description"
             aria-labelledby="description-heading"
@@ -38,9 +32,7 @@ export default async function AppealDescription({ searchParams }: {
           </aside>
           <nav aria-label="Навигация по обращению" className="mt-[26px] flex flex-col items-center gap-[13px]">
             <Button text="Продолжить" fill link="/appeal/appeal2/appeal4" className="w-[150px] [--button-height:45px] [--button-padding:11px_20px] [--button-radius:12px] [--button-font-size:15px] [--button-weight:500]" />
-            <Link href={`/appeal/appeal2?role=${role.id}`} className="ml-[25px] self-start rounded-[3px] text-[15px] leading-[22px] text-[#85899b] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-primary)] max-[699px]:ml-0 max-[699px]:self-center">
-              Вернуться назад
-            </Link>
+            <Link href={`/appeal/appeal2?role=${role.id}`} className="ml-[25px] self-start rounded-[3px] text-[15px] leading-[22px] text-[#85899b] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-primary)] max-[699px]:ml-0 max-[699px]:self-center">Вернуться назад</Link>
           </nav>
         </div>
       </section>
