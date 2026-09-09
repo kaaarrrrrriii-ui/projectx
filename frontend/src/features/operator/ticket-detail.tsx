@@ -17,6 +17,7 @@ const statuses = [
   { value: "in-progress", label: "В работе" },
   { value: "clarification", label: "Нужно уточнение" },
   { value: "answer-ready", label: "Ответ готов" },
+  { value: "returned", label: "Возвращено" },
 ];
 
 const colors: Record<TicketPriority, { text: string; soft: string; solid: string; outline: string; focus: string }> = {
