@@ -4,11 +4,11 @@
   justify-content: center;
   min-width: 0;
   min-height: var(--button-height, 54px);
-  padding: 14px 20px;
+  padding: var(--button-padding, 14px 20px);
   border: 1px solid transparent;
-  border-radius: var(--radius-control);
+  border-radius: var(--button-radius, var(--radius-control));
   font-size: var(--button-font-size, 17px);
-  font-weight: 600;
+  font-weight: var(--button-weight, 600);
   line-height: 1.3;
   text-align: center;
   text-decoration: none;
@@ -28,7 +28,7 @@
 }
 
 .secondary {
-  border-color: var(--button-accent, var(--color-border-hover));
+  border-color: var(--button-accent, var(--color-primary));
   background: var(--color-surface);
   color: var(--button-text, var(--button-accent, var(--color-primary)));
 }

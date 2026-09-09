@@ -1,32 +1,60 @@
 .panel {
+  --heading-size: clamp(26px, 2.8vw, 40px);
+  --heading-color: var(--color-primary);
+  --button-height: 36px;
+  --button-font-size: clamp(11px, 1.2vw, 15px);
+  --button-padding: 8px 20px;
+  --button-radius: 8px;
+  --button-weight: 500;
   display: flex;
   flex-direction: column;
-  gap: var(--home-stack-gap, 32px);
+  gap: 26px;
   width: 100%;
 }
+.panel > header { text-align: center; }
 .cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--home-card-gap, 24px);
+  display: grid;
+  gap: 12px;
+  width: 54.2%;
+  margin-left: auto;
 }
 .actions {
   display: flex;
+  align-items: center;
   flex-direction: column;
-  gap: var(--home-action-gap, 20px);
+  gap: 10px;
+  margin-top: 16px;
 }
 .buttons {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  justify-content: center;
   gap: 20px;
 }
 .staff {
-  padding-block: 4px;
-  color: var(--color-text-muted);
+  padding-block: 2px;
+  color: var(--color-text-subtle);
   text-align: center;
-  font-size: 15px;
+  font-size: clamp(11px, 1.2vw, 14px);
 }
-@media (max-width: 639px) {
-  .buttons {
-    grid-template-columns: minmax(0, 1fr);
+@media (min-width: 1200px) {
+  .panel { gap: 36px; }
+  .cards { gap: 18px; }
+  .actions { margin-top: 24px; }
+}
+@media (max-width: 699px) {
+  .panel {
+    --heading-size: clamp(24px, 6vw, 30px);
+    --button-height: 48px;
+    --button-font-size: 13px;
+    max-width: 500px;
+    gap: 24px;
   }
+  .cards { width: 100%; }
+  .actions { margin-top: 0; gap: 14px; }
+  .buttons { width: 100%; gap: 12px; }
+  .buttons > a { flex: 1; padding-inline: 10px; }
+  .staff { font-size: 12px; }
+}
+@media (max-width: 419px) {
+  .buttons { flex-direction: column; }
 }

@@ -1,24 +1,24 @@
 import Button from "@/shared/ui/button";
-import Icon, { type IconName } from "@/shared/ui/icon";
+import Image from "next/image";
 import InfoCard from "@/shared/ui/info-card";
 import PageHeading from "@/shared/ui/page-heading";
 import styles from "./home-information.module.css";
 
-const information: { title: string; description: string; icon: IconName }[] = [
+const information = [
   {
     title: "Ты остаёшься анонимным",
     description: "Мы не спрашиваем твоё имя и не передаём информацию третьим лицам.",
-    icon: "lock",
+    icon: "lock-key",
   },
   {
     title: "Тебе помогут специалисты",
     description: "Твоё обращение увидят психологи, педагоги и другие эксперты.",
-    icon: "support",
+    icon: "user-sound",
   },
   {
     title: "Ты можешь отслеживать статус",
     description: "После отправки ты получишь уникальный трек-номер и сможешь проверить, на каком этапе находится обращение.",
-    icon: "bell",
+    icon: "bell-ringing",
   },
 ];
 
@@ -39,7 +39,8 @@ export default function HomeInformation() {
     <section aria-labelledby="important-heading" className={styles.panel}>
       <PageHeading id="important-heading" title="Что важно знать?" />
       <div className={styles.cards}>
-        {information.map(({ icon, ...card }) => <InfoCard key={icon} {...card} icon={<Icon name={icon} />} />)}
+        {information.map(({ icon, ...card }) => <InfoCard key={icon} {...card}
+          icon={<Image src={`/images/${icon}.svg`} alt="" width={28} height={28} />} />)}
       </div>
       <HomeActions />
     </section>

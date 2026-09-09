@@ -1,53 +1,41 @@
 .panel {
-  --surface-border-width: 0px;
-  --surface-radius: 0px;
-  --surface-shadow: none;
-  display: flex; flex-direction: column; gap: 24px;
-  width: 100%; max-width: 500px; min-height: 100dvh;
-  margin-inline: auto; padding: 12px 20px max(24px, env(safe-area-inset-bottom));
-}
-.form {
+  --heading-size: clamp(26px, 2.8vw, 40px);
+  --heading-color: var(--color-primary);
+  --button-height: 36px;
+  --button-font-size: clamp(11px, 1.2vw, 15px);
+  --button-padding: 8px 22px;
+  --button-radius: 8px;
+  --button-weight: 500;
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 32px;
+  gap: 36px;
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: 42px clamp(24px, 5vw, 72px) max(40px, env(safe-area-inset-bottom));
 }
+.form { display: flex; flex-direction: column; align-items: center; gap: 36px; }
 .roles {
   display: grid;
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
   min-width: 0;
   border: 0;
+  padding: 0;
 }
-.continue {
-  width: 100%;
-  margin-top: auto;
-}
-@media (min-width: 640px) {
+.continue { min-width: 108px; }
+@media (max-width: 699px) {
   .panel {
-    --surface-border-width: 1px;
-    --surface-radius: var(--radius-panel);
-    --surface-shadow: var(--shadow-panel);
-    --heading-size: 34px;
-    --heading-description-size: 16px;
-    --button-height: 58px;
-    min-height: 0; padding: 24px 32px 32px;
-  }
-}
-@media (max-width: 359px) { .panel { padding-inline: 16px; } }
-@media (min-width: 640px) and (max-height: 850px) {
-  .panel {
-    --heading-size: 30px;
-    --heading-description-size: 15px;
-    --button-height: 52px;
-    gap: 20px; padding: 16px 24px 24px;
-  }
-  .panel > nav {
-    margin-bottom: -8px;
-  }
-  .roles {
-    gap: 12px;
-  }
-  .form {
+    --heading-size: 28px;
+    --button-height: 48px;
+    --button-font-size: 14px;
+    max-width: 540px;
+    padding: 30px 20px max(28px, env(safe-area-inset-bottom));
     gap: 24px;
   }
+  .roles { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .form { gap: 28px; }
+  .continue { width: 100%; }
 }

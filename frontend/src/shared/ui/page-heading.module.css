@@ -1,7 +1,7 @@
 .heading h1 {
-  color: var(--color-text);
+  color: var(--heading-color, var(--color-text));
   font-size: var(--heading-size, 30px);
-  font-weight: 750;
+  font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.025em;
 }
