@@ -20,23 +20,18 @@ export default function RoleSelection({
         [--heading-size:clamp(26px,2.8vw,40px)]
         [--heading-color:var(--color-primary)]
 
-        [--button-height:36px]
-        [--button-font-size:clamp(11px,1.2vw,15px)]
-        [--button-padding:8px_22px]
-        [--button-radius:8px]
-        [--button-weight:500]
-
         max-[699px]:max-w-[540px]
         max-[699px]:gap-6
         max-[699px]:px-5
         max-[699px]:pt-[30px]
         max-[699px]:pb-[max(28px,env(safe-area-inset-bottom))]
         max-[699px]:[--heading-size:28px]
-        max-[699px]:[--button-height:48px]
-        max-[699px]:[--button-font-size:14px]
       "
     >
-      <PageHeading id="role-heading" title="Кто вы?" />
+      <PageHeading
+        id="role-heading"
+        title="Кто вы?"
+      />
 
       <form
         action="/appeal/appeal2"
@@ -57,7 +52,9 @@ export default function RoleSelection({
             max-[699px]:gap-3.5
           "
         >
-          <legend className="sr-only">Выбери свою роль</legend>
+          <legend className="sr-only">
+            Выбери свою роль
+          </legend>
 
           {appealRoles.map((role) => (
             <RoleCard
@@ -71,14 +68,19 @@ export default function RoleSelection({
         <Button
           text="Продолжить"
           type="submit"
-          fill
+          variant="primary"
+          size="default"
           className="
             min-w-[108px]
+            max-[699px]:h-12
             max-[699px]:w-full
+            max-[699px]:rounded-xl
+            max-[699px]:px-8
+            max-[699px]:py-3.5
+            max-[699px]:text-base
           "
         />
       </form>
     </section>
   );
 }
-

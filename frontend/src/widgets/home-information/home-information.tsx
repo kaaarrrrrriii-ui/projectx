@@ -25,13 +25,19 @@ const information = [
 ];
 
 function HomeActions() {
+  const mobileButtonClasses = `
+    max-[699px]:h-12
+    max-[699px]:rounded-xl
+    max-[699px]:px-8
+    max-[699px]:py-3.5
+    max-[699px]:text-base
+  `;
+
   return (
     <div
       className="
         mt-4 flex flex-col items-center gap-2.5
-
         min-[1200px]:mt-6
-
         max-[699px]:mt-0
         max-[699px]:gap-3.5
       "
@@ -39,17 +45,27 @@ function HomeActions() {
       <div
         className="
           flex justify-center gap-5
-
           max-[699px]:w-full
           max-[699px]:gap-3
           max-[699px]:[&>a]:flex-1
-          max-[699px]:[&>a]:px-2.5
-
           max-[419px]:flex-col
         "
       >
-        <Button text="Подать обращение" fill link="/appeal" />
-        <Button text="Проверить статус" link="/status" />
+        <Button
+          text="Подать обращение"
+          variant="primary"
+          size="default"
+          link="/appeal"
+          className={mobileButtonClasses}
+        />
+
+        <Button
+          text="Проверить статус"
+          variant="secondary"
+          size="default"
+          link="/status"
+          className={mobileButtonClasses}
+        />
       </div>
 
       <span
@@ -57,7 +73,6 @@ function HomeActions() {
           py-0.5 text-center
           text-[clamp(11px,1.2vw,14px)]
           text-[var(--color-text-subtle)]
-
           max-[699px]:text-xs
         "
       >
@@ -77,19 +92,11 @@ export default function HomeInformation() {
         [--heading-size:clamp(26px,2.8vw,40px)]
         [--heading-color:var(--color-primary)]
 
-        [--button-height:36px]
-        [--button-font-size:clamp(11px,1.2vw,15px)]
-        [--button-padding:8px_20px]
-        [--button-radius:8px]
-        [--button-weight:500]
-
         min-[1200px]:gap-9
 
         max-[699px]:max-w-[500px]
         max-[699px]:gap-6
         max-[699px]:[--heading-size:clamp(24px,6vw,30px)]
-        max-[699px]:[--button-height:48px]
-        max-[699px]:[--button-font-size:13px]
       "
     >
       <header className="text-center">
@@ -102,9 +109,7 @@ export default function HomeInformation() {
       <div
         className="
           ml-auto grid w-[54.2%] gap-3
-
           min-[1200px]:gap-[18px]
-
           max-[699px]:w-full
         "
       >
