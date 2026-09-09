@@ -115,32 +115,6 @@
 
 
 
-              
-ASCII Nudes
-ASCII Nudes Collection
-30 Years of "Naked" ASCII Art"
-
-Tweet
-IntroductionCollection
-BatgirlBettyCalgirlJoannude1315DebroahFranbunnyGirl1AnnaIngrid
-Kathynude365MorganaOuiPinupRoxanneSusanTanyaSidewaysYoshi
-HolyOopsiMeridayOhlalaLeftrightElisaBBondageAliveAlive2Pronstar
-nude1300nude1306nude1307nude1308nude1312nude1313nude1314Cloenude1316nude1317
-nude1319nude399nude1321nude300nude303nude304nude306nude308nude310nude312
-nude321nude322nude323nude324nude327nude328nude329nude330nude332nude333
-nude336nude337nude338nude339nude340nude342nude346nude347nude348nude349
-nude350nude351nude353nude355nude357nude360nude361nude362nude363Kelly
-nude366nude367nude368nude372nude373nude374nude375nude378nude380nude382
-nude384nude386nude387nude388nude389nude393nude394MsMar71nude1320Nagel85
-MsFeb72MsAfrom0-spiceMsOct79Nude1Nude2Liv1323_b2Liv1346_b-1323Avis1322Carina1342
-Cathy1336Cynthia1332Deborah1364Feb76-1362Kimberly1351Lieko1325Lisa1359Penny1338_dTracy1361HLS-NFO
-KTR-NFOMOP-NFOPD101-NFOYAPC-NFO
-
-
-
-
-
-
  
                                 
                          8888  8888888
