@@ -9,8 +9,8 @@ const navigation = [
 ] as const;
 
 const secondaryNavigation = [
-  { id: "analytics", label: "Аналитика", icon: "chart", href: "#" },
-  { id: "exports", label: "Выгрузки", icon: "download", href: "#" },
+  { id: "analytics", label: "Аналитика", icon: "chart", href: "/operator/analytics" },
+  { id: "exports", label: "Выгрузки", icon: "download", href: "/operator/exports" },
 ] as const;
 
 type OperatorSection = (typeof navigation)[number]["id"] | (typeof secondaryNavigation)[number]["id"];

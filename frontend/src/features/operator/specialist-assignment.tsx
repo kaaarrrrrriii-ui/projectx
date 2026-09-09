@@ -161,13 +161,6 @@ export default function SpecialistAssignment({ ticket }: { ticket: OperatorTicke
                     <td colSpan={3} className="text-center text-sm text-[#646d86]">Специалисты не найдены</td>
                   </tr>
                 )}
-                {Array.from({ length: Math.max(0, 5 - filteredSpecialists.length) }).map((_, index) => (
-                  <tr key={"empty-" + index} aria-hidden="true" className="h-[52px] border-t border-[#4562f0]">
-                    <td className="border-r border-[#4562f0]" />
-                    <td className="border-r border-[#4562f0]" />
-                    <td />
-                  </tr>
-                ))}
               </tbody>
             </table>
           </div>

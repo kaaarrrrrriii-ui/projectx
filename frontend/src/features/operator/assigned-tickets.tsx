@@ -188,14 +188,6 @@ export default function AssignedTickets() {
                 </tr>
               )}
 
-              {Array.from({ length: Math.max(0, 6 - filteredTickets.length) }).map((_, index) => (
-                <tr key={"empty-" + index} aria-hidden="true" className="h-[52px] border-t border-[#4562f0]">
-                  <td className="border-r border-[#4562f0]" />
-                  <td className="border-r border-[#4562f0]" />
-                  <td className="border-r border-[#4562f0]" />
-                  <td />
-                </tr>
-              ))}
             </tbody>
           </table>
         </section>

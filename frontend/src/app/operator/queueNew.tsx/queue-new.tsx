@@ -405,13 +405,6 @@ export default function QueueNew() {
                   </tr>
                 )}
 
-                <tr aria-hidden="true" className="h-[327px] border-t border-[#4562f0]">
-                  <td className="border-r border-[#4562f0]" />
-                  <td className="border-r border-[#4562f0]" />
-                  <td className="border-r border-[#4562f0]" />
-                  <td className="border-r border-[#4562f0]" />
-                  <td />
-                </tr>
               </tbody>
             </table>
           </section>
