@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function SiteHeader() {
+export default function SiteHeader({ formal = false }: { formal?: boolean }) {
   return (
     <header className="border-b border-[#a9b3ff] bg-[var(--color-surface)]">
       <div
@@ -57,8 +57,9 @@ export default function SiteHeader() {
             max-[379px]:text-[9px]
           "
         >
-          Безопасный способ рассказать о том, что тебя беспокоит, и получить
-          помощь от профессионалов.
+          {formal
+            ? "Безопасный способ рассказать о том, что вас беспокоит, и получить помощь от профессионалов."
+            : "Безопасный способ рассказать о том, что тебя беспокоит, и получить помощь от профессионалов."}
         </p>
       </div>
     </header>

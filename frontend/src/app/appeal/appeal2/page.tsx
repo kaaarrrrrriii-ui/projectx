@@ -2,7 +2,7 @@ import Button from "@/shared/ui/button";
 import Checkbox from "@/shared/ui/checkbox";
 import Input from "@/shared/ui/input";
 import Link from "next/link";
-import { getAppealRole } from "@/features/appeal/roles";
+import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
 import SiteHeader from "@/widgets/site-header/site-header";
 
 const topics = [
@@ -23,10 +23,11 @@ export default async function AppealTopics({
   searchParams: Promise<{ role?: string | string[] }>;
 }) {
   const role = getAppealRole((await searchParams).role);
+  const formal = isFormalAppealRole(role.id);
 
   return (
     <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
-      <SiteHeader />
+      <SiteHeader formal={formal} />
 
       <section
         aria-labelledby="topics-heading"
@@ -58,8 +59,8 @@ export default async function AppealTopics({
             id="topics-description"
             className="mt-[5px] text-[14px] leading-[22px] text-[#151515]"
           >
-            Можно выбрать одну или несколько тем, которые ближе всего к твоей
-            ситуации.
+            Можно выбрать одну или несколько тем, которые ближе всего к {formal ? "вашей" : "твоей"}
+            {" "}ситуации.
           </p>
 
           <fieldset
@@ -127,7 +128,7 @@ export default async function AppealTopics({
               <Input
                 name="customTopic"
                 type="text"
-                placeholder="Расскажи, с чем это связано"
+                placeholder={formal ? "Расскажите, с чем это связано" : "Расскажи, с чем это связано"}
                 className="w-full"
               />
             </label>
@@ -146,11 +147,11 @@ export default async function AppealTopics({
                 text="Продолжить"
                 variant="primary"
                 size="default"
-                link="/appeal/appeal2/appeal3"
+                link={`/appeal/appeal2/appeal3?role=${role.id}`}
               />
 
               <Link
-                href="/"
+                href={`/appeal/appeal2/appeal3?role=${role.id}`}
                 className="
                   rounded-sm
                   text-[14px]

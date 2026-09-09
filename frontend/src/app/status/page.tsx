@@ -1,8 +1,15 @@
 import Button from "@/shared/ui/button";
+import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
 import Input from "@/shared/ui/input";
 import SiteHeader from "@/widgets/site-header/site-header";
 
-export default async function Status() {
+export default async function Status({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string | string[] }>;
+}) {
+  const role = getAppealRole((await searchParams).role);
+  const formal = isFormalAppealRole(role.id);
   const trackNumber: string = "сиксевен-6767-6767";
   const status: string = "послан нахуй";
   const sentDate: string = "09/09/09";
@@ -10,7 +17,7 @@ export default async function Status() {
 
   return (
     <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
-      <SiteHeader />
+      <SiteHeader formal={formal} />
 
       <section
         className="
@@ -54,6 +61,8 @@ export default async function Status() {
                 sm:gap-8
               "
             >
+              <input type="hidden" name="role" value={role.id} />
+
               <label className="flex min-w-0 flex-col gap-2">
                 <span className="text-[20px] font-medium text-[#000828]">
                   Номер обращения
@@ -165,7 +174,7 @@ export default async function Status() {
                 text="Перейти к ответу специалиста"
                 variant="primary"
                 size="default"
-                link="/chat"
+                link={`/chat?role=${role.id}`}
                 className="w-full"
               />
             </div>
