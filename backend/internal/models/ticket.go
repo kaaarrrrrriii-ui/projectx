@@ -1,45 +1,16 @@
 package models
 
-import (
-	"time"
+import "time"
 
-	"github.com/google/uuid"
-)
-
-type ApplicantType string
-
-const (
-	ApplicantTypeStudent ApplicantType = "student"
-	ApplicantTypeParent  ApplicantType = "parent"
-	ApplicantTypeTeacher ApplicantType = "teacher"
-)
-
-type TicketStatus string
-
-const (
-	TicketStatusNew TicketStatus = "new"
-)
-
-type ClarificationAnswer struct {
-	QuestionID string `json:"question_id"`
-	Answer     string `json:"answer"`
-}
-
+// Ticket maps to the tickets table.
 type Ticket struct {
-	ID uuid.UUID `json:"id"`
-
-	ApplicantType ApplicantType `json:"applicant_type"`
-
-	CategoryID *uuid.UUID `json:"category_id,omitempty"`
-
-	Text string `json:"text"`
-
-	ClarificationAnswers []ClarificationAnswer `json:"clarification_answers,omitempty"`
-
-	TrackCodeHash []byte `json:"-"`
-
-	Status TicketStatus `json:"status"`
-
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          int64      `json:"id"`
+	TrackID     string     `json:"track_id"`
+	Priority    int        `json:"priority"`
+	MordaType   int        `json:"morda_type"`
+	ClosedAt    *time.Time `json:"closed_at,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+	CategoryID  int64      `json:"category_id"`
+	Status      int        `json:"status"`
+	ReturnCount int        `json:"return_count"`
 }

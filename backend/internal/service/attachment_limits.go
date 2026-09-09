@@ -3,8 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-
-	"example.com/german/backend/internal/models"
 )
 
 const (
@@ -24,6 +22,10 @@ type AttachmentLimits struct {
 	MaxTotalBytes int64
 }
 
+type AttachmentCandidate struct {
+	OriginalSizeBytes int64
+}
+
 func DefaultAttachmentLimits() AttachmentLimits {
 	return AttachmentLimits{
 		MaxFiles:      DefaultMaxAttachmentFiles,
@@ -34,7 +36,7 @@ func DefaultAttachmentLimits() AttachmentLimits {
 // ValidateAttachmentBatch validates both existing and newly uploaded files.
 // The database-backed caller must repeat this check while holding the batch
 // lock so concurrent uploads cannot exceed the limits together.
-func ValidateAttachmentBatch(limits AttachmentLimits, existing, incoming []models.AttachmentCandidate) error {
+func ValidateAttachmentBatch(limits AttachmentLimits, existing, incoming []AttachmentCandidate) error {
 	if limits.MaxFiles <= 0 || limits.MaxTotalBytes <= 0 {
 		return fmt.Errorf("invalid attachment limits")
 	}
@@ -57,8 +59,8 @@ func ValidateAttachmentBatch(limits AttachmentLimits, existing, incoming []model
 	return nil
 }
 
-func appendCandidates(existing, incoming []models.AttachmentCandidate) []models.AttachmentCandidate {
-	all := make([]models.AttachmentCandidate, 0, len(existing)+len(incoming))
+func appendCandidates(existing, incoming []AttachmentCandidate) []AttachmentCandidate {
+	all := make([]AttachmentCandidate, 0, len(existing)+len(incoming))
 	all = append(all, existing...)
 	return append(all, incoming...)
 }
