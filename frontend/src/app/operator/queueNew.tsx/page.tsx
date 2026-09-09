@@ -4,7 +4,7 @@ import QueueNew from "./queue-new";
 
 export default function QueueNewPage() {
   return (
-    <main className="flex min-h-dvh flex-col bg-[#fbfcff]">
+    <main className="app-page-background flex min-h-dvh flex-col">
       <SiteHeader />
       <div className="flex flex-1 items-stretch max-[799px]:flex-col">
         <OperatorSidebar active="queue" />
