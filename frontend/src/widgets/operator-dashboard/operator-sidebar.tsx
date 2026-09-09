@@ -4,7 +4,7 @@ import Button from "@/shared/ui/button";
 const navigation = [
   { id: "home", label: "Главная", icon: "home", href: "/operator" },
   { id: "queue", label: "Очередь новых", icon: "inbox", href: "/operator/queueNew.tsx" },
-  { id: "assigned", label: "Распределённые", icon: "users", href: "#" },
+  { id: "assigned", label: "Распределённые", icon: "users", href: "/operator/assigned" },
   { id: "returns", label: "Возвраты", icon: "return", href: "#" },
 ] as const;
 
