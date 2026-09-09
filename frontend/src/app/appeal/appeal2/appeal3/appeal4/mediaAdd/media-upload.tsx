@@ -157,29 +157,41 @@ export default function MediaUpload({ role }: { role: string }) {
           }}
           onDrop={handleDrop}
           className={`
-            mt-[9px] flex min-h-[270px] w-full cursor-pointer flex-col items-center justify-center
+            group mt-[9px] flex min-h-[270px] w-full cursor-pointer flex-col items-center justify-center
             rounded-[15px] border bg-[#fcfdff] px-5 pt-4 pb-3 text-center
             transition-[border-color,background-color] duration-150
+            focus-visible:border-[var(--color-primary)] focus-visible:bg-[#dfe6ff]
             focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-primary)]
             motion-reduce:transition-none
             ${
               isDragging
-                ? "border-[var(--color-primary)] bg-[#eef1ff]"
-                : "border-[#333] hover:border-[var(--color-primary)] hover:bg-[#f9faff]"
+                ? "border-[var(--color-primary)] bg-[#dfe6ff]"
+                : "border-[#333] hover:border-[var(--color-primary)] hover:bg-[#dfe6ff]"
             }
           `}
         >
           <div className="relative top-2 flex flex-col items-center">
-            <Image
-              src="/images/mediaAddIcon.svg"
-              alt=""
-              width={79}
-              height={79}
-              className="mb-[23px] h-[72px] w-[72px] max-[699px]:mb-4 max-[699px]:h-14 max-[699px]:w-14"
-            />
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 80 80"
+              fill="none"
+              className={`mb-[23px] h-[72px] w-[72px] transition-colors duration-150 group-hover:text-[var(--color-primary)] group-focus-visible:text-[var(--color-primary)] motion-reduce:transition-none max-[699px]:mb-4 max-[699px]:h-14 max-[699px]:w-14 ${
+                isDragging
+                  ? "text-[var(--color-primary)]"
+                  : "text-[var(--color-text)]"
+              }`}
+            >
+              <path
+                d="M40 49V3M40 3 22 21M40 3l18 18M4 49v27h72V49"
+                stroke="currentColor"
+                strokeWidth="5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
 
             <span className="text-[15px] leading-[22px] text-[#000828] max-[699px]:text-[14px]">
-              Нажми, чтобы выбрать файлы
+              Нажми, чтобы выбрать файлы или перетащи сюда
             </span>
             <span className="text-[15px] leading-[22px] text-[#9196a7] max-[699px]:text-[13px]">
               Можно добавить до 5 файлов (фото, скриншоты, PDF). Размер до 10
