@@ -4,6 +4,7 @@ import { useState } from "react";
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import AppealNavigation from "@/shared/ui/appeal-navigation";
+import { appealRoutes, getAppealRoute } from "./routes";
 import TopicOption from "./topic-option";
 import { appealCategories as topics } from "./categories";
 
@@ -60,7 +61,7 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
   }
 
   return (
-    <form action="/appeal/appeal2/appeal3" method="get" className="flex flex-1 flex-col">
+    <form action={appealRoutes.description} method="get" className="flex flex-1 flex-col">
       <input type="hidden" name="role" value={roleId} />
 
       <fieldset aria-describedby="topics-description" className="mt-10 min-w-0 sm:mt-[84px]">
@@ -139,8 +140,8 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
       ) : null}
 
       <AppealNavigation
-        backHref={`/appeal?role=${roleId}`}
-        skipHref={`/appeal/appeal2/appeal3?role=${roleId}`}
+        backHref={getAppealRoute("role", { role: roleId })}
+        skipHref={getAppealRoute("description", { role: roleId })}
         primaryText="Продолжить"
         primaryType="submit"
       />

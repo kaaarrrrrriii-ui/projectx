@@ -2,6 +2,7 @@
 
 import Button from "@/shared/ui/button";
 import AppealNavigation from "@/shared/ui/appeal-navigation";
+import { getAppealRoute } from "./routes";
 import Image from "next/image";
 import {
   ChangeEvent,
@@ -34,7 +35,7 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
   const [items, setItems] = useState<UploadItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
-  const topicQuery = topic ? `&topic=${encodeURIComponent(topic)}` : "";
+  const routeParams = { role, topic };
 
   useEffect(() => {
     const urls = previewUrls.current;
@@ -269,10 +270,10 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
         </div>
 
         <AppealNavigation
-          backHref={`/appeal/appeal2/appeal3/appeal4?role=${role}${topicQuery}`}
-          skipHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd/success?role=${role}${topicQuery}`}
+          backHref={getAppealRoute("details", routeParams)}
+          skipHref={getAppealRoute("success", routeParams)}
           primaryText="Отправить обращение"
-          primaryHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd/success?role=${role}${topicQuery}`}
+          primaryHref={getAppealRoute("success", routeParams)}
           primaryVariant="secondary"
           primaryClassName="h-[44px] w-[234px] rounded-[11px] px-5 text-[15px] font-normal"
         />

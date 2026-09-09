@@ -1,5 +1,6 @@
 import AppealNavigation from "@/shared/ui/appeal-navigation";
 import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
+import { getAppealRoute } from "@/features/appeal/routes";
 import SiteHeader from "@/widgets/site-header/site-header";
 import Image from "next/image";
 
@@ -12,7 +13,7 @@ export default async function AppealDescription({
   const role = getAppealRole(params.role);
   const formal = isFormalAppealRole(role.id);
   const topic = typeof params.topic === "string" ? params.topic : "";
-  const topicQuery = topic ? `&topic=${encodeURIComponent(topic)}` : "";
+  const routeParams = { role: role.id, topic };
 
   return (
     <main className="app-page-background flex min-h-dvh flex-col">
@@ -131,10 +132,10 @@ export default async function AppealDescription({
           </aside>
 
           <AppealNavigation
-            backHref={`/appeal/appeal2?role=${role.id}${topicQuery}`}
-            skipHref={`/appeal/appeal2/appeal3/appeal4?role=${role.id}${topicQuery}`}
+            backHref={getAppealRoute("topics", routeParams)}
+            skipHref={getAppealRoute("details", routeParams)}
             primaryText="Продолжить"
-            primaryHref={`/appeal/appeal2/appeal3/appeal4?role=${role.id}${topicQuery}`}
+            primaryHref={getAppealRoute("details", routeParams)}
           />
         </div>
       </section>

@@ -1,4 +1,5 @@
 import { appealRoles } from "@/features/appeal/roles";
+import { appealRoutes } from "@/features/appeal/routes";
 import RoleCard from "@/features/appeal/role-card";
 import Button from "@/shared/ui/button";
 import PageHeading from "@/shared/ui/page-heading";
@@ -34,7 +35,7 @@ export default function RoleSelection({
       />
 
       <form
-        action="/appeal/appeal2"
+        action={appealRoutes.topics}
         method="get"
         className="
           flex flex-col items-center gap-9

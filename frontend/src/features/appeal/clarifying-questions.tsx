@@ -1,6 +1,7 @@
 "use client";
 
 import AppealNavigation from "@/shared/ui/appeal-navigation";
+import { getAppealRoute } from "./routes";
 import { useState } from "react";
 
 type QuestionKey = "place" | "duration" | "askedForHelp";
@@ -40,7 +41,7 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
     duration: false,
     askedForHelp: false,
   });
-  const topicQuery = topic ? `&topic=${encodeURIComponent(topic)}` : "";
+  const routeParams = { role, topic };
 
   const setAnswer = (question: QuestionKey, answer: string) => {
     setAnswers((current) => ({ ...current, [question]: answer }));
@@ -150,10 +151,10 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
           </div>
 
           <AppealNavigation
-            backHref={`/appeal/appeal2/appeal3?role=${role}${topicQuery}`}
-            skipHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}${topicQuery}`}
+            backHref={getAppealRoute("description", routeParams)}
+            skipHref={getAppealRoute("attachments", routeParams)}
             primaryText="Продолжить"
-            primaryHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}${topicQuery}`}
+            primaryHref={getAppealRoute("attachments", routeParams)}
           />
         </form>
       </div>
