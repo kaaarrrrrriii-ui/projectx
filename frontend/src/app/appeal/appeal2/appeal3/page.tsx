@@ -147,7 +147,7 @@ export default async function AppealDescription({
               text="Продолжить"
               variant="primary"
               size="default"
-              link={`/appeal/appeal2/appeal4?role=${role.id}`}
+              link={`/appeal/appeal2/appeal3/appeal4?role=${role.id}`}
             />
 
             <Link

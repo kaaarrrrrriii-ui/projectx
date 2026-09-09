@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/shared/ui/button";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -148,12 +149,7 @@ export default function ClarifyingQuestions({ role }: { role: string }) {
             className="relative mt-[17px] flex w-full flex-col items-center"
             aria-label="Навигация по обращению"
           >
-            <button
-              className="inline-flex h-[42px] w-[143px] cursor-pointer items-center justify-center rounded-xl border border-[#4562f0] bg-[#4562f0] px-5 text-[14px] leading-5 font-medium text-white transition-[border-color,background-color] duration-150 hover:border-[#4f71fc] hover:bg-[#4f71fc] active:border-[#374ecc] active:bg-[#374ecc] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none"
-              type="button"
-            >
-              Продолжить
-            </button>
+            <Button text="Продолжить" variant="primary" size="default" link={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}`} />
             <Link
               className="mt-2.5 rounded-[3px] text-[14px] leading-5 font-normal text-[#9296a4] no-underline transition-colors duration-150 hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none"
               href="/"
