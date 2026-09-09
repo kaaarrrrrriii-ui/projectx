@@ -10,7 +10,7 @@ export default async function StaffRolePage({ params }: { params: Promise<{ role
   const roleName = roleNames[role as keyof typeof roleNames];
 
   return (
-    <main className="min-h-dvh bg-[var(--color-background)]">
+    <main className="app-page-background min-h-dvh">
       <SiteHeader />
       <section className="mx-auto flex max-w-xl flex-col items-center px-5 py-20 text-center">
         <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#eef1ff] text-3xl text-[#4562f0]">✦</span>

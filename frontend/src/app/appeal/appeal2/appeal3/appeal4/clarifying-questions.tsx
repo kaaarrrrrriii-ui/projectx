@@ -1,7 +1,6 @@
 "use client";
 
-import Button from "@/shared/ui/button";
-import Link from "next/link";
+import AppealNavigation from "@/shared/ui/appeal-navigation";
 import { useState } from "react";
 
 type QuestionKey = "place" | "duration" | "askedForHelp";
@@ -30,13 +29,7 @@ const questions: Question[] = [
   },
 ];
 
-export default function ClarifyingQuestions({
-  role,
-  formal,
-}: {
-  role: string;
-  formal: boolean;
-}) {
+export default function ClarifyingQuestions({ role, topic = "", formal = false }: { role: string; topic?: string; formal?: boolean }) {
   const [answers, setAnswers] = useState<Record<QuestionKey, string>>({
     place: "",
     duration: "",
@@ -47,6 +40,7 @@ export default function ClarifyingQuestions({
     duration: false,
     askedForHelp: false,
   });
+  const topicQuery = topic ? `&topic=${encodeURIComponent(topic)}` : "";
 
   const setAnswer = (question: QuestionKey, answer: string) => {
     setAnswers((current) => ({ ...current, [question]: answer }));
@@ -64,23 +58,23 @@ export default function ClarifyingQuestions({
 
   return (
     <section
-      className="flex-1 bg-[#f7f9fe] px-5 pt-8 pb-8 sm:px-[4.8%] sm:pt-[55px] sm:pb-[39px]"
+      className="flex flex-1 flex-col px-5 pt-8 pb-7 sm:px-[4.8%] sm:pt-[55px] sm:pb-[38px]"
       aria-labelledby="details-heading"
     >
-      <div className="mx-auto w-full max-w-[1440px]">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
         <header>
           <h1
             id="details-heading"
             className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.035em] text-[#4562f0] sm:text-[34px] sm:leading-[41px]"
           >
-            Пару уточнений
+            {formal ? "Несколько уточнений" : "Пару уточнений"}
           </h1>
           <p className="mt-px mb-0 text-[14px] leading-5 font-normal text-[#17191f]">
             Эти вопросы необязательные, но помогут лучше понять ситуацию.
           </p>
         </header>
 
-        <form className="mt-5">
+        <form className="mt-5 flex flex-1 flex-col">
           <div className="w-full max-w-[772px]">
             {questions.map((question, questionIndex) => {
               const isSkipped = skipped[question.key];
@@ -155,24 +149,12 @@ export default function ClarifyingQuestions({
             })}
           </div>
 
-          <nav
-            className="relative mt-[17px] flex w-full flex-col items-center max-[699px]:mt-8"
-            aria-label="Навигация по обращению"
-          >
-            <Button text="Продолжить" variant="primary" size="default" link={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}`} />
-            <Link
-              className="mt-2.5 rounded-[3px] text-[14px] leading-5 font-normal text-[#9296a4] no-underline transition-colors duration-150 hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none"
-              href={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}`}
-            >
-              Пропустить
-            </Link>
-            <Link
-              className="absolute bottom-0 left-0 rounded-[3px] text-[14px] leading-5 font-normal text-[#9296a4] no-underline transition-colors duration-150 hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0] motion-reduce:transition-none max-[699px]:static max-[699px]:mt-5"
-              href={`/appeal/appeal2/appeal3?role=${role}`}
-            >
-              Вернуться назад
-            </Link>
-          </nav>
+          <AppealNavigation
+            backHref={`/appeal/appeal2/appeal3?role=${role}${topicQuery}`}
+            skipHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}${topicQuery}`}
+            primaryText="Продолжить"
+            primaryHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd?role=${role}${topicQuery}`}
+          />
         </form>
       </div>
     </section>

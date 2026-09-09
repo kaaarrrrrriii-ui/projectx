@@ -3,16 +3,18 @@ import SiteHeader from "@/widgets/site-header/site-header";
 import ClarifyingQuestions from "./clarifying-questions";
 
 export default async function AppealDetails({ searchParams }: {
-  searchParams: Promise<{ role?: string | string[] }>;
+  searchParams: Promise<{ role?: string | string[]; topic?: string | string[] }>;
 }) {
-  const role = getAppealRole((await searchParams).role);
+  const params = await searchParams;
+  const role = getAppealRole(params.role);
   const formal = isFormalAppealRole(role.id);
+  const topic = typeof params.topic === "string" ? params.topic : "";
 
   return (
-    <main className="flex min-h-dvh flex-col bg-[#f7f9fe] text-[#11131a]">
+    <main className="app-page-background flex min-h-dvh flex-col text-[#11131a]">
       <SiteHeader formal={formal} />
 
-      <ClarifyingQuestions role={role.id} formal={formal} />
+      <ClarifyingQuestions role={role.id} topic={topic} formal={formal} />
     </main>
   );
 }

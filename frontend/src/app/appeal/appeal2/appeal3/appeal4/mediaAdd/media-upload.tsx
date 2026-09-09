@@ -1,8 +1,8 @@
 "use client";
 
 import Button from "@/shared/ui/button";
+import AppealNavigation from "@/shared/ui/appeal-navigation";
 import Image from "next/image";
-import Link from "next/link";
 import {
   ChangeEvent,
   DragEvent,
@@ -28,18 +28,13 @@ function isSupportedFile(file: File) {
   );
 }
 
-export default function MediaUpload({
-  role,
-  formal,
-}: {
-  role: string;
-  formal: boolean;
-}) {
+export default function MediaUpload({ role, topic = "", formal = false }: { role: string; topic?: string; formal?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrls = useRef(new Set<string>());
   const [items, setItems] = useState<UploadItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
+  const topicQuery = topic ? `&topic=${encodeURIComponent(topic)}` : "";
 
   useEffect(() => {
     const urls = previewUrls.current;
@@ -121,9 +116,9 @@ export default function MediaUpload({
   return (
     <section
       aria-labelledby="media-heading"
-      className="flex-1 px-[4.8%] pt-[55px] pb-[34px] max-[699px]:px-5 max-[699px]:pt-8"
+      className="flex flex-1 flex-col px-[4.8%] pt-[55px] pb-[38px] max-[699px]:px-5 max-[699px]:pt-8 max-[699px]:pb-7"
     >
-      <div className="mx-auto w-full max-w-[1440px]">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
         <h1
           id="media-heading"
           className="text-[36px] leading-[1.2] font-black tracking-[-0.025em] text-[var(--color-primary)] max-[699px]:text-[28px]"
@@ -273,25 +268,14 @@ export default function MediaUpload({
           )}
         </div>
 
-        <nav
-          aria-label="Навигация по обращению"
-          className="relative mt-[21px] flex min-h-[66px] justify-center max-[699px]:mt-7 max-[699px]:flex-col max-[699px]:items-center max-[699px]:gap-5"
-        >
-          <Button
-            text="Отправить обращение"
-            variant="secondary"
-            size="default"
-            link={`/appeal/appeal2/appeal3/appeal4/mediaAdd/success?role=${role}`}
-            className="h-[44px] w-[234px] rounded-[11px] px-5 text-[15px] font-normal"
-          />
-
-          <Link
-            href={`/appeal/appeal2/appeal3/appeal4?role=${role}`}
-            className="absolute top-[43px] left-0 rounded-[3px] text-[15px] leading-[22px] text-[#9196a7] transition-colors hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-primary)] max-[699px]:static"
-          >
-            Вернуться назад
-          </Link>
-        </nav>
+        <AppealNavigation
+          backHref={`/appeal/appeal2/appeal3/appeal4?role=${role}${topicQuery}`}
+          skipHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd/success?role=${role}${topicQuery}`}
+          primaryText="Отправить обращение"
+          primaryHref={`/appeal/appeal2/appeal3/appeal4/mediaAdd/success?role=${role}${topicQuery}`}
+          primaryVariant="secondary"
+          primaryClassName="h-[44px] w-[234px] rounded-[11px] px-5 text-[15px] font-normal"
+        />
       </div>
     </section>
   );

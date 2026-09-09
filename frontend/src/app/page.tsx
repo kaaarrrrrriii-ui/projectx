@@ -4,7 +4,7 @@ import SiteHeader from "@/widgets/site-header/site-header";
 
 export default function Home() {
   return (
-    <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
+    <main className="app-page-background flex min-h-dvh flex-col">
       <SiteHeader />
 
       <div

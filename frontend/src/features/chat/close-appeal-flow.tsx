@@ -5,23 +5,25 @@ import Image from "next/image";
 import { FormEvent, useState } from "react";
 import DialogShell from "./dialog-shell";
 
-type CloseStage = "confirm" | "result" | "feedback" | "closed";
+type CloseStage = "confirm" | "feedback" | "closed" | "returned";
 
 export default function CloseAppealFlow({
   formal,
   trackNumber,
+  outcome,
   onCancel,
 }: {
   formal: boolean;
   trackNumber: string;
+  outcome: "helped" | "not-helped";
   onCancel: () => void;
 }) {
-  const [stage, setStage] = useState<CloseStage>("confirm");
+  const [stage, setStage] = useState<CloseStage>(outcome === "helped" ? "confirm" : "feedback");
   const [feedback, setFeedback] = useState("");
 
   function submitFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStage("closed");
+    setStage("returned");
   }
 
   if (stage === "confirm") {
@@ -40,7 +42,7 @@ export default function CloseAppealFlow({
             text="Да"
             variant="secondary"
             size="small"
-            onClick={() => setStage("result")}
+            onClick={() => setStage("closed")}
             className="w-full"
           />
           <Button
@@ -48,37 +50,6 @@ export default function CloseAppealFlow({
             variant="secondary"
             size="small"
             onClick={onCancel}
-            className="w-full"
-          />
-        </div>
-      </DialogShell>
-    );
-  }
-
-  if (stage === "result") {
-    return (
-      <DialogShell labelledBy="result-heading" className="max-w-[884px]">
-        <h2
-          id="result-heading"
-          className="text-center text-[30px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[var(--color-primary)] max-[599px]:text-[23px]"
-        >
-          {formal
-            ? "Мы помогли вам решить вашу проблему?"
-            : "Мы помогли тебе решить твою проблему?"}
-        </h2>
-        <div className="mx-auto mt-10 grid max-w-[666px] grid-cols-2 gap-2.5 max-[499px]:mt-7 max-[499px]:grid-cols-1">
-          <Button
-            text="Нет"
-            variant="secondary"
-            size="small"
-            onClick={() => setStage("feedback")}
-            className="w-full"
-          />
-          <Button
-            text="Да"
-            variant="secondary"
-            size="small"
-            onClick={() => setStage("closed")}
             className="w-full"
           />
         </div>
@@ -138,12 +109,26 @@ export default function CloseAppealFlow({
           />
           <button
             type="button"
-            onClick={() => setStage("closed")}
+            onClick={() => setStage("returned")}
             className="mx-auto mt-3 block cursor-pointer rounded-sm px-3 py-1 text-[13px] text-[#9196a7] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
           >
             Пропустить
           </button>
         </form>
+      </DialogShell>
+    );
+  }
+
+  if (stage === "returned") {
+    return (
+      <DialogShell labelledBy="returned-heading" onClose={onCancel} showClose className="max-w-[704px]">
+        <h2 id="returned-heading" className="text-[25px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[var(--color-primary)] max-[599px]:text-[22px]">
+          Обращение вернулось специалисту
+        </h2>
+        <p className="mt-2 text-[13px] leading-[1.4] text-[#151515]">
+          Спасибо за обратную связь. Мы внимательно изучим её и постараемся помочь по-другому.
+        </p>
+        <Button text="Вернуться в чат" variant="primary" size="small" onClick={onCancel} className="mt-[18px] w-full" />
       </DialogShell>
     );
   }

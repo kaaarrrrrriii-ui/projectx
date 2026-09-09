@@ -3,7 +3,7 @@ import SiteHeader from "@/widgets/site-header/site-header";
 
 export default function StaffPage() {
   return (
-    <main className="min-h-dvh bg-[var(--color-background)]">
+    <main className="app-page-background min-h-dvh">
       <SiteHeader />
       <section className="mx-auto flex w-full max-w-[1120px] flex-col items-center px-5 py-10 md:px-10 md:py-16">
         <div className="mb-9 text-center">
