@@ -5,18 +5,18 @@ import (
 	"testing"
 )
 
-func TestValidateAttachmentBatchAcceptsExactLimits(t *testing.T) {
+func TestValidateAttachmentBatchAcceptsFiveFilesUpToLimitEach(t *testing.T) {
 	t.Parallel()
 
 	limits := DefaultAttachmentLimits()
 	existing := []AttachmentCandidate{
-		{OriginalSizeBytes: 2 * 1024 * 1024},
-		{OriginalSizeBytes: 2 * 1024 * 1024},
+		{OriginalSizeBytes: DefaultMaxAttachmentBytes},
+		{OriginalSizeBytes: DefaultMaxAttachmentBytes},
 	}
 	incoming := []AttachmentCandidate{
-		{OriginalSizeBytes: 2 * 1024 * 1024},
-		{OriginalSizeBytes: 2 * 1024 * 1024},
-		{OriginalSizeBytes: 2 * 1024 * 1024},
+		{OriginalSizeBytes: DefaultMaxAttachmentBytes},
+		{OriginalSizeBytes: DefaultMaxAttachmentBytes},
+		{OriginalSizeBytes: DefaultMaxAttachmentBytes},
 	}
 
 	if err := ValidateAttachmentBatch(limits, existing, incoming); err != nil {
@@ -33,12 +33,12 @@ func TestValidateAttachmentBatchRejectsSixFiles(t *testing.T) {
 	}
 }
 
-func TestValidateAttachmentBatchRejectsTotalOverLimit(t *testing.T) {
+func TestValidateAttachmentBatchRejectsFileOverLimit(t *testing.T) {
 	t.Parallel()
 
-	files := []AttachmentCandidate{{OriginalSizeBytes: DefaultMaxBatchBytes + 1}}
-	if err := ValidateAttachmentBatch(DefaultAttachmentLimits(), nil, files); !errors.Is(err, ErrAttachmentBatchTooLarge) {
-		t.Fatalf("ValidateAttachmentBatch() error = %v, want %v", err, ErrAttachmentBatchTooLarge)
+	files := []AttachmentCandidate{{OriginalSizeBytes: DefaultMaxAttachmentBytes + 1}}
+	if err := ValidateAttachmentBatch(DefaultAttachmentLimits(), nil, files); !errors.Is(err, ErrAttachmentTooLarge) {
+		t.Fatalf("ValidateAttachmentBatch() error = %v, want %v", err, ErrAttachmentTooLarge)
 	}
 }
 

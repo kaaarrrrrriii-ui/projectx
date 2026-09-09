@@ -53,7 +53,7 @@ type ImageProcessorConfig struct {
 
 func DefaultImageProcessorConfig() ImageProcessorConfig {
 	return ImageProcessorConfig{
-		MaxInputBytes:  DefaultMaxBatchBytes,
+		MaxInputBytes:  DefaultMaxAttachmentBytes,
 		MaxOutputBytes: DefaultMaxSanitizedImageBytes,
 		MaxPixels:      DefaultMaxImagePixels,
 		JPEGQuality:    DefaultJPEGQuality,

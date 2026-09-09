@@ -9,6 +9,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./migrations/002_ticket_workflow.sql:/docker-entrypoint-initdb.d/002_ticket_workflow.sql:ro
     ports:
       - "5432:5432"
     healthcheck:

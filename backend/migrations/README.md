@@ -17,3 +17,8 @@ storage code.
 
 The script does not rewrite an already initialized database. Apply future
 schema changes as new numbered migrations instead of editing an applied file.
+
+`002_ticket_workflow.sql` assigns the integer status/message-type ranges used
+by the ticket API and converts stored timestamps to timezone-aware values. For
+an existing Docker volume, apply it with the project's normal migration
+process; PostgreSQL's initialization directory only runs for a new volume.
