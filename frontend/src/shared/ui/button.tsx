@@ -1,16 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties } from "react";
 
 interface Props {
   text: string;
-  color?: string;
-  padSmall?: boolean;
-  padMedium?: boolean;
-  padLarge?: boolean;
+  variant?: "primary" | "secondary";
+  size?: "default" | "small";
+
   fill?: boolean;
-  textColor?: string;
+
   link?: string;
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
@@ -18,17 +16,13 @@ interface Props {
   target?: "_blank" | "_self";
   ariaLabel?: string;
   className?: string;
-  style?: CSSProperties;
 }
 
 export default function Button({
   text,
-  color,
-  padSmall,
-  padMedium,
-  padLarge,
+  variant,
+  size = "default",
   fill,
-  textColor,
   link,
   onClick,
   type = "button",
@@ -36,80 +30,103 @@ export default function Button({
   target = "_self",
   ariaLabel,
   className = "",
-  style,
 }: Props) {
-  const customStyle = {
-    ...(color && { "--button-accent": color }),
-    ...(textColor && { "--button-text": textColor }),
-    ...(padSmall && { padding: "5px 24px" }),
-    ...(padMedium && { padding: "10px 32px" }),
-    ...(padLarge && { padding: "20px 40px" }),
-    ...style,
-  } as CSSProperties;
+  // Старый fill=true считаем primary.
+  // Без fill старая кнопка будет secondary.
+  const resolvedVariant =
+    variant ?? (fill ? "primary" : "secondary");
 
   const baseClasses = `
-    inline-flex min-w-0
+    inline-flex shrink-0
     items-center justify-center
-
-    min-h-[var(--button-height,54px)]
-    px-[20px] py-[14px]
-    [padding:var(--button-padding,14px_20px)]
-
-    rounded-[var(--button-radius,var(--radius-control))]
-    border border-transparent
-
-    text-center
-    text-[length:var(--button-font-size,17px)]
-    font-[var(--button-weight,600)]
-    leading-[1.3]
-    no-underline
-
+    border
+    font-medium
+    leading-none
+    whitespace-nowrap
     cursor-pointer
+    select-none
 
-    transition-[background-color,border-color]
+    transition-[background-color,border-color,color]
     duration-150
 
     focus-visible:outline
-    focus-visible:outline-3
-    focus-visible:outline-[var(--color-primary)]
-    focus-visible:outline-offset-4
+    focus-visible:outline-[3px]
+    focus-visible:outline-[#4562F0]
+    focus-visible:outline-offset-[3px]
 
+    disabled:pointer-events-none
     disabled:cursor-not-allowed
-    disabled:border-[var(--color-border)]
-    disabled:bg-[var(--color-primary-disabled)]
-    disabled:text-[var(--color-on-primary)]
 
     motion-reduce:transition-none
   `;
 
-  const variantClasses = fill
-    ? `
-        bg-[var(--button-accent,var(--color-primary))]
-        text-[var(--button-text,var(--color-on-primary))]
+  const sizeClasses =
+    size === "small"
+      ? `
+          h-[38px]
+          px-5
+          py-2.5
+          rounded-lg
+          text-sm
+        `
+      : `
+          h-12
+          px-8
+          py-3.5
+          rounded-xl
+          text-base
+        `;
 
-        hover:bg-[var(--color-primary-hover)]
-        active:bg-[var(--color-primary-active)]
-      `
-    : `
-        border-[var(--button-accent,var(--color-primary))]
-        bg-[var(--color-surface)]
-        text-[var(--button-text,var(--button-accent,var(--color-primary)))]
+  const variantClasses =
+    resolvedVariant === "primary"
+      ? `
+          border-[#4562F0]
+          bg-[#4562F0]
+          text-white
 
-        hover:bg-[var(--color-primary-soft-hover)]
-        active:bg-[var(--color-primary-soft-active)]
-      `;
+          hover:border-[#4F71FC]
+          hover:bg-[#4F71FC]
 
-  const classes = `${baseClasses} ${variantClasses} ${className}`;
+          active:border-[#374ECC]
+          active:bg-[#374ECC]
+
+          disabled:border-[#4562F0]/40
+          disabled:bg-[#4562F0]/40
+          disabled:text-white
+        `
+      : `
+          border-[#4562F0]
+          bg-transparent
+          text-[#4562F0]
+
+          hover:border-[#4F71FC]
+          hover:bg-[#4562F0]/5
+          hover:text-[#4F71FC]
+
+          active:border-[#374ECC]
+          active:bg-[#4562F0]/15
+          active:text-[#374ECC]
+
+          disabled:border-[#4562F0]/40
+          disabled:bg-transparent
+          disabled:text-[#4562F0]/40
+        `;
+
+  const classes = `
+    ${baseClasses}
+    ${sizeClasses}
+    ${variantClasses}
+    ${className}
+  `;
 
   if (link && !disabled) {
     return (
       <Link
         href={link}
-        className={classes}
-        style={customStyle}
         target={target}
         aria-label={ariaLabel}
         onClick={onClick}
+        className={classes}
       >
         {text}
       </Link>
@@ -119,11 +136,10 @@ export default function Button({
   return (
     <button
       type={type}
-      className={classes}
-      style={customStyle}
-      onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
+      onClick={onClick}
+      className={classes}
     >
       {text}
     </button>
