@@ -1,0 +1,14 @@
+.heading h1 {
+  color: var(--heading-color, var(--color-text));
+  font-size: var(--heading-size, 30px);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+.heading p {
+  max-width: var(--heading-description-width, 370px);
+  margin-top: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--heading-description-size, 15px);
+  line-height: 1.55;
+}

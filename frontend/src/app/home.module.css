@@ -1,0 +1,39 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--color-background);
+}
+.layout {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1;
+  width: 100%;
+  align-items: center;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding: 44px clamp(32px, 4.7vw, 72px) 20px;
+}
+.illustration {
+  position: absolute;
+  z-index: -1;
+  bottom: 0;
+  left: 0;
+  width: 34.3%;
+  height: auto;
+  pointer-events: none;
+}
+@media (max-width: 699px) {
+  .layout {
+    flex-direction: column;
+    padding: 30px 20px 0;
+  }
+  .illustration {
+    position: static;
+    order: 1;
+    width: 240px;
+    max-width: 80%;
+    margin-top: -50px;
+  }
+}
