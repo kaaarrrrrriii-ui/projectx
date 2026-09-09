@@ -14,7 +14,15 @@ type SentMessage = {
   fileNames: string[];
 };
 
-export default function ChatWorkspace({ children }: { children: ReactNode }) {
+export default function ChatWorkspace({
+  children,
+  role,
+  formal,
+}: {
+  children: ReactNode;
+  role: string;
+  formal: boolean;
+}) {
   const [activeDialog, setActiveDialog] = useState<"reply" | "close" | null>(null);
   const [messages, setMessages] = useState<SentMessage[]>([]);
 
@@ -59,7 +67,7 @@ export default function ChatWorkspace({ children }: { children: ReactNode }) {
           </div>
 
           <Link
-            href="/status"
+            href={`/status?role=${role}`}
             className="mt-auto w-fit rounded-sm pt-8 text-[13px] text-[#9196a7] transition-colors hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-primary)] max-[799px]:mx-auto max-[799px]:pt-5"
           >
             Вернуться назад
@@ -73,7 +81,7 @@ export default function ChatWorkspace({ children }: { children: ReactNode }) {
             {messages.map((message) => (
               <article
                 key={message.id}
-                aria-label="Ваше сообщение"
+                aria-label={formal ? "Ваше сообщение" : "Твоё сообщение"}
                 className="ml-auto max-w-[72%] rounded-[15px] bg-[var(--color-primary)] px-5 py-3 text-[15px] leading-[1.45] text-white max-[599px]:max-w-[88%] max-[499px]:px-4 max-[499px]:text-[14px]"
               >
                 {message.text && <p className="whitespace-pre-wrap">{message.text}</p>}
@@ -92,6 +100,7 @@ export default function ChatWorkspace({ children }: { children: ReactNode }) {
 
       {activeDialog === "reply" && (
         <ReplyModal
+          formal={formal}
           onClose={() => setActiveDialog(null)}
           onSend={addMessage}
         />
@@ -99,6 +108,7 @@ export default function ChatWorkspace({ children }: { children: ReactNode }) {
 
       {activeDialog === "close" && (
         <CloseAppealFlow
+          formal={formal}
           trackNumber="НАШК-УАЫВ-АВАМ-ВАФВ"
           onCancel={() => setActiveDialog(null)}
         />

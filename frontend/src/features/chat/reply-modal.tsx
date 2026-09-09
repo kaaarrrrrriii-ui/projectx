@@ -30,9 +30,11 @@ function isSupportedFile(file: File) {
 }
 
 export default function ReplyModal({
+  formal,
   onClose,
   onSend,
 }: {
+  formal: boolean;
   onClose: () => void;
   onSend: (message: string, fileNames: string[]) => void;
 }) {
@@ -127,7 +129,11 @@ export default function ReplyModal({
         <textarea
           value={message}
           onChange={(event) => setMessage(event.target.value)}
-          placeholder="Здесь можно написать всё, что тебя беспокоит..."
+          placeholder={
+            formal
+              ? "Здесь можно написать всё, что вас беспокоит..."
+              : "Здесь можно написать всё, что тебя беспокоит..."
+          }
           aria-label="Сообщение специалисту"
           className="mt-4 block min-h-[168px] w-full resize-y rounded-[12px] border border-[#333] bg-[#fcfdff] px-3 py-2.5 text-[15px] leading-6 outline-none placeholder:text-[#9196a7] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[#4562f0]/20 max-[499px]:min-h-[130px]"
         />
@@ -170,7 +176,9 @@ export default function ReplyModal({
             height={58}
             className="h-[58px] w-[58px]"
           />
-          <p className="mt-2 text-[13px] leading-5">Нажми, чтобы выбрать файлы</p>
+          <p className="mt-2 text-[13px] leading-5">
+            {formal ? "Нажмите, чтобы выбрать файлы" : "Нажми, чтобы выбрать файлы"}
+          </p>
           <p className="text-[12px] leading-4 text-[#9196a7]">
             Можно добавить до 5 файлов (фото, скриншоты, PDF), размер до 10 МБ каждый.
           </p>

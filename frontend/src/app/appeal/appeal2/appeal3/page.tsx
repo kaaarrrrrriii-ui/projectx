@@ -1,6 +1,6 @@
 import Button from "@/shared/ui/button";
 import Link from "next/link";
-import { getAppealRole } from "@/features/appeal/roles";
+import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
 import SiteHeader from "@/widgets/site-header/site-header";
 import Image from "next/image";
 
@@ -10,10 +10,11 @@ export default async function AppealDescription({
   searchParams: Promise<{ role?: string | string[] }>;
 }) {
   const role = getAppealRole((await searchParams).role);
+  const formal = isFormalAppealRole(role.id);
 
   return (
     <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
-      <SiteHeader />
+      <SiteHeader formal={formal} />
 
       <section
         aria-labelledby="description-heading"
@@ -40,7 +41,7 @@ export default async function AppealDescription({
               max-[699px]:text-[28px]
             "
           >
-            Расскажи, что происходит
+            {formal ? "Расскажите, что происходит" : "Расскажи, что происходит"}
           </h1>
 
           <p
@@ -55,16 +56,20 @@ export default async function AppealDescription({
               max-[699px]:text-[14px]
             "
           >
-            Опиши ситуацию своими словами. Чем больше деталей, тем проще нам
-            будет помочь. Если не знаешь, с чего начать — просто напиши, что
-            чувствуешь.
+            {formal
+              ? "Опишите ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаете, с чего начать — просто напишите, что чувствуете."
+              : "Опиши ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаешь, с чего начать — просто напиши, что чувствуешь."}
           </p>
 
           <textarea
             name="description"
             aria-labelledby="description-heading"
             aria-describedby="description-intro description-hint"
-            placeholder="Здесь можно написать всё, что тебя беспокоит..."
+            placeholder={
+              formal
+                ? "Здесь можно написать всё, что вас беспокоит..."
+                : "Здесь можно написать всё, что тебя беспокоит..."
+            }
             className="
               mt-7 block
               min-h-[260px] w-full
@@ -119,8 +124,9 @@ export default async function AppealDescription({
             />
 
             <p>
-              Нет правильных или неправильных слов. Пиши так, как тебе удобно.
-              Мы внимательно читаем каждое обращение.
+              {formal
+                ? "Нет правильных или неправильных слов. Пишите так, как вам удобно. Мы внимательно читаем каждое обращение."
+                : "Нет правильных или неправильных слов. Пиши так, как тебе удобно. Мы внимательно читаем каждое обращение."}
             </p>
           </aside>
 
