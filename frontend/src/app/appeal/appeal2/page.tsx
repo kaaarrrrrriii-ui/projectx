@@ -2,20 +2,9 @@ import Button from "@/shared/ui/button";
 import Checkbox from "@/shared/ui/checkbox";
 import Input from "@/shared/ui/input";
 import Link from "next/link";
+import { appealCategories } from "@/features/appeal/categories";
 import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
 import SiteHeader from "@/widgets/site-header/site-header";
-
-const topics = [
-  "травля и оскорбления",
-  "кибербуллинг",
-  "конфликт с родителями",
-  "конфликт с одноклассниками",
-  "конфликт с учителем",
-  "давление и угрозы",
-  "юридический вопрос",
-  "конфликт с сестрой/братом",
-  "я не знаю, как это назвать",
-];
 
 export default async function AppealTopics({
   searchParams,
@@ -79,7 +68,7 @@ export default async function AppealTopics({
                 lg:grid-cols-3
               "
             >
-              {topics.map((topic) => (
+              {appealCategories.map((topic) => (
                 <Checkbox
                   key={topic}
                   variant="chip"
