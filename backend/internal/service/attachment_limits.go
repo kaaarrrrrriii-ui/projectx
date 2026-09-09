@@ -7,19 +7,19 @@ import (
 
 const (
 	DefaultMaxAttachmentFiles = 5
-	DefaultMaxBatchBytes      = int64(10 * 1024 * 1024)
+	DefaultMaxAttachmentBytes = int64(10 * 1024 * 1024)
 )
 
 var (
-	ErrTooManyAttachments      = errors.New("too many attachments")
-	ErrAttachmentBatchTooLarge = errors.New("attachment batch is too large")
-	ErrInvalidAttachmentSize   = errors.New("invalid attachment size")
+	ErrTooManyAttachments    = errors.New("too many attachments")
+	ErrAttachmentTooLarge    = errors.New("attachment is too large")
+	ErrInvalidAttachmentSize = errors.New("invalid attachment size")
 )
 
 // AttachmentLimits are applied to the original files in one upload batch.
 type AttachmentLimits struct {
-	MaxFiles      int
-	MaxTotalBytes int64
+	MaxFiles     int
+	MaxFileBytes int64
 }
 
 type AttachmentCandidate struct {
@@ -28,8 +28,8 @@ type AttachmentCandidate struct {
 
 func DefaultAttachmentLimits() AttachmentLimits {
 	return AttachmentLimits{
-		MaxFiles:      DefaultMaxAttachmentFiles,
-		MaxTotalBytes: DefaultMaxBatchBytes,
+		MaxFiles:     DefaultMaxAttachmentFiles,
+		MaxFileBytes: DefaultMaxAttachmentBytes,
 	}
 }
 
@@ -37,7 +37,7 @@ func DefaultAttachmentLimits() AttachmentLimits {
 // The database-backed caller must repeat this check while holding the batch
 // lock so concurrent uploads cannot exceed the limits together.
 func ValidateAttachmentBatch(limits AttachmentLimits, existing, incoming []AttachmentCandidate) error {
-	if limits.MaxFiles <= 0 || limits.MaxTotalBytes <= 0 {
+	if limits.MaxFiles <= 0 || limits.MaxFileBytes <= 0 {
 		return fmt.Errorf("invalid attachment limits")
 	}
 
@@ -45,15 +45,13 @@ func ValidateAttachmentBatch(limits AttachmentLimits, existing, incoming []Attac
 		return fmt.Errorf("%w: maximum is %d", ErrTooManyAttachments, limits.MaxFiles)
 	}
 
-	var total int64
 	for _, candidate := range appendCandidates(existing, incoming) {
 		if candidate.OriginalSizeBytes < 0 {
 			return ErrInvalidAttachmentSize
 		}
-		if candidate.OriginalSizeBytes > limits.MaxTotalBytes-total {
-			return fmt.Errorf("%w: maximum is %d bytes", ErrAttachmentBatchTooLarge, limits.MaxTotalBytes)
+		if candidate.OriginalSizeBytes > limits.MaxFileBytes {
+			return fmt.Errorf("%w: maximum is %d bytes", ErrAttachmentTooLarge, limits.MaxFileBytes)
 		}
-		total += candidate.OriginalSizeBytes
 	}
 
 	return nil
