@@ -36,7 +36,7 @@ export default function ClarifyingQuestions({ role, topic = "" }: { role: string
     askedForHelp: "",
   });
   const [skipped, setSkipped] = useState<Record<QuestionKey, boolean>>({
-    place: true,
+    place: false,
     duration: false,
     askedForHelp: false,
   });
@@ -89,7 +89,9 @@ export default function ClarifyingQuestions({ role, topic = "" }: { role: string
                       isSkipped ? "text-[#b1b3ba]" : "text-[#11131a]"
                     }`}
                   >
-                    {question.title}
+                    {formal && question.key === "askedForHelp"
+                      ? "Вы уже обращались за помощью?"
+                      : question.title}
                   </legend>
 
                   <div
@@ -111,7 +113,11 @@ export default function ClarifyingQuestions({ role, topic = "" }: { role: string
                             value={option}
                           />
                           <span className="flex min-h-[38px] w-full items-center justify-center rounded-[14px] border border-[#18223f] bg-white/20 px-3 py-2 text-center text-[14px] leading-5 font-normal text-[#18213e] transition-[border-color,background-color,color] duration-150 hover:border-[#4562f0] hover:bg-[#eef1ff] peer-checked:border-[#4562f0] peer-checked:bg-[#4562f0] peer-checked:text-white peer-disabled:cursor-default peer-disabled:border-[#b9becb] peer-disabled:bg-transparent peer-disabled:text-[#b8bbc5] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-[#4562f0] motion-reduce:transition-none">
-                            {option}
+                            {formal &&
+                            question.key === "askedForHelp" &&
+                            option === "Не уверен"
+                              ? "Не уверены"
+                              : option}
                           </span>
                         </label>
                       );

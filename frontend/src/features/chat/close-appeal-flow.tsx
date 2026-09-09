@@ -8,10 +8,12 @@ import DialogShell from "./dialog-shell";
 type CloseStage = "confirm" | "feedback" | "closed" | "returned";
 
 export default function CloseAppealFlow({
+  formal,
   trackNumber,
   outcome,
   onCancel,
 }: {
+  formal: boolean;
   trackNumber: string;
   outcome: "helped" | "not-helped";
   onCancel: () => void;
@@ -31,7 +33,9 @@ export default function CloseAppealFlow({
           id="close-confirm-heading"
           className="text-center text-[30px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[var(--color-primary)] max-[599px]:text-[23px]"
         >
-          Ты уверен, что хочешь закрыть обращение?
+          {formal
+            ? "Вы уверены, что хотите закрыть обращение?"
+            : "Ты уверен, что хочешь закрыть обращение?"}
         </h2>
         <div className="mx-auto mt-10 grid max-w-[666px] grid-cols-2 gap-2.5 max-[499px]:mt-7 max-[499px]:grid-cols-1">
           <Button
@@ -53,6 +57,37 @@ export default function CloseAppealFlow({
     );
   }
 
+  if (stage === "result") {
+    return (
+      <DialogShell labelledBy="result-heading" className="max-w-[884px]">
+        <h2
+          id="result-heading"
+          className="text-center text-[30px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[var(--color-primary)] max-[599px]:text-[23px]"
+        >
+          {formal
+            ? "Мы помогли вам решить вашу проблему?"
+            : "Мы помогли тебе решить твою проблему?"}
+        </h2>
+        <div className="mx-auto mt-10 grid max-w-[666px] grid-cols-2 gap-2.5 max-[499px]:mt-7 max-[499px]:grid-cols-1">
+          <Button
+            text="Нет"
+            variant="secondary"
+            size="small"
+            onClick={() => setStage("feedback")}
+            className="w-full"
+          />
+          <Button
+            text="Да"
+            variant="secondary"
+            size="small"
+            onClick={() => setStage("closed")}
+            className="w-full"
+          />
+        </div>
+      </DialogShell>
+    );
+  }
+
   if (stage === "feedback") {
     return (
       <DialogShell labelledBy="feedback-heading" className="max-w-[704px]">
@@ -61,16 +96,22 @@ export default function CloseAppealFlow({
             id="feedback-heading"
             className="text-[25px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[var(--color-primary)] max-[599px]:text-[22px]"
           >
-            Расскажи, что не помогло?
+            {formal ? "Расскажите, что не помогло?" : "Расскажи, что не помогло?"}
           </h2>
           <p className="mt-2 text-[13px] leading-[1.4] text-[#151515]">
-            Спасибо, что делишься этим. Твой ответ поможет нам лучше понять ситуацию и подобрать другие рекомендации.
+            {formal
+              ? "Спасибо, что делитесь этим. Ваш ответ поможет нам лучше понять ситуацию и подобрать другие рекомендации."
+              : "Спасибо, что делишься этим. Твой ответ поможет нам лучше понять ситуацию и подобрать другие рекомендации."}
           </p>
 
           <textarea
             value={feedback}
             onChange={(event) => setFeedback(event.target.value)}
-            placeholder="Что конкретно тебе не помогло?"
+            placeholder={
+              formal
+                ? "Что конкретно вам не помогло?"
+                : "Что конкретно тебе не помогло?"
+            }
             aria-label="Что не помогло"
             className="mt-4 block min-h-[160px] w-full resize-y rounded-[12px] border border-[#333] bg-[#fcfdff] px-3 py-2.5 text-[14px] leading-5 outline-none placeholder:text-[#9196a7] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[#4562f0]/20"
           />
@@ -84,7 +125,9 @@ export default function CloseAppealFlow({
               className="shrink-0"
             />
             <p className="text-[12px] leading-[1.35]">
-              Твоё обращение вернётся специалисту на дополнительное рассмотрение. Мы постараемся ответить как можно скорее.
+              {formal ? "Ваше" : "Твоё"} обращение вернётся специалисту на
+              дополнительное рассмотрение. Мы постараемся ответить как можно
+              скорее.
             </p>
           </div>
 
@@ -130,7 +173,9 @@ export default function CloseAppealFlow({
         Обращение закрыто
       </h2>
       <p className="mt-2 text-[13px] leading-[1.4] text-[#151515]">
-        Мы рады, что смогли быть рядом. Если тебе снова понадобится поддержка — ты всегда можешь написать нам.
+        {formal
+          ? "Мы рады, что смогли быть рядом. Если вам снова понадобится поддержка — вы всегда можете написать нам."
+          : "Мы рады, что смогли быть рядом. Если тебе снова понадобится поддержка — ты всегда можешь написать нам."}
       </p>
 
       <section className="mt-4 rounded-[13px] border border-[var(--color-primary)] bg-[#dee7fd] p-2.5" aria-labelledby="save-track-heading">
@@ -144,10 +189,12 @@ export default function CloseAppealFlow({
           />
           <div>
             <h3 id="save-track-heading" className="text-[16px] font-medium">
-              Сохрани номер обращения
+              {formal ? "Сохраните номер обращения" : "Сохрани номер обращения"}
             </h3>
             <p className="mt-0.5 text-[12px] leading-[1.35]">
-              Он поможет быстрее найти твою историю, если ты вернёшься.
+              {formal
+                ? "Он поможет быстрее найти вашу историю, если вы вернётесь."
+                : "Он поможет быстрее найти твою историю, если ты вернёшься."}
             </p>
           </div>
         </div>

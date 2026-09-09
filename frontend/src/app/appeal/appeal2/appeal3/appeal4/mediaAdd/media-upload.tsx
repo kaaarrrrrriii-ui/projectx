@@ -192,7 +192,9 @@ export default function MediaUpload({ role, topic = "" }: { role: string; topic?
             </svg>
 
             <span className="text-[15px] leading-[22px] text-[#000828] max-[699px]:text-[14px]">
-              Нажми, чтобы выбрать файлы или перетащи сюда
+              {formal
+                ? "Нажмите, чтобы выбрать файлы, или перетащите их сюда"
+                : "Нажми, чтобы выбрать файлы, или перетащи их сюда"}
             </span>
             <span className="text-[15px] leading-[22px] text-[#9196a7] max-[699px]:text-[13px]">
               Можно добавить до 5 файлов (фото, скриншоты, PDF). Размер до 10

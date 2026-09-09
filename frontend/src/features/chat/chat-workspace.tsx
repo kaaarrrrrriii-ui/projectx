@@ -7,8 +7,31 @@ import { useState } from "react";
 import CloseAppealFlow from "./close-appeal-flow";
 import SpecialistCard from "./specialist-card";
 
-export default function ChatWorkspace({ children }: { children: ReactNode }) {
-  const [activeDialog, setActiveDialog] = useState<"helped" | "not-helped" | null>(null);
+type SentMessage = {
+  id: number;
+  text: string;
+  fileNames: string[];
+};
+
+export default function ChatWorkspace({
+  children,
+  role,
+  formal,
+}: {
+  children: ReactNode;
+  role: string;
+  formal: boolean;
+}) {
+  const [activeDialog, setActiveDialog] = useState<"reply" | "close" | null>(null);
+  const [messages, setMessages] = useState<SentMessage[]>([]);
+
+  function addMessage(text: string, fileNames: string[] = []) {
+    setMessages((current) => [
+      ...current,
+      { id: Date.now(), text, fileNames },
+    ]);
+    setActiveDialog(null);
+  }
 
   return (
     <>
@@ -26,7 +49,7 @@ export default function ChatWorkspace({ children }: { children: ReactNode }) {
           />
 
           <Link
-            href="/status"
+            href={`/status?role=${role}`}
             className="mt-auto w-fit rounded-sm pt-8 text-[13px] text-[#9196a7] transition-colors hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-primary)] max-[799px]:mx-auto max-[799px]:pt-5"
           >
             Вернуться назад
@@ -36,6 +59,23 @@ export default function ChatWorkspace({ children }: { children: ReactNode }) {
         <div className="flex min-h-[calc(100dvh-100px)] min-w-0 flex-col px-6 py-7 max-[799px]:min-h-[560px] max-[799px]:px-5 max-[799px]:py-6">
           <div className="space-y-4" aria-live="polite">
             {children}
+
+            {messages.map((message) => (
+              <article
+                key={message.id}
+                aria-label={formal ? "Ваше сообщение" : "Твоё сообщение"}
+                className="ml-auto max-w-[72%] rounded-[15px] bg-[var(--color-primary)] px-5 py-3 text-[15px] leading-[1.45] text-white max-[599px]:max-w-[88%] max-[499px]:px-4 max-[499px]:text-[14px]"
+              >
+                {message.text && <p className="whitespace-pre-wrap">{message.text}</p>}
+                {message.fileNames.length > 0 && (
+                  <ul className={`${message.text ? "mt-2" : ""} grid gap-1 text-[12px] text-white/85`}>
+                    {message.fileNames.map((fileName) => (
+                      <li key={fileName} className="truncate">📎 {fileName}</li>
+                    ))}
+                  </ul>
+                )}
+              </article>
+            ))}
           </div>
 
           <section
@@ -68,8 +108,17 @@ export default function ChatWorkspace({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      {activeDialog && (
+      {activeDialog === "reply" && (
+        <ReplyModal
+          formal={formal}
+          onClose={() => setActiveDialog(null)}
+          onSend={addMessage}
+        />
+      )}
+
+      {activeDialog === "close" && (
         <CloseAppealFlow
+          formal={formal}
           trackNumber="НАШК-УАЫВ-АВАМ-ВАФВ"
           outcome={activeDialog}
           onCancel={() => setActiveDialog(null)}

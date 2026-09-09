@@ -2,16 +2,18 @@ import Link from "next/link";
 import Button from "@/shared/ui/button";
 
 const navigation = [
-  { label: "Главная", icon: "home", active: true },
-  { label: "Очередь новых", icon: "inbox" },
-  { label: "Распределённые", icon: "users" },
-  { label: "Возвраты", icon: "return" },
+  { id: "home", label: "Главная", icon: "home", href: "/operator" },
+  { id: "queue", label: "Очередь новых", icon: "inbox", href: "/operator/queueNew.tsx" },
+  { id: "assigned", label: "Распределённые", icon: "users", href: "#" },
+  { id: "returns", label: "Возвраты", icon: "return", href: "#" },
 ] as const;
 
 const secondaryNavigation = [
-  { label: "Аналитика", icon: "chart" },
-  { label: "Выгрузки", icon: "download" },
+  { id: "analytics", label: "Аналитика", icon: "chart", href: "#" },
+  { id: "exports", label: "Выгрузки", icon: "download", href: "#" },
 ] as const;
+
+type OperatorSection = (typeof navigation)[number]["id"] | (typeof secondaryNavigation)[number]["id"];
 
 function NavigationIcon({ name }: { name: string }) {
   const common = {
@@ -37,15 +39,21 @@ function NavigationIcon({ name }: { name: string }) {
   }
 }
 
-function NavigationGroup({ items }: { items: ReadonlyArray<{ label: string; icon: string; active?: boolean }> }) {
+function NavigationGroup({
+  items,
+  active,
+}: {
+  items: ReadonlyArray<{ id: string; label: string; icon: string; href: string }>;
+  active: OperatorSection;
+}) {
   return (
     <ul className="flex flex-col gap-1 max-[799px]:contents">
       {items.map((item) => (
         <li key={item.label} className="max-[799px]:shrink-0">
           <Link
-            href="#"
-            aria-current={item.active ? "page" : undefined}
-            className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-[13px] font-medium transition-colors ${item.active ? "bg-[#e7ecff] text-[#4562f0]" : "text-[#4f5873] hover:bg-[#f1f3fa] hover:text-[#000828]"}`}
+            href={item.href}
+            aria-current={item.id === active ? "page" : undefined}
+            className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-[13px] font-medium transition-colors ${item.id === active ? "bg-[#e7ecff] text-[#4562f0]" : "text-[#4f5873] hover:bg-[#f1f3fa] hover:text-[#000828]"}`}
           >
             <NavigationIcon name={item.icon} />
             <span className="whitespace-nowrap">{item.label}</span>
@@ -56,7 +64,7 @@ function NavigationGroup({ items }: { items: ReadonlyArray<{ label: string; icon
   );
 }
 
-export default function OperatorSidebar() {
+export default function OperatorSidebar({ active = "home" }: { active?: OperatorSection }) {
   return (
     <aside className="flex w-[224px] shrink-0 flex-col border-r border-[#a9b3ff] bg-[#f7f9fe] px-4 py-5 max-[799px]:w-full max-[799px]:border-r-0 max-[799px]:border-b max-[799px]:px-4 max-[799px]:py-3">
       <div className="mb-7 px-2 max-[799px]:mb-3">
@@ -65,8 +73,8 @@ export default function OperatorSidebar() {
       </div>
 
       <nav aria-label="Навигация оператора" className="flex flex-col gap-6 max-[799px]:flex-row max-[799px]:gap-1 max-[799px]:overflow-x-auto max-[799px]:pb-1">
-        <NavigationGroup items={navigation} />
-        <NavigationGroup items={secondaryNavigation} />
+        <NavigationGroup items={navigation} active={active} />
+        <NavigationGroup items={secondaryNavigation} active={active} />
       </nav>
 
       <Button

@@ -8,8 +8,10 @@ import { useRef, useState } from "react";
 
 export default function SubmissionSuccess({
   trackNumber,
+  formal,
 }: {
   trackNumber: string;
+  formal: boolean;
 }) {
   const [isCopied, setIsCopied] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -52,11 +54,11 @@ export default function SubmissionSuccess({
             id="success-heading"
             className="text-[32px] leading-[1.2] font-black tracking-[-0.025em] text-[var(--color-primary)] max-[699px]:text-[27px]"
           >
-            Спасибо, что поделились!
+            {formal ? "Спасибо, что поделились!" : "Спасибо за твоё обращение!"}
           </h1>
           <p className="mt-1 text-[13px] leading-[1.55] text-[#151515] max-[699px]:mt-2 max-[699px]:text-[13px]">
-            Ваше обращение успешно отправлено. Мы рядом и уже работаем над тем,
-            чтобы помочь.
+            {formal ? "Ваше" : "Твоё"} обращение успешно отправлено. Мы рядом
+            и уже работаем над тем, чтобы помочь.
           </p>
         </header>
 
@@ -87,7 +89,11 @@ export default function SubmissionSuccess({
         >
           <InfoCard
             title="Что дальше?"
-            description="Наш специалист изучит твоё обращение. Вы можете в любое время проверить статус по трек-номеру"
+            description={
+              formal
+                ? "Наш специалист изучит ваше обращение. Вы сможете в любое время проверить статус по трек-номеру."
+                : "Наш специалист изучит твоё обращение. Ты сможешь в любое время проверить статус по трек-номеру."
+            }
             icon={ ""
             }
           />
@@ -131,7 +137,7 @@ export default function SubmissionSuccess({
             id="track-number-heading"
             className="text-center text-[17px] leading-[1.4] font-medium text-[#11131a]"
           >
-            Твой трек номер
+            {formal ? "Ваш трек-номер" : "Твой трек-номер"}
           </h2>
 
           <output

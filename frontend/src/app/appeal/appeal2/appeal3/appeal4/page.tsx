@@ -1,4 +1,4 @@
-import { getAppealRole } from "@/features/appeal/roles";
+import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
 import SiteHeader from "@/widgets/site-header/site-header";
 import ClarifyingQuestions from "./clarifying-questions";
 

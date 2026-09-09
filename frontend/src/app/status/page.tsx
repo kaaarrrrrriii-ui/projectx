@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/shared/ui/button";
+import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
 import Input from "@/shared/ui/input";
 import SiteHeader from "@/widgets/site-header/site-header";
 import { FormEvent, useState } from "react";
@@ -12,16 +13,21 @@ export default function Status() {
   const sentDate = "09.09.2026";
   const category = "Кибербуллинг";
 
-  function checkStatus(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const normalizedTrackNumber = trackNumber.trim();
-    if (!normalizedTrackNumber) return;
-    setCheckedTrackNumber(normalizedTrackNumber);
-  }
+export default async function Status({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string | string[] }>;
+}) {
+  const role = getAppealRole((await searchParams).role);
+  const formal = isFormalAppealRole(role.id);
+  const trackNumber: string = "сиксевен-6767-6767";
+  const status: string = "послан нахуй";
+  const sentDate: string = "09/09/09";
+  const category: string = " кибербулинг олега";
 
   return (
-    <main className="app-page-background flex min-h-dvh flex-col">
-      <SiteHeader />
+    <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
+      <SiteHeader formal={formal} />
 
       <section
         className="
@@ -65,6 +71,8 @@ export default function Status() {
                 sm:gap-8
               "
             >
+              <input type="hidden" name="role" value={role.id} />
+
               <label className="flex min-w-0 flex-col gap-2">
                 <span className="text-[20px] font-medium text-[#000828]">
                   Номер обращения
@@ -183,7 +191,7 @@ export default function Status() {
                 text="Перейти к ответу специалиста"
                 variant="primary"
                 size="default"
-                link="/chat"
+                link={`/chat?role=${role.id}`}
                 className="w-full"
               />
             </div>
