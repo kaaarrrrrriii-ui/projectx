@@ -1,6 +1,6 @@
 import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
+import SubmissionSuccess from "@/features/appeal/submission-success";
 import SiteHeader from "@/widgets/site-header/site-header";
-import SubmissionSuccess from "./submission-success";
 
 export default async function SubmissionSuccessPage({
   searchParams,

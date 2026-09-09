@@ -1,8 +1,8 @@
 import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
+import MediaUpload from "@/features/appeal/media-upload";
 import SiteHeader from "@/widgets/site-header/site-header";
-import MediaUpload from "./media-upload";
 
-export default async function MediaAddPage({
+export default async function AppealAttachmentsPage({
   searchParams,
 }: {
   searchParams: Promise<{ role?: string | string[]; topic?: string | string[] }>;
