@@ -110,8 +110,8 @@ export default function AssignedTickets() {
   }
 
   return (
-    <section className="min-w-0 flex-1 px-5 pt-5 pb-0 sm:px-[26px]" aria-labelledby="assigned-heading">
-      <div className="mx-auto w-full max-w-[1180px]">
+    <section className="min-w-0 flex-1 px-5 pt-[13px] pb-0 sm:px-[22px]" aria-labelledby="assigned-heading">
+      <div className="w-full max-w-[840px]">
         <label className="relative block">
           <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 z-10 h-5 w-5 -translate-y-1/2 text-[#4562f0]" fill="none">
             <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="2" />
