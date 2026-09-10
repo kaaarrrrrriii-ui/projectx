@@ -11,7 +11,7 @@ const metrics = [
 export default function OperatorDashboard() {
   return (
     <div className="min-w-0 flex-1 px-5 py-4 sm:px-6">
-      <div className="w-full max-w-[900px]">
+      <div className="w-full">
         <header>
           <h1 className="text-[clamp(22px,2vw,30px)] font-bold leading-tight text-[#4562f0]">Здравствуйте, Олег!</h1>
           <p className="mt-1 text-xs text-[#4f5873]">Спасибо, что помогаете. Ваша работа важна.</p>

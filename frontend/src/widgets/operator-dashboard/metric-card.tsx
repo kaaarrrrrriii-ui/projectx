@@ -24,9 +24,14 @@ export default function MetricCard({ title, value, description, icon, tone, badg
       <h2 className="mt-4 min-h-12 text-base font-medium leading-6 text-[#000828]">{title}</h2>
       <div className="mt-auto">
         {badge ? (
-          <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold text-white ${colors.badge}`}>{badge}</span>
+          <div className="relative -top-2 flex justify-center">
+            <span className={`inline-flex items-baseline gap-1 rounded-full px-3 py-1 font-semibold text-white ${colors.badge}`}>
+              <span className="text-xl">{badge.split(" ")[0]}</span>
+              <span className="text-sm">{badge.split(" ").slice(1).join(" ")}</span>
+            </span>
+          </div>
         ) : (
-          <strong className={`block text-2xl font-extrabold ${colors.text}`}>{value}</strong>
+          <strong className={`block text-4xl font-extrabold ${colors.text}`}>{value}</strong>
         )}
         <p className="mt-2 text-xs leading-4 text-[#4f5873]">{description}</p>
       </div>

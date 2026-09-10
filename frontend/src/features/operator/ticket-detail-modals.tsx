@@ -57,7 +57,7 @@ export function SpecialistAssignmentModal({
       <section aria-label="Фильтр специалистов" className="mt-5">
         <div className="flex flex-wrap items-start gap-3">
           <details className="group relative">
-            <summary className="flex h-[32px] min-w-[170px] cursor-pointer list-none items-center justify-between gap-3 rounded-[6px] border border-[#000828] bg-white px-4 text-[11px] text-[#000828] hover:border-[#4562f0] hover:text-[#4562f0] [&::-webkit-details-marker]:hidden">
+            <summary className="flex h-[32px] min-w-[170px] cursor-pointer list-none items-center justify-between gap-3 rounded-[6px] border border-[#808393] bg-[#f7f9fe] px-4 text-[11px] text-[#000828] hover:border-[#4562f0] hover:text-[#4562f0] [&::-webkit-details-marker]:hidden">
               Выбрать область специалистов
               <svg viewBox="0 0 12 8" aria-hidden="true" className="h-2 w-3 transition-transform group-open:rotate-180" fill="none"><path d="m1 1 5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </summary>

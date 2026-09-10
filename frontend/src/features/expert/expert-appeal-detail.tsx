@@ -89,7 +89,7 @@ export default function ExpertAppealDetail({ appeal, initialExecutor = "" }: { a
   return (
     <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_390px] bg-white/35 max-[1199px]:grid-cols-1">
       <article className="min-w-0 px-5 py-6 sm:px-8 lg:px-10">
-        <div className="mx-auto w-full max-w-[820px]">
+        <div className="w-full">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link href={appeal.group === "return" ? "/expert/returns" : appeal.group === "assigned" ? "/expert/assigned" : "/expert/queue"} className="rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">← Вернуться назад</Link>
             <a href="#chat-history" className="rounded-sm text-xs text-[#30384f] underline-offset-4 hover:text-[#4562f0] hover:underline">Просмотреть историю чата</a>
