@@ -69,15 +69,34 @@ func TestAuthServiceRejectsBadPasswordAndToken(t *testing.T) {
 	}
 }
 
+func TestAuthServiceRejectsDeactivatedUser(t *testing.T) {
+	t.Parallel()
+	hash, _ := bcrypt.GenerateFromPassword([]byte("correct"), bcrypt.MinCost)
+	repository := &stubAuthUserRepository{user: models.User{ID: 1, PasswordHash: string(hash), Role: "200"}}
+	auth, _ := NewAuthService(repository, "01234567890123456789012345678901")
+	if _, err := auth.Login(context.Background(), "inactive", "correct"); !errors.Is(err, ErrInvalidCredentials) {
+		t.Fatalf("Login() error = %v, want %v", err, ErrInvalidCredentials)
+	}
+}
+
 func TestRequireOperator(t *testing.T) {
 	t.Parallel()
 	if err := RequireOperator(AuthUser{Role: "operator"}); err != nil {
 		t.Fatalf("RequireOperator(operator) error = %v", err)
 	}
-	if err := RequireOperator(AuthUser{Role: "admin"}); err != nil {
+	if err := RequireOperator(AuthUser{Role: "admin"}); !errors.Is(err, ErrForbidden) {
 		t.Fatalf("RequireOperator(admin) error = %v", err)
 	}
 	if err := RequireOperator(AuthUser{Role: "expert"}); !errors.Is(err, ErrForbidden) {
 		t.Fatalf("RequireOperator(expert) error = %v", err)
+	}
+}
+
+func TestRequireAdmin(t *testing.T) {
+	if err := RequireAdmin(AuthUser{Role: "admin"}); err != nil {
+		t.Fatalf("RequireAdmin(admin) error = %v", err)
+	}
+	if err := RequireAdmin(AuthUser{Role: "operator"}); !errors.Is(err, ErrForbidden) {
+		t.Fatalf("RequireAdmin(operator) error = %v", err)
 	}
 }

@@ -84,6 +84,9 @@ func (service *AuthService) Login(ctx context.Context, username, password string
 		}
 		return LoginResponse{}, err
 	}
+	if user.Role == "200" {
+		return LoginResponse{}, ErrInvalidCredentials
+	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		return LoginResponse{}, ErrInvalidCredentials
 	}
@@ -129,7 +132,14 @@ func (service *AuthService) Authenticate(ctx context.Context, authorization stri
 }
 
 func RequireOperator(user AuthUser) error {
-	if user.Role != "operator" && user.Role != "admin" {
+	if user.Role != "operator" {
+		return ErrForbidden
+	}
+	return nil
+}
+
+func RequireAdmin(user AuthUser) error {
+	if user.Role != "admin" {
 		return ErrForbidden
 	}
 	return nil

@@ -32,7 +32,8 @@ client must then discard the token.
 
 ## Operator endpoints
 
-Operator endpoints allow employees with role `operator` or `admin`.
+Operator endpoints allow employees with role `operator` only. Administrators
+use the separate `/api/admin/*` endpoints documented below.
 
 ### Eligible experts
 
@@ -219,3 +220,103 @@ generated immediately and are not stored. `format` may be `csv` or `xlsx`.
 
 Ticket statuses remain numbered from 1 through 9 and are exposed through the
 API as strings such as `new`, `assigned`, `answer_ready`, and `rejected`.
+
+## Administrator endpoints
+
+Administrator endpoints require a JWT whose current database role is exactly
+`admin`. Administrator and operator permissions are intentionally separate:
+an administrator cannot use `/api/operator/*` endpoints. Admin ticket
+responses contain metadata and audit events only; they never contain message
+text, clarifying answers, notes, contacts, or attachments.
+
+### Profile and dashboard
+
+- `GET /api/admin/me`
+- `GET /api/admin/dashboard`
+
+The dashboard returns counts for new, active, urgent and returned tickets,
+routing issues, and experts whose active workload reached their limit.
+
+### Employees
+
+- `GET /api/admin/employees?role=expert&search=&page=1&limit=20`
+- `POST /api/admin/employees`
+- `PATCH /api/admin/employees/{employee_id}`
+- `POST /api/admin/employees/{employee_id}/deactivate`
+- `POST /api/admin/employees/{employee_id}/restore`
+
+Creation example:
+
+```json
+{
+  "username": "e.ivanova",
+  "password": "temporary-password",
+  "full_name": "Иванова Е.С.",
+  "role": "expert",
+  "expert_group_id": 2,
+  "max_tickets": 10
+}
+```
+
+Only `operator` and `expert` accounts can be created or edited. Because the
+current schema requires `users.expert_group_id` for every user, an operator
+also receives an administrator-selected operator group, although that group
+is hidden in operator employee responses.
+
+Deactivation stores the reserved role value `200`. Such a user cannot log in,
+and an already issued JWT stops working because its role no longer matches the
+database. An expert with active tickets cannot be deactivated. Restoration
+requires the target role and group because the schema does not store the old
+role separately.
+
+### Expert groups, categories, and questions
+
+- `GET|POST /api/admin/expert-groups`
+- `PATCH|DELETE /api/admin/expert-groups/{group_id}`
+- `GET|POST /api/admin/categories`
+- `GET|PATCH|DELETE /api/admin/categories/{category_id}`
+- `PUT /api/admin/categories/{category_id}/expert-groups`
+- `POST /api/admin/categories/{category_id}/questions`
+- `PATCH|DELETE /api/admin/questions/{question_id}`
+
+Routing replacement body:
+
+```json
+{ "expert_group_ids": [1, 3] }
+```
+
+Each question belongs to exactly one category and is created with a non-empty
+array of unique answer strings. A question referenced by `QA` cannot be edited
+or deleted because doing so would change historical answers. Referenced
+groups and categories cannot be deleted. The required category
+`Не знаю, как это назвать` cannot be renamed or deleted.
+
+### Ticket supervision
+
+- `GET /api/admin/tickets`
+- `GET /api/admin/tickets/{track_id}`
+- `PATCH /api/admin/tickets/{track_id}/priority` with `{ "priority": "urgent" }`
+- `PATCH /api/admin/tickets/{track_id}/status` with `{ "status": "in_progress" }`
+- `PUT /api/admin/tickets/{track_id}/responsible-worker` with `{ "worker_id": 7 }`
+- `GET /api/admin/tickets/{track_id}/events?page=1&limit=20`
+
+Ticket filters are `search`, `status`, `priority`, `category_id`,
+`applicant_type`, `responsible_worker_id`, `routing_issue`, `page`, and
+`limit`. `routing_issue` is `no_group` or `no_available_expert`.
+
+An administrator may set any persisted ticket status. Terminal statuses set
+`closed_at` and deactivate assignments. `new` and `returned` also deactivate
+assignments. Active work statuses require an active responsible expert.
+Reassigning a responsible expert changes the status to `assigned`. Every
+actual admin change is recorded in `ticket_events`; no reason is required.
+
+### Analytics and report
+
+- `GET /api/admin/analytics?date_from=2026-09-01&date_to=2026-09-10`
+- `GET /api/admin/reports?date_from=2026-09-01&date_to=2026-09-10&format=csv`
+
+Admin analytics reuse the system-wide calculations and add an employee load
+list. For experts, load is active tickets divided by `max_tickets`; operator
+`action_count` is the number of their audit events in the selected period.
+Reports are the same anonymous in-memory CSV/XLSX files as operator reports.
+They are not stored.

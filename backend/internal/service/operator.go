@@ -67,8 +67,9 @@ type EligibleWorkerResponse struct {
 }
 
 type EligibleWorkersResponse struct {
-	RecommendedGroup *ExpertGroupResponse     `json:"recommended_group"`
-	Workers          []EligibleWorkerResponse `json:"workers"`
+	RecommendedGroup  *ExpertGroupResponse     `json:"recommended_group"`
+	RecommendedGroups []ExpertGroupResponse    `json:"recommended_groups"`
+	Workers           []EligibleWorkerResponse `json:"workers"`
 }
 
 type AssignmentResponse struct {
@@ -178,9 +179,12 @@ func (service *OperatorService) EligibleWorkers(ctx context.Context, trackID, na
 	if err != nil {
 		return EligibleWorkersResponse{}, err
 	}
-	result := EligibleWorkersResponse{Workers: make([]EligibleWorkerResponse, 0, len(record.Workers))}
+	result := EligibleWorkersResponse{RecommendedGroups: make([]ExpertGroupResponse, 0, len(record.RecommendedGroups)), Workers: make([]EligibleWorkerResponse, 0, len(record.Workers))}
 	if record.RecommendedGroup != nil {
 		result.RecommendedGroup = &ExpertGroupResponse{ID: record.RecommendedGroup.ID, Title: record.RecommendedGroup.Title}
+	}
+	for _, group := range record.RecommendedGroups {
+		result.RecommendedGroups = append(result.RecommendedGroups, ExpertGroupResponse{ID: group.ID, Title: group.Title})
 	}
 	for _, worker := range record.Workers {
 		result.Workers = append(result.Workers, EligibleWorkerResponse{

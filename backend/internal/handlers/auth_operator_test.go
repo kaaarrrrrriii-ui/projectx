@@ -109,6 +109,22 @@ func TestOperatorHandlerRequiresAuthentication(t *testing.T) {
 	}
 }
 
+func TestOperatorHandlerRejectsAdminRole(t *testing.T) {
+	t.Parallel()
+	auth := &stubAuthService{user: service.AuthUser{ID: 1, Role: "admin"}}
+	operator := &stubOperatorService{}
+	handler, _ := NewOperatorHandler(operator, auth)
+	mux := http.NewServeMux()
+	handler.RegisterRoutes(mux)
+	request := httptest.NewRequest(http.MethodPut, "/api/operator/tickets/%D0%9E%D0%A2%D0%9A-ABCD-2345/responsible-worker", strings.NewReader(`{"worker_id":7}`))
+	request.Header.Set("Authorization", "Bearer token")
+	response := httptest.NewRecorder()
+	mux.ServeHTTP(response, request)
+	if response.Code != http.StatusForbidden || operator.assignmentCalled {
+		t.Fatalf("status = %d, assignment called = %v", response.Code, operator.assignmentCalled)
+	}
+}
+
 func TestOperatorHandlerAssignsAuthenticatedWorker(t *testing.T) {
 	t.Parallel()
 	auth := &stubAuthService{user: service.AuthUser{ID: 3, Role: "operator"}}
