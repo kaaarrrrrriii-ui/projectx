@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function SiteHeader({ formal = false, compact = false }: { formal?: boolean; compact?: boolean }) {
+export default function SiteHeader({ formal = false, compact = false, sticky = false }: { formal?: boolean; compact?: boolean; sticky?: boolean }) {
   return (
     <header
       className={`
-        relative z-20 box-border h-[100px] w-full
+        ${sticky ? "sticky top-0" : "relative"} z-50 box-border h-[100px] w-full shrink-0
         rounded-b-[30px] border border-[#4562f0] bg-white
         px-5 pt-[30px] pb-[15px]
 

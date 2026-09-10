@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import Button from "@/shared/ui/button";
 import type { ExpertAppeal, ExpertPriority } from "./expert-data";
+import { staffRequest } from "@/shared/api/staff-api";
 
 const priorityStyles: Record<ExpertPriority, { label: string; title: string; badge: string }> = {
   urgent: { label: "Срочное", title: "text-[#d70d14]", badge: "bg-[#ffd7d9] text-[#d70d14]" },
@@ -63,7 +64,7 @@ function RequestModal({ onClose, onSent }: { onClose: () => void; onSent: () => 
   );
 }
 
-export default function ExpertAppealDetail({ appeal, initialExecutor = "" }: { appeal: ExpertAppeal; initialExecutor?: string }) {
+export default function ExpertAppealDetail({ appeal, initialExecutor = "", persist = false }: { appeal: ExpertAppeal; initialExecutor?: string; persist?: boolean }) {
   const [status, setStatus] = useState(appeal.status);
   const executor = initialExecutor || "Не назначен";
   const [notes, setNotes] = useState("");
@@ -76,14 +77,27 @@ export default function ExpertAppealDetail({ appeal, initialExecutor = "" }: { a
   ]);
   const priority = priorityStyles[appeal.priority];
 
-  function sendAnswer(event: FormEvent<HTMLFormElement>) {
+  async function sendAnswer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const text = answer.trim();
     if (!text) return;
+    if (persist) {
+      try { await staffRequest(`/api/expert/tickets/${encodeURIComponent(appeal.track)}/messages`, { method: "POST", body: JSON.stringify({ text }) }); }
+      catch (reason) { setNotice(reason instanceof Error ? reason.message : "Не удалось отправить ответ"); return; }
+    }
     setMessages((current) => [...current, { id: Date.now(), author: "expert", text }]);
     setAnswer("");
     setStatus("Ответ отправлен");
     setNotice("Ответ отправлен заявителю");
+  }
+
+  async function sendWorkerRequest() {
+    if (persist) {
+      try { await staffRequest(`/api/expert/tickets/${encodeURIComponent(appeal.track)}/requests`, { method: "POST", body: JSON.stringify({ request_type: "replace_responsible", reason: "Требуется замена ответственного эксперта" }) }); }
+      catch (reason) { setNotice(reason instanceof Error ? reason.message : "Не удалось отправить запрос"); return; }
+    }
+    setRequestOpen(false);
+    setNotice("Запрос отправлен оператору");
   }
 
   return (
@@ -201,7 +215,7 @@ export default function ExpertAppealDetail({ appeal, initialExecutor = "" }: { a
         </div>
       </aside>
 
-      {requestOpen && <RequestModal onClose={() => setRequestOpen(false)} onSent={() => { setRequestOpen(false); setNotice("Запрос отправлен оператору"); }} />}
+      {requestOpen && <RequestModal onClose={() => setRequestOpen(false)} onSent={sendWorkerRequest} />}
     </div>
   );
 }

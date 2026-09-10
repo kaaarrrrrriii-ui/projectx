@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Button from "@/shared/ui/button";
+import { staffRequest } from "@/shared/api/staff-api";
 import {
   expertAppeals,
   expertRequests,
@@ -70,9 +71,14 @@ function PriorityCell({ row }: { row: ExpertAppeal | ExpertRequest }) {
 
 export default function ExpertAppealList({ mode, initialSearch = "" }: { mode: ListMode; initialSearch?: string }) {
   const isRequests = mode === "requests";
-  const sourceRows: Array<ExpertAppeal | ExpertRequest> = isRequests
-    ? expertRequests
-    : expertAppeals.filter((appeal) => appeal.group === (mode === "returns" ? "return" : mode));
+  const fallbackRows: Array<ExpertAppeal | ExpertRequest> = isRequests ? expertRequests : expertAppeals.filter((appeal) => appeal.group === (mode === "returns" ? "return" : mode));
+  const [remoteRows, setRemoteRows] = useState<Array<ExpertAppeal | ExpertRequest> | null>(null);
+  const sourceRows = remoteRows ?? fallbackRows;
+  useEffect(() => {
+    const path = isRequests ? "/api/expert/requests?limit=100" : `/api/expert/tickets?queue=${mode === "returns" ? "returned" : mode}&limit=100`;
+    staffRequest<{ items: Array<{ track_id: string; category: { name: string }; applicant_type: string; priority: ExpertPriority; status: string; created_at?: string; waiting_seconds?: number }> }>(path)
+      .then(({ items }) => setRemoteRows(items.map((item) => isRequests ? ({ track: item.track_id, category: item.category?.name ?? "", applicant: item.applicant_type ?? "", priority: item.priority ?? "standard", status: item.status }) : ({ track: item.track_id, category: item.category.name, applicant: item.applicant_type, priority: item.priority, status: item.status, waiting: `${Math.floor((item.waiting_seconds ?? 0) / 60)} мин.`, submittedAt: new Date(item.created_at ?? Date.now()).toLocaleString("ru-RU"), description: "", clarifications: [], attachments: [], group: mode === "returns" ? "return" : mode as "queue" | "assigned" }))));
+  }, [isRequests, mode]);
   const categories = Array.from(new Set(sourceRows.map((row) => row.category)));
   const applicants = Array.from(new Set(sourceRows.map((row) => row.applicant)));
   const [filters, setFilters] = useState<Record<FilterKey, string[]>>({ category: [], applicant: [] });

@@ -1,10 +1,8 @@
-import { getOperatorTicket } from "@/features/operator/tickets";
-import TicketDetail from "@/features/operator/ticket-detail";
+import OperatorTicketLoader from "@/features/operator/operator-ticket-loader";
 import OperatorSidebar from "@/widgets/operator-dashboard/operator-sidebar";
 import SiteHeader from "@/widgets/site-header/site-header";
-import { notFound } from "next/navigation";
 
-export default async function OperatorTicketPage({ params, searchParams }: { params: Promise<{ track: string }>; searchParams: Promise<{ expert?: string | string[] }> }) {
+export default async function OperatorTicketPage({ params }: { params: Promise<{ track: string }> }) {
   const { track } = await params;
   let decodedTrack = track;
   try {
@@ -12,17 +10,12 @@ export default async function OperatorTicketPage({ params, searchParams }: { par
   } catch {
     // Next.js usually provides a decoded segment; keep the original if it is already decoded.
   }
-  const ticket = getOperatorTicket(decodedTrack);
-  if (!ticket) notFound();
-  const expertParam = (await searchParams).expert;
-  const initialExpert = typeof expertParam === "string" ? expertParam : "";
-
   return (
     <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
-      <SiteHeader compact />
+      <SiteHeader sticky />
       <div className="flex flex-1 items-stretch max-[799px]:flex-col">
         <OperatorSidebar active="queue" />
-        <TicketDetail ticket={ticket} initialExpert={initialExpert} />
+        <OperatorTicketLoader track={decodedTrack} />
       </div>
     </main>
   );

@@ -3,7 +3,8 @@
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import { appealCategories } from "@/features/appeal/categories";
-import { operatorTickets, type TicketPriority } from "@/features/operator/tickets";
+import { operatorTickets as fallbackTickets, type OperatorTicket, type TicketPriority } from "@/features/operator/tickets";
+import { staffRequest } from "@/shared/api/staff-api";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -84,7 +85,7 @@ function FilterDropdown({
         aria-expanded={open}
         aria-controls={menuId}
         onClick={onOpen}
-        className="flex h-[33px] min-w-[157px] cursor-pointer items-center justify-between gap-3 rounded-[7px] border border-[#808393] bg-[#f7f9fe] px-4 text-[12px] leading-4 text-[#000828] transition-colors hover:border-[#4562f0] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
+        className="flex h-[33px] min-w-[157px] cursor-pointer items-center justify-between gap-3 rounded-[7px] border border-[#000828] bg-white px-4 text-xs text-[#000828] transition-colors hover:border-[#4562f0] hover:bg-[#f7f8ff] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
       >
         <span>{filterLabels[filter]}</span>
         <svg
@@ -149,6 +150,8 @@ export default function QueueNew({
 }) {
   const filtersRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
+  const [tickets, setTickets] = useState<OperatorTicket[]>(fallbackTickets);
+  const [loadError, setLoadError] = useState("");
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, string[]>>({
     priority: [],
@@ -175,10 +178,27 @@ export default function QueueNew({
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    staffRequest<{ items: Array<{ track_id: string; status: string; category: { name: string }; applicant_type: string; priority: TicketPriority; created_at: string; waiting_seconds: number }> }>("/api/operator/tickets?queue=new&limit=100")
+      .then(({ items }) => {
+        if (!active) return;
+        setTickets(items.map((item) => ({
+          track: item.track_id, status: item.status, category: item.category.name,
+          applicant: item.applicant_type, priority: item.priority,
+          waiting: item.waiting_seconds < 60 ? `${item.waiting_seconds} сек.` : `${Math.floor(item.waiting_seconds / 60)} мин.`,
+          submittedAt: new Date(item.created_at).toLocaleString("ru-RU"), description: "", clarifications: [], attachments: [],
+        })));
+        setLoadError("");
+      })
+      .catch(() => { if (active) setLoadError("Не удалось обновить очередь. Показаны демонстрационные данные."); });
+    return () => { active = false; };
+  }, []);
+
   const filteredTickets = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("ru");
 
-    return operatorTickets.filter((ticket) => {
+    return tickets.filter((ticket) => {
       const matchesSearch =
         !normalizedSearch || ticket.track.toLocaleLowerCase("ru").includes(normalizedSearch);
       const matchesPriority =
@@ -198,7 +218,7 @@ export default function QueueNew({
         matchesApplicant
       );
     });
-  }, [search, selectedFilters]);
+  }, [search, selectedFilters, tickets]);
 
   const selectedChips = (Object.keys(selectedFilters) as FilterKey[]).flatMap((filter) =>
     selectedFilters[filter].map((value) => ({ filter, value })),
@@ -244,6 +264,7 @@ export default function QueueNew({
             </h1>
             <p className="mt-[7px] text-[16px] leading-5 text-[#151515]">Сначала самые ранние</p>
           </header>
+          {loadError && <p role="status" className="mt-3 text-xs text-[#9a6500]">{loadError}</p>}
 
           <section aria-label="Фильтры обращений" className="mt-[20px]">
             <div ref={filtersRef} className="flex flex-wrap items-center gap-[6px]">
