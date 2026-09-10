@@ -22,3 +22,14 @@ schema changes as new numbered migrations instead of editing an applied file.
 by the ticket API and converts stored timestamps to timezone-aware values. For
 an existing Docker volume, apply it with the project's normal migration
 process; PostgreSQL's initialization directory only runs for a new volume.
+
+`003_operator_workflow.sql` fixes the two allowed priority values, the three
+applicant types, adds operator/return message types, and creates the event log
+used for assignment history and timing analytics.
+
+For an already initialized Docker volume, apply the new migration explicitly:
+
+```sh
+docker compose exec -T postgres psql -U appuser -d appdb \
+  -f /docker-entrypoint-initdb.d/003_operator_workflow.sql
+```

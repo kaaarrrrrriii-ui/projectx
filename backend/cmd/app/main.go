@@ -48,6 +48,8 @@ func main() {
 	ticketRepository := repos.NewTicketRepository(db.DB)
 	messageRepository := repos.NewMessageRepository(db.DB)
 	attachmentRepository := repos.NewAttachmentRepository(db.DB)
+	userRepository := repos.NewUserRepository(db.DB)
+	operatorRepository := repos.NewOperatorRepository(db.DB)
 	ticketService, err := service.NewTicketService(ticketRepository)
 	if err != nil {
 		log.Fatal("❌ initialize ticket service: ", err)
@@ -64,11 +66,29 @@ func main() {
 	if err != nil {
 		log.Fatal("❌ initialize ticket handler: ", err)
 	}
+	authService, err := service.NewAuthService(userRepository, os.Getenv("JWT_SECRET"))
+	if err != nil {
+		log.Fatal("❌ initialize auth service: ", err)
+	}
+	operatorService, err := service.NewOperatorService(operatorRepository)
+	if err != nil {
+		log.Fatal("❌ initialize operator service: ", err)
+	}
+	authHandler, err := handlers.NewAuthHandler(authService)
+	if err != nil {
+		log.Fatal("❌ initialize auth handler: ", err)
+	}
+	operatorHandler, err := handlers.NewOperatorHandler(operatorService, authService)
+	if err != nil {
+		log.Fatal("❌ initialize operator handler: ", err)
+	}
 
 	mux := http.NewServeMux()
 	healthHandler.RegisterRoutes(mux)
 	readinessHandler.RegisterRoutes(mux)
 	ticketHandler.RegisterRoutes(mux)
+	authHandler.RegisterRoutes(mux)
+	operatorHandler.RegisterRoutes(mux)
 
 	server := &http.Server{
 		Addr:              ":" + port,

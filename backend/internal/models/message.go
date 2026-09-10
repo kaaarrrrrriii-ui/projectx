@@ -19,6 +19,8 @@ const (
 	MessageTypeSpecialist
 	MessageTypeInternalNote
 	MessageTypeSystem
+	MessageTypeReturnReason
+	MessageTypeOperator
 )
 
 func (messageType MessageType) String() string {
@@ -31,6 +33,10 @@ func (messageType MessageType) String() string {
 		return "internal_note"
 	case MessageTypeSystem:
 		return "system"
+	case MessageTypeReturnReason:
+		return "return_reason"
+	case MessageTypeOperator:
+		return "operator"
 	default:
 		return "unknown"
 	}

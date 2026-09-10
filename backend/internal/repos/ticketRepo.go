@@ -24,6 +24,7 @@ type TicketStatusRecord struct {
 	CategoryID  int64
 	Category    string
 	ReturnCount int
+	Resolution  sql.NullString
 }
 
 type ChatMessageRecord struct {
@@ -71,13 +72,18 @@ func NewTicketRepository(db *sql.DB) *TicketRepository {
 func (repository *TicketRepository) GetStatusByTrack(ctx context.Context, trackID string) (TicketStatusRecord, error) {
 	const query = `
 		SELECT t.id, t.track_id, t.status, t.created_at,
-		       c.id, c.name, t.return_count
+		       c.id, c.name, t.return_count,
+		       (
+		           SELECT m.text FROM messages AS m
+		           WHERE m.ticket_id = t.id AND m.type = $2
+		           ORDER BY m.created_at DESC, m.id DESC LIMIT 1
+		       )
 		FROM tickets AS t
 		JOIN categories AS c ON c.id = t.category_id
-		WHERE t.track_id = $1`
+	WHERE t.track_id = $1`
 
 	var record TicketStatusRecord
-	err := repository.db.QueryRowContext(ctx, query, trackID).Scan(
+	err := repository.db.QueryRowContext(ctx, query, trackID, models.MessageTypeOperator).Scan(
 		&record.ID,
 		&record.TrackID,
 		&record.Status,
@@ -85,6 +91,7 @@ func (repository *TicketRepository) GetStatusByTrack(ctx context.Context, trackI
 		&record.CategoryID,
 		&record.Category,
 		&record.ReturnCount,
+		&record.Resolution,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return TicketStatusRecord{}, ErrTicketNotFound
@@ -268,7 +275,7 @@ func (repository *TicketRepository) Return(ctx context.Context, trackID, reason 
 		const messageQuery = `
 			INSERT INTO messages (ticket_id, text, type, created_at)
 			VALUES ($1, $2, $3, $4)`
-		if _, err := tx.ExecContext(ctx, messageQuery, ticketID, reason, models.MessageTypeApplicant, returnedAt); err != nil {
+		if _, err := tx.ExecContext(ctx, messageQuery, ticketID, reason, models.MessageTypeReturnReason, returnedAt); err != nil {
 			return ReturnTicketRecord{}, fmt.Errorf("save ticket return reason: %w", err)
 		}
 	}
@@ -281,8 +288,23 @@ func (repository *TicketRepository) Return(ctx context.Context, trackID, reason 
 	if _, err := tx.ExecContext(ctx, updateQuery, ticketID, models.TicketStatusReturned, returnCount); err != nil {
 		return ReturnTicketRecord{}, fmt.Errorf("return ticket: %w", err)
 	}
+	var previousWorkerID sql.NullInt64
+	if err := tx.QueryRowContext(ctx, `
+		SELECT worker_id FROM tickets_workers
+		WHERE ticket_id = $1 AND actual AND is_responsible
+		LIMIT 1`, ticketID).Scan(&previousWorkerID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return ReturnTicketRecord{}, fmt.Errorf("get previous worker for return: %w", err)
+	}
 	if _, err := tx.ExecContext(ctx, `UPDATE tickets_workers SET actual = FALSE WHERE ticket_id = $1 AND actual`, ticketID); err != nil {
 		return ReturnTicketRecord{}, fmt.Errorf("deactivate returned ticket workers: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO ticket_events (
+			ticket_id, actor_user_id, event_type, from_status, to_status,
+			from_worker_id, created_at
+		) VALUES ($1, NULL, 'returned', $2, $3, $4, $5)`,
+		ticketID, status, models.TicketStatusReturned, previousWorkerID, returnedAt); err != nil {
+		return ReturnTicketRecord{}, fmt.Errorf("save ticket return event: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
 		return ReturnTicketRecord{}, fmt.Errorf("commit return ticket transaction: %w", err)

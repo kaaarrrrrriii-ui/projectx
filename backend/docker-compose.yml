@@ -10,6 +10,7 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
       - ./migrations/002_ticket_workflow.sql:/docker-entrypoint-initdb.d/002_ticket_workflow.sql:ro
+      - ./migrations/003_operator_workflow.sql:/docker-entrypoint-initdb.d/003_operator_workflow.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -32,6 +33,7 @@ services:
       DB_NAME: ${POSTGRES_DB:-appdb}
       DB_SSLMODE: disable
       ATTACHMENT_STORAGE_PATH: /data/attachments
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
     depends_on:
       postgres:
         condition: service_healthy
