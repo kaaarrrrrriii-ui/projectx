@@ -8,7 +8,8 @@ import DialogShell from "@/features/chat/dialog-shell";
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import Link from "next/link";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { staffRequest } from "@/shared/api/staff-api";
 import {
   adminCategories,
   specialistOptions,
@@ -167,6 +168,13 @@ export default function CategoriesDashboard() {
   const [questionModalCategory, setQuestionModalCategory] = useState<string | null>(null);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null | undefined>(undefined);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    staffRequest<{ items: Array<{ id: number; name: string; expert_groups: Array<{ title: string }>; questions: Array<{ id: number }> }> }>("/api/admin/categories?limit=100")
+      .then(({ items }) => setConfigs(items.map((item) => ({ id: item.id, category: item.name, specialist: (item.expert_groups[0]?.title ?? defaultSpecialist(item.name)) as SpecialistOption, questionIds: item.questions.map((question) => String(question.id)) }))))
+      .catch(() => setError("Не удалось загрузить категории с сервера. Доступен локальный режим."));
+  }, []);
 
   const usedCategories = useMemo(() => new Set(configs.map((item) => item.category)), [configs]);
   const nextCategory = adminCategories.find((category) => !usedCategories.has(category));
@@ -175,6 +183,17 @@ export default function CategoriesDashboard() {
   function updateConfig(id: number, patch: Partial<CategoryConfig>) {
     setConfigs((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
     setSaved(false);
+  }
+
+  async function removeConfig(config: CategoryConfig) {
+    if (!window.confirm(`Удалить категорию «${config.category}»?`)) return;
+    try {
+      await staffRequest(`/api/admin/categories/${config.id}`, { method: "DELETE" });
+      setConfigs((current) => current.filter((item) => item.id !== config.id));
+      if (questionModalCategory === config.category) setQuestionModalCategory(null);
+      setSaved(false);
+      setError("");
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Не удалось удалить категорию"); }
   }
 
   function ensureCategoryConfig(category: string) {
@@ -207,10 +226,11 @@ export default function CategoriesDashboard() {
       <div className="w-full">
         <Link href="/admin" className="inline-flex rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">Вернуться назад</Link>
         <h1 id="categories-heading" className="mt-7 text-[26px] leading-tight font-extrabold tracking-[-0.02em] text-[#4562f0]">Категории</h1>
+        {error && <p role="status" className="mt-3 text-sm text-[#d70d14]">{error}</p>}
 
         <section aria-label="Настройка категорий" className="mt-7 overflow-x-auto rounded-[13px] border border-[#4562f0] bg-white/85">
           <table className="w-full min-w-[760px] table-fixed border-collapse">
-            <thead className="bg-[#dfe6ff] text-[#4562f0]"><tr className="h-[52px]"><th scope="col" className="w-[34%] border-r border-[#4562f0] px-4 text-center font-normal">Категория</th><th scope="col" className="w-[32%] border-r border-[#4562f0] px-4 text-center font-normal">Специализация</th><th scope="col" className="w-[34%] px-4 text-center font-normal">Список уточняющих вопросов</th></tr></thead>
+            <thead className="bg-[#dfe6ff] text-[#4562f0]"><tr className="h-[52px]"><th scope="col" className="w-[31%] border-r border-[#4562f0] px-4 text-center font-normal">Категория</th><th scope="col" className="w-[29%] border-r border-[#4562f0] px-4 text-center font-normal">Специализация</th><th scope="col" className="w-[32%] border-r border-[#4562f0] px-4 text-center font-normal">Список уточняющих вопросов</th><th scope="col" className="w-[8%] px-2 text-center font-normal"><span className="sr-only">Удаление</span></th></tr></thead>
             <tbody>
               {configs.map((config) => (
                 <tr key={config.id} className="h-[62px] border-t border-[#4562f0] hover:bg-[#f7f8ff]">
@@ -224,7 +244,8 @@ export default function CategoriesDashboard() {
                       {specialistOptions.map((specialist) => <option key={specialist} value={specialist}>{specialist}</option>)}
                     </select>
                   </td>
-                  <td className="px-4 text-center"><button type="button" onClick={() => setQuestionModalCategory(config.category)} className="inline-flex min-w-[128px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4562f0] px-4 py-2 text-xs text-white transition-colors hover:bg-[#4f71fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]">Выбрать ({config.questionIds.length})</button></td>
+                  <td className="border-r border-[#4562f0] px-4 text-center"><button type="button" onClick={() => setQuestionModalCategory(config.category)} className="inline-flex min-w-[128px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4562f0] px-4 py-2 text-xs text-white transition-colors hover:bg-[#4f71fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]">Выбрать ({config.questionIds.length})</button></td>
+                  <td className="px-2 text-center"><button type="button" onClick={() => removeConfig(config)} aria-label={`Удалить категорию ${config.category}`} title="Удалить категорию" className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-[#e5141b] bg-white text-xl leading-none text-[#e5141b] transition-colors hover:bg-[#e5141b] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e5141b]">×</button></td>
                 </tr>
               ))}
             </tbody>

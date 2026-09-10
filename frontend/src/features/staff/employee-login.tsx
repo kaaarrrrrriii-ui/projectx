@@ -3,11 +3,26 @@
 import Button from "@/shared/ui/button";
 import Surface from "@/shared/ui/surface";
 import Link from "next/link";
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { loginStaff } from "@/shared/api/staff-api";
 
 export default function EmployeeLogin() {
-  function submit(event: FormEvent<HTMLFormElement>) {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setLoading(true);
+    setError("");
+    try {
+      const user = await loginStaff(String(form.get("username") ?? ""), String(form.get("password") ?? ""));
+      router.push(`/${user.role}`);
+    } catch (reason) {
+      setError(reason instanceof Error && reason.message !== "invalid username or password" ? reason.message : "Неверный логин или пароль");
+    } finally { setLoading(false); }
   }
 
   return (
@@ -61,10 +76,12 @@ export default function EmployeeLogin() {
         </label>
 
         <div className="h-8" aria-hidden="true" />
+        {error && <p role="alert" className="mb-3 text-sm text-[#d70d14]">{error}</p>}
 
         <Button
           text="Войти"
           type="submit"
+          disabled={loading}
           variant="primary"
           size="small"
           className="w-full !h-[45px] !rounded-[10px] font-normal"

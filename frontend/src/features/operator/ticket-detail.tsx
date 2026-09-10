@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { applicantLabels, type OperatorTicket, type TicketPriority } from "./tickets";
 import { CloseTicketModal, SpecialistAssignmentModal } from "./ticket-detail-modals";
+import { staffRequest } from "@/shared/api/staff-api";
 
 const priorities: Array<{ value: TicketPriority; label: string }> = [
   { value: "urgent", label: "Срочное" },
@@ -15,12 +16,12 @@ const priorities: Array<{ value: TicketPriority; label: string }> = [
 const statuses = [
   { value: "new", label: "Новое" },
   { value: "assigned", label: "Распределено" },
-  { value: "in-progress", label: "В работе" },
-  { value: "clarification", label: "Нужно уточнение" },
-  { value: "answer-ready", label: "Ответ готов" },
+  { value: "in_progress", label: "В работе" },
+  { value: "needs_clarification", label: "Нужно уточнение" },
+  { value: "answer_ready", label: "Ответ готов" },
   { value: "returned", label: "Возвращено" },
   { value: "rejected", label: "Отклонено" },
-  { value: "closed", label: "Закрыто" },
+  { value: "closed_without_answer", label: "Закрыто" },
 ];
 
 const colors: Record<TicketPriority, { text: string; soft: string }> = {
@@ -33,10 +34,12 @@ export default function TicketDetail({
   ticket,
   initialExpert = "",
   returnBasePath = "/operator/queueNew.tsx",
+  persist = false,
 }: {
   ticket: OperatorTicket;
   initialExpert?: string;
   returnBasePath?: string;
+  persist?: boolean;
 }) {
   const [priority, setPriority] = useState<TicketPriority>(ticket.priority);
   const [status, setStatus] = useState(ticket.status);
@@ -46,17 +49,38 @@ export default function TicketDetail({
   const [closeOpen, setCloseOpen] = useState(false);
   const accent = colors[priority];
 
-  function assignSpecialist(specialist: string) {
+  async function assignSpecialist(specialist: string) {
+    if (persist) {
+      try {
+        const result = await staffRequest<{ workers: Array<{ id: number; full_name: string; expert_group: { title: string }; available: boolean }> }>(`/api/operator/tickets/${encodeURIComponent(ticket.track)}/eligible-workers?only_available=true`);
+        const worker = result.workers.find((item) => item.available && specialist.includes(item.full_name)) ?? result.workers.find((item) => item.available);
+        if (!worker) throw new Error("Нет доступных экспертов");
+        await staffRequest(`/api/operator/tickets/${encodeURIComponent(ticket.track)}/responsible-worker`, { method: "PUT", body: JSON.stringify({ worker_id: worker.id }) });
+        specialist = `${worker.full_name} — ${worker.expert_group.title}`;
+      } catch (reason) { setNotice(reason instanceof Error ? reason.message : "Не удалось назначить эксперта"); return; }
+    }
     setAssignedExpert(specialist);
     setStatus("assigned");
     setNotice("Исполнитель назначен");
     setAssignmentOpen(false);
   }
 
-  function closeTicket(reason: string) {
+  async function closeTicket(reason: string) {
+    if (persist) {
+      try { await staffRequest(`/api/operator/tickets/${encodeURIComponent(ticket.track)}/close`, { method: "POST", body: JSON.stringify({ message: reason }) }); }
+      catch (cause) { setNotice(cause instanceof Error ? cause.message : "Не удалось закрыть обращение"); return; }
+    }
     setStatus("closed");
     setNotice(`Обращение закрыто. Причина: ${reason}`);
     setCloseOpen(false);
+  }
+
+  async function saveChanges() {
+    if (persist) {
+      try { await staffRequest(`/api/operator/tickets/${encodeURIComponent(ticket.track)}`, { method: "PATCH", body: JSON.stringify({ priority, status }) }); }
+      catch (cause) { setNotice(cause instanceof Error ? cause.message : "Не удалось сохранить изменения"); return; }
+    }
+    setNotice("Изменения сохранены");
   }
 
   return (
@@ -110,7 +134,7 @@ export default function TicketDetail({
         </section>
       </article>
 
-      <aside aria-labelledby="edit-ticket-heading" className="flex min-h-[calc(100dvh-80px)] flex-col border border-[#4562f0] bg-white/70 px-3.5 py-5 max-[899px]:min-h-0 max-[899px]:border-r-0 max-[899px]:border-b-0 max-[899px]:border-l-0">
+      <aside aria-labelledby="edit-ticket-heading" className="flex flex-col border border-[#4562f0] bg-white/70 px-3.5 py-5 min-[900px]:sticky min-[900px]:top-[100px] min-[900px]:h-[calc(100dvh-100px)] min-[900px]:self-start min-[900px]:overflow-y-auto max-[899px]:min-h-0 max-[899px]:border-r-0 max-[899px]:border-b-0 max-[899px]:border-l-0">
         <h2 id="edit-ticket-heading" className="text-base font-medium text-[#151515]">Редактировать обращение</h2>
 
         <section aria-label="Параметры обращения" className="mt-3 rounded-[12px] border border-[#4562f0] bg-white/80 p-2.5">
@@ -118,7 +142,7 @@ export default function TicketDetail({
             <legend className="text-xs text-[#30384f]">Приоритет</legend>
             <div className="mt-2 grid grid-cols-3 gap-1.5">
               {priorities.map((item) => (
-                <button key={item.value} type="button" aria-pressed={priority === item.value} onClick={() => setPriority(item.value)} className={`min-h-7 cursor-pointer rounded-full border border-transparent px-2 text-[9px] whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] ${priority === item.value ? colors[item.value].soft : "bg-[#fafbff] text-[#30384f] hover:border-[#bbc5f5]"}`}>{item.label}</button>
+                <button key={item.value} type="button" aria-pressed={priority === item.value} onClick={() => setPriority(item.value)} className={`min-h-7 cursor-pointer rounded-full border border-transparent px-1.5 text-[8px] leading-none whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] ${priority === item.value ? colors[item.value].soft : "bg-[#fafbff] text-[#30384f] hover:border-[#bbc5f5]"}`}>{item.label}</button>
               ))}
             </div>
           </fieldset>
@@ -142,7 +166,7 @@ export default function TicketDetail({
 
         <div className="mt-auto grid gap-2 pt-6">
           <button type="button" onClick={() => setCloseOpen(true)} className="h-9 w-full cursor-pointer rounded-[7px] border border-[#e5141b] bg-[#e5141b] text-[11px] font-medium text-white transition-colors hover:bg-[#c81017] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e5141b]">Закрыть обращение</button>
-          <button type="button" onClick={() => setNotice("Изменения сохранены")} className="h-9 w-full cursor-pointer rounded-[7px] border border-[#e5141b] bg-white text-[11px] font-medium text-[#e5141b] transition-colors hover:bg-[#fff1f1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e5141b]">Сохранить изменения</button>
+          <button type="button" onClick={saveChanges} className="h-9 w-full cursor-pointer rounded-[7px] border border-[#e5141b] bg-white text-[11px] font-medium text-[#e5141b] transition-colors hover:bg-[#fff1f1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e5141b]">Сохранить изменения</button>
         </div>
       </aside>
 

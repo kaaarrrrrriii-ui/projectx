@@ -37,10 +37,10 @@ export default function Home() {
             motion-reduce:transition-none
 
             max-[899px]:static
-            max-[899px]:order-1
+            max-[899px]:order-[-1]
             max-[899px]:mx-auto
             max-[899px]:mt-5
-            max-[899px]:w-[clamp(230px,54vw,320px)]
+            max-[899px]:w-[clamp(180px,46vw,250px)]
             max-[899px]:max-w-full
             max-[899px]:translate-y-0
           "
