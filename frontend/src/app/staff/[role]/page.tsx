@@ -1,12 +1,13 @@
 import Link from "next/link";
 import SiteHeader from "@/widgets/site-header/site-header";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 const roleNames = { admin: "администратора", expert: "эксперта" } as const;
 
 export default async function StaffRolePage({ params }: { params: Promise<{ role: string }> }) {
   const { role } = await params;
   if (!(role in roleNames)) notFound();
+  if (role === "expert") redirect("/expert");
   const roleName = roleNames[role as keyof typeof roleNames];
 
   return (

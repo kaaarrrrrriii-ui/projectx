@@ -3,7 +3,11 @@
 import Button from "@/shared/ui/button";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import type { OperatorTicket } from "./tickets";
+
+type AssignmentTicket = {
+  track: string;
+  submittedAt: string;
+};
 
 type Specialist = {
   id: string;
@@ -51,7 +55,13 @@ function FilterMenu({
   );
 }
 
-export default function SpecialistAssignment({ ticket }: { ticket: OperatorTicket }) {
+export default function SpecialistAssignment({
+  ticket,
+  returnBasePath = "/operator/queueNew.tsx",
+}: {
+  ticket: AssignmentTicket;
+  returnBasePath?: string;
+}) {
   const router = useRouter();
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
   const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
@@ -81,7 +91,7 @@ export default function SpecialistAssignment({ ticket }: { ticket: OperatorTicke
   function assignSpecialist() {
     if (!selectedSpecialist) return;
     const expert = selectedSpecialist.name + " — " + selectedSpecialist.specialization.toLocaleLowerCase("ru");
-    router.push("/operator/queueNew.tsx/" + encodeURIComponent(ticket.track) + "?expert=" + encodeURIComponent(expert));
+    router.push(returnBasePath + "/" + encodeURIComponent(ticket.track) + "?expert=" + encodeURIComponent(expert));
   }
 
   const selectedChips = [
@@ -92,7 +102,7 @@ export default function SpecialistAssignment({ ticket }: { ticket: OperatorTicke
   return (
     <section className="min-w-0 flex-1 px-5 py-6 sm:px-[30px]" aria-labelledby="assignment-heading">
       <div className="mx-auto w-full max-w-[1180px]">
-        <button type="button" onClick={() => router.back()} className="cursor-pointer rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">
+        <button type="button" onClick={() => router.push(returnBasePath + "/" + encodeURIComponent(ticket.track))} className="cursor-pointer rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">
           Вернуться назад
         </button>
 
