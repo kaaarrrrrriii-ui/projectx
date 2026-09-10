@@ -43,13 +43,14 @@ type CategoryResponse struct {
 }
 
 type TicketStatusResponse struct {
-	TrackID     string           `json:"track_id"`
-	Status      string           `json:"status"`
-	CreatedAt   time.Time        `json:"created_at"`
-	Category    CategoryResponse `json:"category"`
-	CanOpenChat bool             `json:"can_open_chat"`
-	CanComplete bool             `json:"can_complete"`
-	CanReturn   bool             `json:"can_return"`
+	TrackID           string           `json:"track_id"`
+	Status            string           `json:"status"`
+	CreatedAt         time.Time        `json:"created_at"`
+	Category          CategoryResponse `json:"category"`
+	CanOpenChat       bool             `json:"can_open_chat"`
+	CanComplete       bool             `json:"can_complete"`
+	CanReturn         bool             `json:"can_return"`
+	ResolutionMessage string           `json:"resolution_message,omitempty"`
 }
 
 type SpecialistResponse struct {
@@ -106,7 +107,7 @@ func (service *TicketService) Status(ctx context.Context, trackID string) (Ticke
 	if err != nil {
 		return TicketStatusResponse{}, err
 	}
-	return TicketStatusResponse{
+	response := TicketStatusResponse{
 		TrackID:     record.TrackID,
 		Status:      record.Status.String(),
 		CreatedAt:   record.CreatedAt.UTC(),
@@ -114,7 +115,11 @@ func (service *TicketService) Status(ctx context.Context, trackID string) (Ticke
 		CanOpenChat: canOpenChat(record.Status),
 		CanComplete: record.Status.IsApplicantCompletable(),
 		CanReturn:   record.Status == models.TicketStatusAnswerReady && record.ReturnCount < maxTicketReturns,
-	}, nil
+	}
+	if record.Resolution.Valid {
+		response.ResolutionMessage = record.Resolution.String
+	}
+	return response, nil
 }
 
 func (service *TicketService) Chat(ctx context.Context, trackID string) (TicketChatResponse, error) {
