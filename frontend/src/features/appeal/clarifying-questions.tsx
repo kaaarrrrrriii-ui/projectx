@@ -1,39 +1,59 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import AppealNavigation from "@/shared/ui/appeal-navigation";
+import { getPublicQuestions, type PublicQuestion } from "@/shared/api/public-api";
 import { getAppealRoute } from "./routes";
-import { useState } from "react";
-import {
-  clarifyingQuestions,
-  type ClarifyingQuestionKey,
-} from "./clarifying-question-data";
+import { readAppealDraft, type DraftAnswer, updateAppealDraft } from "./appeal-draft";
 
 export default function ClarifyingQuestions({ role, topic = "", formal = false }: { role: string; topic?: string; formal?: boolean }) {
-  const [answers, setAnswers] = useState<Record<ClarifyingQuestionKey, string>>({
-    place: "",
-    duration: "",
-    askedForHelp: "",
-  });
-  const [skipped, setSkipped] = useState<Record<ClarifyingQuestionKey, boolean>>({
-    place: false,
-    duration: false,
-    askedForHelp: false,
-  });
+  const [initialDraft] = useState(readAppealDraft);
+  const [questions, setQuestions] = useState<PublicQuestion[]>([]);
+  const [answers, setAnswers] = useState<Record<string, DraftAnswer>>(initialDraft.answers ?? {});
+  const [skipped, setSkipped] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const routeParams = { role, topic };
 
-  const setAnswer = (question: ClarifyingQuestionKey, answer: string) => {
-    setAnswers((current) => ({ ...current, [question]: answer }));
-  };
-
-  const toggleSkipped = (question: ClarifyingQuestionKey) => {
-    const nextValue = !skipped[question];
-
-    setSkipped((current) => ({ ...current, [question]: nextValue }));
-
-    if (nextValue) {
-      setAnswers((current) => ({ ...current, [question]: "" }));
+  useEffect(() => {
+    if (!initialDraft.categoryId) {
+      queueMicrotask(() => {
+        setError("Сначала выберите тему обращения.");
+        setLoading(false);
+      });
+      return;
     }
-  };
+    const controller = new AbortController();
+    getPublicQuestions(initialDraft.categoryId, controller.signal)
+      .then(({ questions: loaded }) => setQuestions(loaded))
+      .catch((reason: unknown) => {
+        if ((reason as Error).name !== "AbortError") setError("Не удалось загрузить уточняющие вопросы.");
+      })
+      .finally(() => setLoading(false));
+    return () => controller.abort();
+  }, [initialDraft.categoryId]);
+
+  function setAnswer(questionID: number, answerID: number, text: string) {
+    setAnswers((current) => ({ ...current, [questionID]: { answerId: answerID, text } }));
+    setSkipped((current) => ({ ...current, [questionID]: false }));
+  }
+
+  function toggleSkipped(questionID: number) {
+    const key = String(questionID);
+    const next = !skipped[key];
+    setSkipped((current) => ({ ...current, [key]: next }));
+    if (next) {
+      setAnswers((current) => {
+        const copy = { ...current };
+        delete copy[key];
+        return copy;
+      });
+    }
+  }
+
+  function saveAnswers() {
+    updateAppealDraft({ answers, role });
+  }
 
   return (
     <section
@@ -44,17 +64,11 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
         <form className="flex flex-1 flex-col">
           <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px] max-[699px]:px-5 max-[699px]:py-7 max-[379px]:px-4">
             <header>
-              <h1
-                id="details-heading"
-                className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0]"
-              >
-                {formal ? "Несколько уточнений" : "Пару уточнений"}
-              </h1>
-              <p className="mt-px mb-0 text-[14px] leading-5 font-normal text-[#17191f]">
-                Эти вопросы необязательные, но помогут лучше понять ситуацию.
-              </p>
+              <h1 id="details-heading" className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0]">{formal ? "Несколько уточнений" : "Пару уточнений"}</h1>
+              <p className="mt-px mb-0 text-[14px] leading-5 font-normal text-[#17191f]">Эти вопросы необязательные, но помогут лучше понять ситуацию.</p>
             </header>
-
+            {loading && <p className="mt-5 text-sm text-[#646d86]">Загружаем вопросы…</p>}
+            {error && <p role="alert" className="mt-5 text-sm text-[#b42318]">{error}</p>}
             <div className="mt-4 w-full max-w-[670px]">
             {clarifyingQuestions.map((question, questionIndex) => {
               if (!question.key) return null;
@@ -131,14 +145,8 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
             })}
             </div>
           </div>
-
-          <AppealNavigation
-            backHref={getAppealRoute("description", routeParams)}
-            skipHref={getAppealRoute("attachments", routeParams)}
-            primaryText="Продолжить"
-            primaryHref={getAppealRoute("attachments", routeParams)}
-          />
-        </form>
+          <AppealNavigation backHref={getAppealRoute("description", routeParams)} skipHref={getAppealRoute("attachments", routeParams)} onSkip={() => updateAppealDraft({ answers: {} })} primaryText="Продолжить" primaryHref={getAppealRoute("attachments", routeParams)} primaryOnClick={saveAnswers} />
+        </div>
       </div>
     </section>
   );

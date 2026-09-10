@@ -8,9 +8,13 @@ import CloseAppealFlow from "./close-appeal-flow";
 export default function ChatWorkspace({
   children,
   formal,
+  trackNumber,
+  status,
 }: {
   children: ReactNode;
   formal: boolean;
+  trackNumber: string;
+  status: string;
 }) {
   const [activeDialog, setActiveDialog] = useState<"helped" | "not-helped" | null>(null);
 
@@ -19,7 +23,7 @@ export default function ChatWorkspace({
       <div className="mx-auto flex min-h-[calc(100dvh-100px)] w-full max-w-[1440px] flex-col px-5 pt-2 pb-16 max-[699px]:min-h-[calc(100dvh-82px)] max-[699px]:px-3 max-[699px]:pt-3 max-[699px]:pb-6 max-[379px]:px-2">
         <div aria-live="polite">{children}</div>
 
-        <section
+        {status === "answer_ready" && <section
           aria-labelledby="helpfulness-heading"
           className="mx-[18px] mt-14 flex min-h-[164px] flex-col items-center justify-center rounded-[15px] border border-[#4562f0] bg-white/90 px-5 py-6 max-[699px]:mx-0 max-[699px]:mt-7 max-[379px]:min-h-[150px] max-[379px]:px-3 max-[379px]:py-5"
         >
@@ -47,13 +51,13 @@ export default function ChatWorkspace({
               className="h-[38px] w-full rounded-[10px] font-normal"
             />
           </div>
-        </section>
+        </section>}
       </div>
 
       {activeDialog && (
         <CloseAppealFlow
           formal={formal}
-          trackNumber="НАШК-УАЫВ-АВАМ-ВАФВ"
+          trackNumber={trackNumber}
           outcome={activeDialog}
           onCancel={() => setActiveDialog(null)}
         />

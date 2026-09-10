@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -68,6 +69,17 @@ func TestTicketMessageServiceRequiresTextEvenWithAttachment(t *testing.T) {
 	}
 	if len(repository.attachments) != 0 {
 		t.Fatal("repository called for a message without text")
+	}
+}
+
+func TestTicketMessageServiceLimitsTextLength(t *testing.T) {
+	t.Parallel()
+	repository := &stubMessageRepository{}
+	messageService, _ := newTicketMessageTestService(t, repository)
+
+	_, err := messageService.AddApplicantMessage(context.Background(), "ОТК-ABCD-2345", strings.Repeat("я", MaxApplicantMessageCharacters+1), nil)
+	if !errors.Is(err, ErrTextTooLong) {
+		t.Fatalf("AddApplicantMessage() error = %v, want %v", err, ErrTextTooLong)
 	}
 }
 

@@ -3,6 +3,7 @@ import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
 import { getAppealRoute } from "@/features/appeal/routes";
 import SiteHeader from "@/widgets/site-header/site-header";
 import Image from "next/image";
+import DescriptionInput from "@/features/appeal/description-input";
 
 export default async function AppealDescription({
   searchParams,

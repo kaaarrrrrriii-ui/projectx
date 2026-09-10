@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { MouseEvent } from "react";
 import Button from "./button";
 
 type AppealNavigationProps = {
@@ -9,6 +10,9 @@ type AppealNavigationProps = {
   primaryType?: "button" | "submit";
   primaryVariant?: "primary" | "secondary";
   primaryClassName?: string;
+  primaryOnClick?: () => void;
+  primaryDisabled?: boolean;
+  onSkip?: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
 
 const navigationLinkClassName = `
@@ -26,6 +30,9 @@ export default function AppealNavigation({
   primaryType = "button",
   primaryVariant = "primary",
   primaryClassName = "",
+  primaryOnClick,
+  primaryDisabled = false,
+  onSkip,
 }: AppealNavigationProps) {
   return (
     <nav
@@ -37,6 +44,8 @@ export default function AppealNavigation({
           text={primaryText}
           link={primaryHref}
           type={primaryType}
+          onClick={primaryOnClick}
+          disabled={primaryDisabled}
           variant={primaryVariant}
           size="default"
           className={`!w-full ${primaryClassName}`}

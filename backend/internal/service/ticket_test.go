@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -127,22 +128,32 @@ func TestTicketServiceReturnTrimsOptionalReason(t *testing.T) {
 	}
 }
 
+func TestTicketServiceLimitsReturnReasonLength(t *testing.T) {
+	t.Parallel()
+	repository := &stubTicketRepository{}
+	ticketService, _ := NewTicketService(repository)
+
+	_, err := ticketService.Return(context.Background(), "ОТК-ABCD-2345", strings.Repeat("я", MaxReturnReasonCharacters+1))
+	if !errors.Is(err, ErrTextTooLong) {
+		t.Fatalf("Return() error = %v, want %v", err, ErrTextTooLong)
+	}
+	if repository.returnReason != "" {
+		t.Fatal("repository called for an oversized return reason")
+	}
+}
+
 func TestTicketStatusApplicantCompletionRules(t *testing.T) {
 	t.Parallel()
 
+	if !models.TicketStatusAnswerReady.IsApplicantCompletable() {
+		t.Fatal("answer_ready must be applicant-completable")
+	}
 	for _, status := range []models.TicketStatus{
 		models.TicketStatusNew,
 		models.TicketStatusAssigned,
 		models.TicketStatusInProgress,
 		models.TicketStatusNeedsClarification,
-		models.TicketStatusAnswerReady,
 		models.TicketStatusReturned,
-	} {
-		if !status.IsApplicantCompletable() {
-			t.Fatalf("status %s must be applicant-completable", status.String())
-		}
-	}
-	for _, status := range []models.TicketStatus{
 		models.TicketStatusCompleted,
 		models.TicketStatusRejected,
 		models.TicketStatusClosedWithoutAnswer,

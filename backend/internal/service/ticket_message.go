@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"example.com/german/backend/internal/repos"
 	"example.com/german/backend/internal/storage"
@@ -76,6 +77,9 @@ func (service *TicketMessageService) AddApplicantMessage(
 	text = strings.TrimSpace(text)
 	if text == "" {
 		return CreateMessageResponse{}, ErrMessageTextRequired
+	}
+	if utf8.RuneCountInString(text) > MaxApplicantMessageCharacters {
+		return CreateMessageResponse{}, ErrTextTooLong
 	}
 
 	candidates := make([]AttachmentCandidate, 0, len(uploads))

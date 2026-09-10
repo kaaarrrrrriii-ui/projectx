@@ -4,6 +4,9 @@ import Button from "@/shared/ui/button";
 import AppealNavigation from "@/shared/ui/appeal-navigation";
 import { getAppealRoute } from "./routes";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { createPublicTicket } from "@/shared/api/public-api";
+import { clearAppealDraft, draftLooksCritical, readAppealDraft, saveSubmissionResult } from "./appeal-draft";
 import {
   ChangeEvent,
   DragEvent,
@@ -22,25 +25,27 @@ type UploadItem = {
 };
 
 function isSupportedFile(file: File) {
-  return (
-    file.type.startsWith("image/") ||
-    file.type === "application/pdf" ||
-    file.name.toLowerCase().endsWith(".pdf")
-  );
+  return file.type === "image/jpeg" || file.type === "image/png" || /\.(jpe?g|png)$/i.test(file.name);
 }
 
 export default function MediaUpload({ role, topic = "", formal = false }: { role: string; topic?: string; formal?: boolean }) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrls = useRef(new Set<string>());
   const [items, setItems] = useState<UploadItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
+  const [crisisContact, setCrisisContact] = useState("");
+  const [showCrisisHelp, setShowCrisisHelp] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const routeParams = { role, topic };
 
   useEffect(() => {
     const urls = previewUrls.current;
+    const timer = window.setTimeout(() => setShowCrisisHelp(draftLooksCritical(readAppealDraft())), 0);
 
     return () => {
+      window.clearTimeout(timer);
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
@@ -57,7 +62,7 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
     );
 
     if (supportedFiles.length !== files.length) {
-      setError("Можно добавить только изображения или PDF.");
+      setError("Можно добавить только изображения JPEG или PNG.");
     } else if (validFiles.length !== supportedFiles.length) {
       setError("Размер каждого файла не должен превышать 10 МБ.");
     } else if (items.length + validFiles.length > MAX_FILES) {
@@ -114,6 +119,38 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
     setError("");
   }
 
+  async function submitTicket() {
+    if (submitting) return;
+    const draft = readAppealDraft();
+    if (!draft.categoryId) {
+      setError("Не удалось определить категорию. Вернитесь к выбору темы.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    const form = new FormData();
+    form.set("applicant_type", draft.role || role);
+    form.set("category_id", String(draft.categoryId));
+    form.set("description", draft.description ?? "");
+    form.set("custom_topic", draft.customTopic ?? "");
+    if (showCrisisHelp) form.set("crisis_contact", crisisContact);
+    for (const [questionID, answer] of Object.entries(draft.answers ?? {})) {
+      form.set(`answers[${questionID}]`, String(answer.answerId));
+    }
+    for (const item of items) form.append("attachments[]", item.file);
+
+    try {
+      const result = await createPublicTicket(form);
+      saveSubmissionResult(result);
+      clearAppealDraft();
+      router.push(getAppealRoute("success", { role }));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Не удалось отправить обращение. Попробуйте ещё раз.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <section
       aria-labelledby="media-heading"
@@ -136,7 +173,7 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
             ref={inputRef}
             className="sr-only"
             type="file"
-            accept="image/*,.pdf,application/pdf"
+            accept="image/jpeg,image/png,.jpg,.jpeg,.png"
             multiple
             onChange={handleInputChange}
             aria-label="Выбрать файлы"
@@ -202,7 +239,7 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
                   : "Нажми, чтобы выбрать файлы, или перетащи их сюда"}
               </span>
               <span className="text-[15px] leading-[22px] text-[#9196a7] max-[699px]:text-[13px]">
-                Можно добавить до 5 файлов (фото, скриншоты, PDF). Размер до 10
+                 Можно добавить до 5 файлов (JPEG или PNG). Размер до 10
                 МБ каждый.
               </span>
             </div>
@@ -225,7 +262,7 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
                     />
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center px-2 text-center text-[11px] leading-4 text-[#4562f0]">
-                      <span className="text-lg font-bold">PDF</span>
+                      <span className="text-lg font-bold">IMG</span>
                       <span className="w-full truncate">{item.file.name}</span>
                     </div>
                   )}
@@ -265,13 +302,27 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
               </p>
             )}
           </div>
+
+          {showCrisisHelp && (
+            <aside className="mt-5 rounded-[15px] border border-[#d92d20] bg-[#fff1f1] p-4" aria-labelledby="crisis-help-heading">
+              <h2 id="crisis-help-heading" className="text-[17px] font-semibold text-[#8f1111]">Если опасность непосредственная — позвоните 112</h2>
+              <p className="mt-1 text-[13px] leading-5 text-[#451313]">Можно также бесплатно и анонимно позвонить на детский телефон доверия: 124 или 8 800 2000-122. Экстренная психологическая помощь МЧС: +7 (495) 989-50-50. Отправка обращения останется доступной.</p>
+              <label className="mt-4 block text-[13px] text-[#451313]">
+                Способ связи, если вы хотите его оставить (необязательно)
+                <input value={crisisContact} onChange={(event) => setCrisisContact(event.target.value)} maxLength={500} className="mt-2 block h-10 w-full rounded-[10px] border border-[#b56b6b] bg-white px-3 text-[#151515] outline-none focus:border-[#4562f0]" placeholder="Телефон, почта или другой удобный способ" />
+              </label>
+              <p className="mt-2 text-[12px] text-[#6d3333]">Контакт сохранится отдельно от текста и будет доступен только сотрудникам, работающим с кризисным обращением.</p>
+            </aside>
+          )}
         </div>
 
-        <AppealNavigation
-          backHref={getAppealRoute("details", routeParams)}
-          skipHref={getAppealRoute("success", routeParams)}
-          primaryText="Отправить обращение"
-          primaryHref={getAppealRoute("success", routeParams)}
+          <AppealNavigation
+            backHref={getAppealRoute("details", routeParams)}
+            skipHref="#"
+            onSkip={(event) => { event.preventDefault(); void submitTicket(); }}
+            primaryText={submitting ? "Отправляем…" : "Отправить обращение"}
+            primaryOnClick={() => void submitTicket()}
+            primaryDisabled={submitting}
           primaryVariant="secondary"
           primaryClassName="h-[44px] w-[234px] rounded-[11px] px-5 text-[15px] font-normal"
         />

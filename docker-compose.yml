@@ -32,6 +32,7 @@ services:
       DB_SSLMODE: disable
       ATTACHMENT_STORAGE_PATH: /data/attachments
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
     depends_on:
       postgres:
         condition: service_healthy
