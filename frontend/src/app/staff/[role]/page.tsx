@@ -8,6 +8,7 @@ export default async function StaffRolePage({ params }: { params: Promise<{ role
   const { role } = await params;
   if (!(role in roleNames)) notFound();
   if (role === "expert") redirect("/expert");
+  if (role === "admin") redirect("/admin");
   const roleName = roleNames[role as keyof typeof roleNames];
 
   return (
