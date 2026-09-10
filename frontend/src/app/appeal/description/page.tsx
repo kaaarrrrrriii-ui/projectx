@@ -37,9 +37,9 @@ export default async function AppealDescription({
             <h1
               id="description-heading"
               className="
-                text-[32px]
+                text-[28px]
                 leading-[1.2]
-                font-black
+                font-extrabold
                 tracking-[-0.025em]
                 text-[#4562F0]
 

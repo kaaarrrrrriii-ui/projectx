@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -119,6 +120,164 @@ type ReportTicketRecord struct {
 
 func NewOperatorRepository(db *sql.DB) *OperatorRepository {
 	return &OperatorRepository{db: db}
+}
+
+// Worker requests share the existing messages table. These forwarding methods
+// keep request parsing in one place while allowing OperatorService to complete
+// the assignment workflow through its regular repository.
+func (repository *OperatorRepository) ListOperatorWorkerRequests(ctx context.Context, status string, limit, offset int) (WorkerRequestPageRecord, error) {
+	return NewExpertRepository(repository.db).ListOperatorWorkerRequests(ctx, status, limit, offset)
+}
+
+func (repository *OperatorRepository) CompleteWorkerRequest(ctx context.Context, requestID, workerID, actorID int64, completedAt time.Time) (WorkerRequestRecord, error) {
+	tx, err := repository.db.BeginTx(ctx, nil)
+	if err != nil {
+		return WorkerRequestRecord{}, fmt.Errorf("begin complete worker request transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	var request WorkerRequestRecord
+	var encoded string
+	err = tx.QueryRowContext(ctx, `
+		SELECT m.ticket_id, t.track_id, m.text, m.created_at
+		FROM messages AS m
+		JOIN tickets AS t ON t.id = m.ticket_id
+		WHERE m.id = $1 AND m.type = $2
+		FOR UPDATE OF m, t`, requestID, models.MessageTypeInternalNote,
+	).Scan(&request.TicketID, &request.TrackID, &encoded, &request.CreatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return WorkerRequestRecord{}, ErrWorkerRequestNotFound
+	}
+	if err != nil {
+		return WorkerRequestRecord{}, fmt.Errorf("lock worker request: %w", err)
+	}
+	var payload WorkerRequestPayload
+	if json.Unmarshal([]byte(encoded), &payload) != nil || payload.Kind != "worker_request" {
+		return WorkerRequestRecord{}, ErrWorkerRequestNotFound
+	}
+	request.ID, request.RequestType, request.Reason, request.CreatedBy = requestID, payload.RequestType, payload.Reason, payload.CreatedBy
+	request.Status, err = workerRequestStatusTx(ctx, tx, request.TicketID, requestID, payload.Status)
+	if err != nil {
+		return WorkerRequestRecord{}, err
+	}
+	if request.Status == "completed" {
+		return WorkerRequestRecord{}, ErrInvalidTransition
+	}
+
+	ticketID, ticketStatus, err := lockAssignableTicket(ctx, tx, request.TrackID)
+	if err != nil {
+		return WorkerRequestRecord{}, err
+	}
+	if ticketID != request.TicketID {
+		return WorkerRequestRecord{}, ErrWorkerRequestNotFound
+	}
+	switch request.RequestType {
+	case "add_coworker":
+		if err := addWorkerTx(ctx, tx, ticketID, ticketStatus, workerID, actorID, completedAt); err != nil {
+			return WorkerRequestRecord{}, err
+		}
+	case "replace_responsible":
+		if err := replaceResponsibleTx(ctx, tx, ticketID, ticketStatus, workerID, actorID, completedAt); err != nil {
+			return WorkerRequestRecord{}, err
+		}
+	default:
+		return WorkerRequestRecord{}, ErrWorkerRequestNotFound
+	}
+	statusPayload := WorkerRequestStatusPayload{Kind: "worker_request_status", Version: 1, RequestID: requestID, Status: "completed", CompletedBy: actorID}
+	statusJSON, err := json.Marshal(statusPayload)
+	if err != nil {
+		return WorkerRequestRecord{}, fmt.Errorf("encode completed worker request: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO messages (ticket_id, text, type, created_at)
+		VALUES ($1, $2, $3, $4)`, request.TicketID, string(statusJSON), models.MessageTypeInternalNote, completedAt); err != nil {
+		return WorkerRequestRecord{}, fmt.Errorf("save completed worker request: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return WorkerRequestRecord{}, fmt.Errorf("commit completed worker request: %w", err)
+	}
+	request.Status = "completed"
+	return request, nil
+}
+
+func workerRequestStatusTx(ctx context.Context, tx *sql.Tx, ticketID, requestID int64, fallback string) (string, error) {
+	rows, err := tx.QueryContext(ctx, `
+		SELECT text FROM messages
+		WHERE ticket_id = $1 AND type = $2 AND text LIKE '%"kind":"worker_request_status"%'
+		ORDER BY created_at DESC, id DESC`, ticketID, models.MessageTypeInternalNote)
+	if err != nil {
+		return "", fmt.Errorf("list locked worker request statuses: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var encoded string
+		if err := rows.Scan(&encoded); err != nil {
+			return "", fmt.Errorf("scan locked worker request status: %w", err)
+		}
+		var payload WorkerRequestStatusPayload
+		if json.Unmarshal([]byte(encoded), &payload) == nil && payload.Kind == "worker_request_status" && payload.RequestID == requestID {
+			return payload.Status, nil
+		}
+	}
+	return fallback, rows.Err()
+}
+
+func addWorkerTx(ctx context.Context, tx *sql.Tx, ticketID int64, status models.TicketStatus, workerID, actorID int64, changedAt time.Time) error {
+	var hasResponsible bool
+	if err := tx.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM tickets_workers WHERE ticket_id = $1 AND actual AND is_responsible)`, ticketID).Scan(&hasResponsible); err != nil {
+		return fmt.Errorf("check responsible worker: %w", err)
+	}
+	if !hasResponsible {
+		return ErrResponsibleRequired
+	}
+	if err := lockAvailableExpert(ctx, tx, workerID, ticketID); err != nil {
+		return err
+	}
+	var responsible, actual bool
+	err := tx.QueryRowContext(ctx, `SELECT is_responsible, actual FROM tickets_workers WHERE worker_id = $1 AND ticket_id = $2 FOR UPDATE`, workerID, ticketID).Scan(&responsible, &actual)
+	if err == nil && actual {
+		return ErrWorkerAlreadyAssigned
+	}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("inspect requested co-worker: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO tickets_workers (worker_id, ticket_id, is_responsible, created_at, actual)
+		VALUES ($1, $2, FALSE, $3, TRUE)
+		ON CONFLICT (worker_id, ticket_id) DO UPDATE
+		SET is_responsible = FALSE, actual = TRUE,
+		    created_at = LEAST(tickets_workers.created_at, EXCLUDED.created_at)`, workerID, ticketID, changedAt); err != nil {
+		return fmt.Errorf("save requested co-worker: %w", err)
+	}
+	return insertEvent(ctx, tx, ticketID, actorID, "worker_added", status, status, sql.NullInt64{}, sql.NullInt64{Int64: workerID, Valid: true}, changedAt)
+}
+
+func replaceResponsibleTx(ctx context.Context, tx *sql.Tx, ticketID int64, status models.TicketStatus, workerID, actorID int64, changedAt time.Time) error {
+	if err := lockAvailableExpert(ctx, tx, workerID, ticketID); err != nil {
+		return err
+	}
+	var previousWorkerID sql.NullInt64
+	err := tx.QueryRowContext(ctx, `SELECT worker_id FROM tickets_workers WHERE ticket_id = $1 AND actual AND is_responsible FOR UPDATE`, ticketID).Scan(&previousWorkerID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("get requested previous responsible worker: %w", err)
+	}
+	if previousWorkerID.Valid && previousWorkerID.Int64 != workerID {
+		if _, err := tx.ExecContext(ctx, `UPDATE tickets_workers SET actual = FALSE WHERE ticket_id = $1 AND actual AND is_responsible`, ticketID); err != nil {
+			return fmt.Errorf("deactivate requested responsible worker: %w", err)
+		}
+	}
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO tickets_workers (worker_id, ticket_id, is_responsible, created_at, actual)
+		VALUES ($1, $2, TRUE, $3, TRUE)
+		ON CONFLICT (worker_id, ticket_id) DO UPDATE
+		SET is_responsible = TRUE, actual = TRUE,
+		    created_at = LEAST(tickets_workers.created_at, EXCLUDED.created_at)`, workerID, ticketID, changedAt); err != nil {
+		return fmt.Errorf("save requested responsible worker: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `UPDATE tickets SET status = $2, closed_at = NULL WHERE id = $1`, ticketID, models.TicketStatusAssigned); err != nil {
+		return fmt.Errorf("set requested assigned ticket status: %w", err)
+	}
+	return insertEvent(ctx, tx, ticketID, actorID, "responsible_assigned", status, models.TicketStatusAssigned, previousWorkerID, sql.NullInt64{Int64: workerID, Valid: true}, changedAt)
 }
 
 func (repository *OperatorRepository) EligibleWorkers(ctx context.Context, trackID, name string, groupID int64) (EligibleWorkersRecord, error) {

@@ -30,6 +30,7 @@ type stubOperatorService struct {
 	assignmentCalled bool
 	workerID         int64
 	actorID          int64
+	requestID        int64
 }
 
 func (*stubOperatorService) EligibleWorkers(context.Context, string, string, string) (service.EligibleWorkersResponse, error) {
@@ -65,6 +66,15 @@ func (*stubOperatorService) Analytics(context.Context, string, string) (service.
 
 func (*stubOperatorService) Report(context.Context, string, string, string) (service.GeneratedReport, error) {
 	return service.GeneratedReport{}, nil
+}
+
+func (*stubOperatorService) ListWorkerRequests(context.Context, string, string, string) (service.WorkerRequestPageResponse, error) {
+	return service.WorkerRequestPageResponse{}, nil
+}
+
+func (stub *stubOperatorService) CompleteWorkerRequest(_ context.Context, requestID, workerID, actorID int64) (service.CompleteWorkerRequestResponse, error) {
+	stub.requestID, stub.workerID, stub.actorID = requestID, workerID, actorID
+	return service.CompleteWorkerRequestResponse{RequestID: requestID, WorkerID: workerID, Status: "completed"}, nil
 }
 
 func TestAuthLoginHandler(t *testing.T) {
@@ -111,6 +121,22 @@ func TestOperatorHandlerAssignsAuthenticatedWorker(t *testing.T) {
 	response := httptest.NewRecorder()
 	mux.ServeHTTP(response, request)
 	if response.Code != http.StatusOK || !operator.assignmentCalled || operator.workerID != 7 || operator.actorID != 3 {
+		t.Fatalf("status = %d, operator = %+v, body = %s", response.Code, operator, response.Body.String())
+	}
+}
+
+func TestOperatorHandlerCompletesWorkerRequest(t *testing.T) {
+	t.Parallel()
+	auth := &stubAuthService{user: service.AuthUser{ID: 3, Role: "operator"}}
+	operator := &stubOperatorService{}
+	handler, _ := NewOperatorHandler(operator, auth)
+	mux := http.NewServeMux()
+	handler.RegisterRoutes(mux)
+	request := httptest.NewRequest(http.MethodPost, "/api/operator/worker-requests/12/complete", strings.NewReader(`{"worker_id":7}`))
+	request.Header.Set("Authorization", "Bearer token")
+	response := httptest.NewRecorder()
+	mux.ServeHTTP(response, request)
+	if response.Code != http.StatusOK || operator.requestID != 12 || operator.workerID != 7 || operator.actorID != 3 {
 		t.Fatalf("status = %d, operator = %+v, body = %s", response.Code, operator, response.Body.String())
 	}
 }

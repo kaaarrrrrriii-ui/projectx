@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Button from "@/shared/ui/button";
-import Input from "@/shared/ui/input";
 import AppealNavigation from "@/shared/ui/appeal-navigation";
 import { appealRoutes, getAppealRoute } from "./routes";
 import TopicOption from "./topic-option";
@@ -72,7 +71,7 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
           {formal ? "Можно выбрать одну или несколько тем, которые ближе всего к вашей ситуации." : "Можно выбрать одну или несколько тем, которые ближе всего к твоей ситуации."}
         </p>
 
-        <fieldset aria-describedby="topics-description" className="mt-7 min-w-0 sm:mt-[62px]">
+        <fieldset aria-describedby="topics-description" className="mt-8 min-w-0">
         <legend className="sr-only">Выбор одной темы обращения</legend>
         <div className="grid grid-cols-1 gap-x-3 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           {topics.map((topic) => (
@@ -109,14 +108,14 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
         </fieldset>
 
         {isEditing ? (
-          <div className="mt-6 max-w-[620px] rounded-2xl border border-[#cbd3f5] bg-white/70 p-4 max-[379px]:p-3">
-          <label htmlFor="custom-topic" className="mb-2 block text-sm font-medium text-[#000828]">
+          <div className="mt-8 w-fit max-w-full rounded-2xl border border-[#808393] bg-transparent p-4">
+          <label htmlFor="custom-topic" className="mb-2 block text-[12px] leading-4 font-medium text-[#808393]">
             {customTopic
               ? (formal ? "Измените свою тему" : "Измени свою тему")
               : (formal ? "Добавьте свою тему" : "Добавь свою тему")}
           </label>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Input
+            <input
               id="custom-topic"
               type="text"
               value={draft}
@@ -129,22 +128,23 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
               }}
               maxLength={120}
               autoFocus
-              placeholder="Например: трудно адаптироваться"
               aria-invalid={Boolean(error)}
               aria-describedby={error ? "custom-topic-error" : undefined}
-              className="flex-1 text-left"
+              className="h-7 w-[279px] max-w-full rounded-[15px] border border-[#808393] bg-transparent px-[10px] text-[14px] leading-5 text-[#000828] outline-none"
             />
-            <div className="flex gap-2 max-[379px]:[&>*]:min-w-0 max-[379px]:[&>*]:flex-1 max-[379px]:[&>*]:px-3">
-              <Button text="Сохранить" variant="primary" size="small" onClick={saveCustomTopic} />
-              <Button text="Отмена" variant="secondary" size="small" onClick={() => { setIsEditing(false); setError(""); }} />
+            <div className="flex gap-1.5">
+              <Button text="Сохранить" variant="primary" size="small" className="!h-6 !min-h-0 !rounded-md !px-2 !py-0.5 text-[10px]" onClick={saveCustomTopic} />
+              <Button text="Отмена" variant="secondary" size="small" className="!h-6 !min-h-0 !rounded-md !px-2 !py-0.5 text-[10px]" onClick={() => { setIsEditing(false); setError(""); }} />
             </div>
           </div>
           {error && <p id="custom-topic-error" role="alert" className="mt-2 text-sm text-[#b42318]">{error}</p>}
           </div>
         ) : !customTopic ? (
-          <button type="button" onClick={openEditor} className="mt-4 flex w-fit cursor-pointer items-center gap-3 rounded-sm py-1 text-[12px] text-[#151515] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4562f0]">
-            <span aria-hidden="true" className="text-xl leading-4 font-extralight">+</span>
-            {formal ? "Добавить свою тему" : "Добавить свою тему"}
+          <button type="button" onClick={openEditor} className="mt-8 flex w-fit cursor-pointer items-center gap-1.5 rounded-sm py-1 text-[10px] leading-4 text-[#808393] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4562f0]">
+            <span aria-hidden="true" className="text-[10px] leading-4">+</span>
+            <span className="text-[10px] leading-4">
+              {formal ? "Добавить свою тему" : "Добавить свою тему"}
+            </span>
           </button>
         ) : null}
       </div>

@@ -39,7 +39,7 @@ export default function AppealNavigation({
           type={primaryType}
           variant={primaryVariant}
           size="default"
-          className={primaryClassName}
+          className={`!w-full ${primaryClassName}`}
         />
       </div>
 

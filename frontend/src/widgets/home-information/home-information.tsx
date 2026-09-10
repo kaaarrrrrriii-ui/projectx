@@ -54,18 +54,18 @@ function HomeActions() {
         "
       >
         <Button
-          text="Подать обращение"
-          variant="primary"
-          size="default"
-          link="/appeal"
-          className={mobileButtonClasses}
-        />
-
-        <Button
           text="Проверить статус"
           variant="secondary"
           size="default"
           link="/status"
+          className={mobileButtonClasses}
+        />
+
+        <Button
+          text="Подать обращение"
+          variant="primary"
+          size="default"
+          link="/appeal"
           className={mobileButtonClasses}
         />
       </div>

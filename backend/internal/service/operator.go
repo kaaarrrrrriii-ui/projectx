@@ -27,7 +27,13 @@ var (
 	ErrRejectionMessage      = errors.New("rejection message is required")
 	ErrInvalidDateRange      = errors.New("invalid date range")
 	ErrInvalidReportFormat   = errors.New("invalid report format")
+	ErrWorkerRequestComplete = errors.New("worker request could not be completed")
 )
+
+type operatorWorkerRequestRepository interface {
+	ListOperatorWorkerRequests(context.Context, string, int, int) (repos.WorkerRequestPageRecord, error)
+	CompleteWorkerRequest(context.Context, int64, int64, int64, time.Time) (repos.WorkerRequestRecord, error)
+}
 
 type operatorRepository interface {
 	EligibleWorkers(context.Context, string, string, int64) (repos.EligibleWorkersRecord, error)
@@ -140,6 +146,12 @@ type GeneratedReport struct {
 	Name        string
 	ContentType string
 	Data        []byte
+}
+
+type CompleteWorkerRequestResponse struct {
+	RequestID int64  `json:"request_id"`
+	Status    string `json:"status"`
+	WorkerID  int64  `json:"worker_id"`
 }
 
 func NewOperatorService(repository operatorRepository) (*OperatorService, error) {
@@ -316,6 +328,49 @@ func (service *OperatorService) Report(ctx context.Context, dateFrom, dateTo, fo
 	default:
 		return GeneratedReport{}, ErrInvalidReportFormat
 	}
+}
+
+func (service *OperatorService) ListWorkerRequests(ctx context.Context, status, pageValue, limitValue string) (WorkerRequestPageResponse, error) {
+	repository, ok := service.repository.(operatorWorkerRequestRepository)
+	if !ok {
+		return WorkerRequestPageResponse{}, ErrWorkerRequestComplete
+	}
+	status = strings.TrimSpace(status)
+	if status != "" && status != "sent" && status != "completed" {
+		return WorkerRequestPageResponse{}, ErrInvalidFilter
+	}
+	page, err := positiveIntOrDefault(pageValue, 1)
+	if err != nil {
+		return WorkerRequestPageResponse{}, ErrInvalidFilter
+	}
+	limit, err := positiveIntOrDefault(limitValue, 20)
+	if err != nil || limit > 100 {
+		return WorkerRequestPageResponse{}, ErrInvalidFilter
+	}
+	record, err := repository.ListOperatorWorkerRequests(ctx, status, limit, (page-1)*limit)
+	if err != nil {
+		return WorkerRequestPageResponse{}, err
+	}
+	response := WorkerRequestPageResponse{Items: []WorkerRequestResponse{}, Total: record.Total, Page: page, Limit: limit}
+	for _, item := range record.Items {
+		response.Items = append(response.Items, workerRequestResponse(item))
+	}
+	return response, nil
+}
+
+func (service *OperatorService) CompleteWorkerRequest(ctx context.Context, requestID, workerID, actorID int64) (CompleteWorkerRequestResponse, error) {
+	if requestID <= 0 || workerID <= 0 || actorID <= 0 {
+		return CompleteWorkerRequestResponse{}, ErrInvalidWorkerID
+	}
+	repository, ok := service.repository.(operatorWorkerRequestRepository)
+	if !ok {
+		return CompleteWorkerRequestResponse{}, ErrWorkerRequestComplete
+	}
+	_, err := repository.CompleteWorkerRequest(ctx, requestID, workerID, actorID, service.now().UTC())
+	if err != nil {
+		return CompleteWorkerRequestResponse{}, err
+	}
+	return CompleteWorkerRequestResponse{RequestID: requestID, Status: "completed", WorkerID: workerID}, nil
 }
 
 func (service *OperatorService) dateRange(dateFrom, dateTo string) (time.Time, time.Time, error) {

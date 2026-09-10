@@ -123,7 +123,7 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
         <div className="flex flex-col rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px] max-[699px]:px-5 max-[699px]:py-7 max-[379px]:px-4">
           <h1
             id="media-heading"
-            className="text-[36px] leading-[1.2] font-black tracking-[-0.025em] text-[var(--color-primary)] max-[699px]:text-[28px] max-[379px]:text-[25px]"
+            className="text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[var(--color-primary)]"
           >
             Можно добавить фото
           </h1>

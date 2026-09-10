@@ -14,4 +14,6 @@ var (
 	ErrWorkerNotAssigned      = errors.New("worker is not assigned")
 	ErrResponsibleWorker      = errors.New("responsible worker cannot be removed as co-worker")
 	ErrResponsibleRequired    = errors.New("responsible worker must be assigned first")
+	ErrExpertAccessDenied     = errors.New("expert is not assigned to the ticket")
+	ErrWorkerRequestNotFound  = errors.New("worker request not found")
 )
