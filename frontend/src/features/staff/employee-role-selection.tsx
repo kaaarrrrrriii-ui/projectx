@@ -62,7 +62,13 @@ export default function EmployeeRoleSelection() {
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push(selectedRole === "operator" ? "/operator" : `/staff/${selectedRole}`);
+    router.push(
+      selectedRole === "operator"
+        ? "/operator"
+        : selectedRole === "admin"
+          ? "/admin"
+          : `/staff/${selectedRole}`,
+    );
   }
 
   return (

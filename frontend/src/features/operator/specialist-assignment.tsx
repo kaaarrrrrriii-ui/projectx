@@ -51,7 +51,13 @@ function FilterMenu({
   );
 }
 
-export default function SpecialistAssignment({ ticket }: { ticket: OperatorTicket }) {
+export default function SpecialistAssignment({
+  ticket,
+  basePath = "/operator/queueNew.tsx",
+}: {
+  ticket: OperatorTicket;
+  basePath?: string;
+}) {
   const router = useRouter();
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
   const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
@@ -81,7 +87,7 @@ export default function SpecialistAssignment({ ticket }: { ticket: OperatorTicke
   function assignSpecialist() {
     if (!selectedSpecialist) return;
     const expert = selectedSpecialist.name + " — " + selectedSpecialist.specialization.toLocaleLowerCase("ru");
-    router.push("/operator/queueNew.tsx/" + encodeURIComponent(ticket.track) + "?expert=" + encodeURIComponent(expert));
+    router.push(basePath + "/" + encodeURIComponent(ticket.track) + "?expert=" + encodeURIComponent(expert));
   }
 
   const selectedChips = [

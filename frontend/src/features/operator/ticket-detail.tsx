@@ -46,18 +46,26 @@ const colors: Record<TicketPriority, { text: string; soft: string; solid: string
 
 const actionBase = "h-10 w-full cursor-pointer rounded-[8px] border px-4 text-sm font-medium transition-colors focus-visible:outline-3 focus-visible:outline-offset-3";
 
-export default function TicketDetail({ ticket, initialExpert = "" }: { ticket: OperatorTicket; initialExpert?: string }) {
+export default function TicketDetail({
+  ticket,
+  initialExpert = "",
+  basePath = "/operator/queueNew.tsx",
+}: {
+  ticket: OperatorTicket;
+  initialExpert?: string;
+  basePath?: string;
+}) {
   const [priority, setPriority] = useState<TicketPriority>(ticket.priority);
   const [status, setStatus] = useState(ticket.status);
   const [assignedExpert] = useState(initialExpert);
   const [notice, setNotice] = useState("");
   const accent = colors[priority];
-  const assignHref = "/operator/queueNew.tsx/" + encodeURIComponent(ticket.track) + "/assign";
+  const assignHref = basePath + "/" + encodeURIComponent(ticket.track) + "/assign";
 
   return (
     <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_480px] max-[1249px]:grid-cols-1">
       <article className="flex min-w-0 flex-col px-5 py-6 sm:px-8">
-        <Link href="/operator/queueNew.tsx" className="w-fit rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">
+        <Link href={basePath} className="w-fit rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">
           Вернуться назад
         </Link>
 
@@ -109,7 +117,7 @@ export default function TicketDetail({ ticket, initialExpert = "" }: { ticket: O
           ) : <p className="mt-3 text-sm text-[#7b849b]">Файлы не приложены</p>}
         </section>
 
-        <Link href="/operator/queueNew.tsx" className="mt-auto w-fit rounded-sm pt-12 text-sm text-[#a0a6b7] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">
+        <Link href={basePath} className="mt-auto w-fit rounded-sm pt-12 text-sm text-[#a0a6b7] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">
           Вернуться назад
         </Link>
       </article>
