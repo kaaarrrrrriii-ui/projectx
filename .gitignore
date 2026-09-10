@@ -12,6 +12,7 @@ backend/*.test
 # Next.js / Node.js
 frontend/node_modules/
 frontend/.next/
+frontend/.next-stale/
 frontend/out/
 frontend/coverage/
 frontend/*.tsbuildinfo
