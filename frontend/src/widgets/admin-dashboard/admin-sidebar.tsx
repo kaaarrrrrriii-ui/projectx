@@ -52,7 +52,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-[224px] shrink-0 flex-col border-r border-[#a9b3ff] bg-[#f7f9fe] px-4 py-5 max-[799px]:w-full max-[799px]:border-r-0 max-[799px]:border-b max-[799px]:px-4 max-[799px]:py-3">
+    <aside className="flex w-[224px] shrink-0 flex-col border-r border-[#a9b3ff] bg-[#f7f9fe] px-4 py-5 min-[800px]:sticky min-[800px]:top-[100px] min-[800px]:h-[calc(100dvh-100px)] min-[800px]:self-start max-[799px]:w-full max-[799px]:border-r-0 max-[799px]:border-b max-[799px]:px-4 max-[799px]:py-3">
       <div className="mb-7 px-2 max-[799px]:mb-3">
         <p className="font-semibold text-[#4562f0]">Олег Зетник</p>
         <p className="mt-0.5 text-xs text-[#646d86]">Администратор</p>

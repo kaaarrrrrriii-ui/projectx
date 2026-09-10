@@ -13,7 +13,7 @@ export default async function ChatPage({
   const trackNumber = Array.isArray(params.track) ? params.track[0] : params.track ?? "";
 
   return (
-    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col text-[var(--color-text)]">
+    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col overflow-x-clip text-[var(--color-text)]">
       <SiteHeader formal={formal} />
 
       <section

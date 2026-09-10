@@ -84,7 +84,7 @@ function FilterDropdown({
         aria-expanded={open}
         aria-controls={menuId}
         onClick={onOpen}
-        className="flex h-[33px] min-w-[157px] cursor-pointer items-center justify-between gap-3 rounded-[7px] border border-[#000828] bg-white px-4 text-[12px] leading-4 text-[#000828] transition-colors hover:border-[#4562f0] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
+        className="flex h-[33px] min-w-[157px] cursor-pointer items-center justify-between gap-3 rounded-[7px] border border-[#808393] bg-[#f7f9fe] px-4 text-[12px] leading-4 text-[#000828] transition-colors hover:border-[#4562f0] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
       >
         <span>{filterLabels[filter]}</span>
         <svg
@@ -223,7 +223,7 @@ export default function QueueNew({
 
   return (
       <div className="min-w-0 flex-1 px-5 pt-[13px] pb-0 sm:px-[22px]">
-        <div className="w-full max-w-[840px]">
+        <div className="w-full">
           <label className="relative block">
             <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 z-10 h-[21px] w-[21px] -translate-y-1/2 text-[#4562f0]" fill="none">
               <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="2" />

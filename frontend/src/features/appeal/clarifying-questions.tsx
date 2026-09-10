@@ -56,10 +56,13 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
   }
 
   return (
-    <section className="flex flex-1 flex-col px-[4.5%] pt-9 pb-[38px] max-[699px]:px-5 max-[699px]:pt-8 max-[699px]:pb-7" aria-labelledby="details-heading">
+    <section
+      className="flex flex-1 flex-col px-[4.5%] pt-9 pb-[38px] max-[699px]:px-5 max-[699px]:pt-8 max-[699px]:pb-7 max-[379px]:px-3 max-[379px]:pt-6"
+      aria-labelledby="details-heading"
+    >
       <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
-        <div className="flex flex-1 flex-col">
-          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px]">
+        <form className="flex flex-1 flex-col">
+          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px] max-[699px]:px-5 max-[699px]:py-7 max-[379px]:px-4">
             <header>
               <h1 id="details-heading" className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0]">{formal ? "Несколько уточнений" : "Пару уточнений"}</h1>
               <p className="mt-px mb-0 text-[14px] leading-5 font-normal text-[#17191f]">Эти вопросы необязательные, но помогут лучше понять ситуацию.</p>
@@ -67,33 +70,79 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
             {loading && <p className="mt-5 text-sm text-[#646d86]">Загружаем вопросы…</p>}
             {error && <p role="alert" className="mt-5 text-sm text-[#b42318]">{error}</p>}
             <div className="mt-4 w-full max-w-[670px]">
-              {questions.map((question, questionIndex) => {
-                const key = String(question.id);
-                const isSkipped = Boolean(skipped[key]);
-                const title = !formal && question.text.startsWith("Вы уже") ? question.text.replace("Вы уже", "Ты уже") : question.text;
-                return (
-                  <fieldset className={`m-0 min-w-0 border-0 p-0 ${questionIndex > 0 ? "mt-5" : ""}`} key={question.id}>
-                    <legend className={`block w-full p-0 text-[16px] leading-5 font-medium ${isSkipped ? "text-[#b1b3ba]" : "text-[#11131a]"}`}>{title}</legend>
-                    <div className="mt-[7px] grid w-full grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-x-3">
-                      {question.answers.map((answer) => {
-                        const inputID = `question-${question.id}-answer-${answer.id}`;
-                        const label = formal && answer.text === "Не уверен" ? "Не уверены" : answer.text;
-                        return (
-                          <label className="min-w-0 cursor-pointer" htmlFor={inputID} key={answer.id}>
-                            <input checked={answers[key]?.answerId === answer.id} className="peer sr-only" disabled={isSkipped} id={inputID} name={key} onChange={() => setAnswer(question.id, answer.id, answer.text)} type="radio" value={answer.id} />
-                            <span className="flex min-h-[30px] w-full items-center justify-center rounded-[12px] border border-[#18223f] bg-white/20 px-3 py-1 text-center text-[12px] leading-4 font-normal text-[#18213e] transition-[border-color,background-color,color] duration-150 hover:border-[#4562f0] hover:bg-[#eef1ff] peer-checked:border-[#4562f0] peer-checked:bg-[#4562f0] peer-checked:text-white peer-disabled:cursor-default peer-disabled:border-[#b9becb] peer-disabled:bg-transparent peer-disabled:text-[#b8bbc5] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-[#4562f0] motion-reduce:transition-none">{label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    <label className={`relative mt-1 flex w-fit cursor-pointer items-center gap-1.5 text-[12px] leading-[14px] font-normal ${isSkipped ? "text-[#5470ff]" : "text-[#8e929d]"}`}>
-                      <input checked={isSkipped} className="peer m-0 grid size-[14px] shrink-0 cursor-pointer appearance-none place-content-center rounded-[3px] border border-[#a8adb8] bg-transparent checked:border-[#5b75ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]" onChange={() => toggleSkipped(question.id)} type="checkbox" />
-                      <svg aria-hidden="true" className="pointer-events-none absolute top-[3px] left-[3px] hidden h-[7px] w-2 text-[#4562f0] peer-checked:block" viewBox="0 0 10 7"><path d="M1 3.5 3.6 6 9 1" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.4" /></svg>
-                      <span>Не отвечать на вопрос</span>
-                    </label>
-                  </fieldset>
-                );
-              })}
+            {clarifyingQuestions.map((question, questionIndex) => {
+              if (!question.key) return null;
+              const questionKey = question.key;
+              const isSkipped = skipped[questionKey];
+
+              return (
+                <fieldset
+                  className={`m-0 min-w-0 border-0 p-0 ${questionIndex > 0 ? "mt-5" : ""}`}
+                  key={questionKey}
+                >
+                  <legend
+                    className={`block w-full p-0 text-[16px] leading-5 font-medium ${
+                      isSkipped ? "text-[#b1b3ba]" : "text-[#11131a]"
+                    }`}
+                  >
+                    {formal && questionKey === "askedForHelp"
+                      ? "Вы уже обращались за помощью?"
+                      : question.title}
+                  </legend>
+
+                  <div
+                    className="mt-[7px] grid w-full grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-x-3"
+                  >
+                    {question.options.map((option, optionIndex) => {
+                      const inputId = `${questionKey}-${optionIndex}`;
+
+                      return (
+                        <label className="min-w-0 cursor-pointer" htmlFor={inputId} key={option}>
+                          <input
+                            checked={answers[questionKey] === option}
+                            className="peer sr-only"
+                            disabled={isSkipped}
+                            id={inputId}
+                            name={questionKey}
+                            onChange={() => setAnswer(questionKey, option)}
+                            type="radio"
+                            value={option}
+                          />
+                          <span className="flex min-h-[30px] w-full items-center justify-center rounded-[12px] border border-[#18223f] bg-white/20 px-3 py-1 text-center text-[12px] leading-4 font-normal text-[#18213e] transition-[border-color,background-color,color] duration-150 hover:border-[#4562f0] hover:bg-[#eef1ff] peer-checked:border-[#4562f0] peer-checked:bg-[#4562f0] peer-checked:text-white peer-disabled:cursor-default peer-disabled:border-[#b9becb] peer-disabled:bg-transparent peer-disabled:text-[#b8bbc5] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-[#4562f0] motion-reduce:transition-none">
+                            {formal &&
+                            questionKey === "askedForHelp" &&
+                            option === "Не уверен"
+                              ? "Не уверены"
+                              : option}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <label
+                    className={`relative mt-1 flex w-fit cursor-pointer items-center gap-1.5 text-[12px] leading-[14px] font-normal ${
+                      isSkipped ? "text-[#5470ff]" : "text-[#8e929d]"
+                    }`}
+                  >
+                    <input
+                      checked={isSkipped}
+                      className="peer m-0 grid size-[14px] shrink-0 cursor-pointer appearance-none place-content-center rounded-[3px] border border-[#a8adb8] bg-transparent checked:border-[#5b75ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
+                      onChange={() => toggleSkipped(questionKey)}
+                      type="checkbox"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      className="pointer-events-none absolute top-[3px] left-[3px] hidden h-[7px] w-2 text-[#4562f0] peer-checked:block"
+                      viewBox="0 0 10 7"
+                    >
+                      <path d="M1 3.5 3.6 6 9 1" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.4" />
+                    </svg>
+                    <span>Не отвечать на вопрос</span>
+                  </label>
+                </fieldset>
+              );
+            })}
             </div>
           </div>
           <AppealNavigation backHref={getAppealRoute("description", routeParams)} skipHref={getAppealRoute("attachments", routeParams)} onSkip={() => updateAppealDraft({ answers: {} })} primaryText="Продолжить" primaryHref={getAppealRoute("attachments", routeParams)} primaryOnClick={saveAnswers} />

@@ -49,13 +49,15 @@ export default function SubmissionSuccess({
         max-[699px]:px-5
         max-[699px]:pt-8
         max-[699px]:pb-7
+        max-[379px]:px-3
+        max-[379px]:pt-6
       "
     >
       <div className="relative mx-auto flex w-full max-w-[1440px] flex-col">
         <header className="relative z-20 w-[59.2%] max-w-[690px] max-[699px]:w-full max-[699px]:max-w-none">
           <h1
             id="success-heading"
-            className="text-[32px] leading-[1.2] font-black tracking-[-0.025em] text-[var(--color-primary)] max-[699px]:text-[27px]"
+            className="text-[32px] leading-[1.2] font-black tracking-[-0.025em] text-[var(--color-primary)] max-[699px]:text-[27px] max-[379px]:text-[25px]"
           >
             {formal ? "Спасибо, что поделились!" : "Спасибо за твоё обращение!"}
           </h1>
@@ -142,6 +144,7 @@ export default function SubmissionSuccess({
             max-[699px]:mx-auto
             max-[699px]:mt-5
             max-[699px]:w-[260px]
+            max-[379px]:w-[230px]
           "
         />
 
@@ -158,6 +161,7 @@ export default function SubmissionSuccess({
             max-[699px]:mt-5
             max-[699px]:min-h-[190px]
             max-[699px]:px-4
+            max-[379px]:px-3
           "
         >
           <h2
@@ -169,7 +173,7 @@ export default function SubmissionSuccess({
 
           <output
             aria-label="Трек-номер обращения"
-            className="mt-2 flex h-[51px] w-full max-w-[479px] items-center justify-center rounded-[12px] border border-[var(--color-primary)] bg-white/70 px-4 text-center text-[24px] leading-none font-extrabold tracking-[-0.02em] text-[var(--color-primary)] max-[699px]:text-[clamp(16px,5vw,21px)]"
+            className="mt-2 flex min-h-[51px] w-full max-w-[479px] items-center justify-center break-all rounded-[12px] border border-[var(--color-primary)] bg-white/70 px-4 py-2 text-center text-[24px] leading-tight font-extrabold tracking-[-0.02em] text-[var(--color-primary)] max-[699px]:text-[clamp(16px,5vw,21px)] max-[379px]:px-2"
           >
             {trackNumber}
           </output>

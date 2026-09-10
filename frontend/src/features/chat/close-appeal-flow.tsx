@@ -141,7 +141,7 @@ export default function CloseAppealFlow({
                   : "Что конкретно тебе не помогло?"
               }
               aria-label="Что не помогло"
-              className="block min-h-[220px] w-full resize-y rounded-[12px] border border-[#333] bg-[#fcfdff] px-3 py-2.5 pr-20 text-[14px] leading-5 outline-none placeholder:text-[#9196a7] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[#4562f0]/20 max-[499px]:min-h-[170px]"
+              className="block min-h-[220px] w-full resize-y rounded-[12px] border border-[#333] bg-[#fcfdff] px-3 py-2.5 pr-20 text-[14px] leading-5 outline-none placeholder:text-[#9196a7] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[#4562f0]/20 max-[499px]:min-h-[170px] max-[379px]:pr-3"
             />
             <Image
               src="/images/roles/ticher.png"
@@ -244,11 +244,11 @@ export default function CloseAppealFlow({
           : "Мы рады, что смогли быть рядом. Если тебе снова понадобится поддержка — ты всегда можешь написать нам."}
       </p>
 
-      <section className="mt-7 rounded-[13px] border border-[var(--color-primary)] bg-white px-5 py-5" aria-labelledby="rating-heading">
+      <section className="mt-7 rounded-[13px] border border-[var(--color-primary)] bg-white px-5 py-5 max-[379px]:px-3 max-[379px]:py-4" aria-labelledby="rating-heading">
         <h3 id="rating-heading" className="text-[16px] font-medium text-[#000828]">
           {formal ? "Оцените работу специалиста" : "Оцени работу специалиста"}
         </h3>
-        <div className="mt-5 flex justify-center gap-5" aria-label="Оценка специалиста">
+        <div className="mt-5 flex justify-center gap-5 max-[379px]:gap-2" aria-label="Оценка специалиста">
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
@@ -256,7 +256,7 @@ export default function CloseAppealFlow({
               onClick={() => setRating(value)}
               aria-label={`${value} из 5`}
               aria-pressed={rating === value}
-              className="flex h-11 w-11 cursor-pointer items-center justify-center text-[var(--color-primary)] transition-transform hover:scale-110 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] max-[499px]:h-9 max-[499px]:w-9"
+              className="flex h-11 w-11 cursor-pointer items-center justify-center text-[var(--color-primary)] transition-transform hover:scale-110 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] max-[499px]:h-9 max-[499px]:w-9 max-[379px]:h-8 max-[379px]:w-8"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" className="h-full w-full">
                 <path

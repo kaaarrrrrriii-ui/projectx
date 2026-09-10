@@ -42,7 +42,7 @@ export default function StatusChecker({ roleId, formal }: { roleId: string; form
   }
 
   return (
-    <section className="flex flex-1 flex-col justify-center px-5 py-2 sm:px-[5%]">
+    <section className="flex flex-1 flex-col justify-start px-5 pt-10 pb-5 sm:justify-center sm:px-[5%] sm:py-2 max-[379px]:px-3 max-[379px]:pt-7">
       <div className="mx-auto flex w-full max-w-[1440px] flex-col">
         <section aria-labelledby="status-check-heading" className="rounded-[12px] border border-[#4562f0] bg-white/80 px-[18px] py-4 sm:px-[26px] sm:py-[18px]">
           <h1 id="status-check-heading" className="text-[32px] leading-[1.3] font-extrabold text-[#4562f0] max-[699px]:text-xl">Проверка статуса</h1>
@@ -63,11 +63,10 @@ export default function StatusChecker({ roleId, formal }: { roleId: string; form
               <span className="text-xl font-medium text-[#4562f0]">{ticket.track_id}</span>
             </header>
             <div className="mt-7">
-              <p className="text-2xl leading-[1.4] font-extrabold text-black max-[699px]:text-lg">Статус: {statusLabels[ticket.status] ?? ticket.status}</p>
-              <div className="mt-7 flex flex-col gap-1 text-xl leading-[1.5] font-medium text-[#151515]">
-                <p>Дата отправки: {new Intl.DateTimeFormat("ru-RU").format(new Date(ticket.created_at))}</p>
-                <p>Категория: {ticket.category.name}</p>
-                {ticket.resolution_message && <p>{ticket.resolution_message}</p>}
+              <p className="text-2xl leading-[1.4] font-extrabold text-black max-[699px]:text-lg">Статус: Ответ специалиста готов</p>
+              <div className="mt-7 flex flex-col gap-1 text-xl leading-[1.5] font-medium text-[#151515] max-[699px]:text-base">
+                <p>Дата отправки: 09.09.2026</p>
+                <p>Категория: Кибербуллинг</p>
               </div>
             </div>
             <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[46px]">

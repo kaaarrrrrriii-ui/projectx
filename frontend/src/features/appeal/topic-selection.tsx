@@ -110,10 +110,15 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
   return (
     <form action={appealRoutes.description} method="get" onSubmit={submit} className="flex flex-1 flex-col">
       <input type="hidden" name="role" value={roleId} />
-      <input type="hidden" name="topic" value={selectedChoice} />
-      <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px]">
-        <h1 id="topics-heading" className="text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0]">С чем это связано?</h1>
-        <p id="topics-description" className="mt-[5px] text-[12px] leading-4 text-[#151515]">{formal ? "Выберите одну тему, которая ближе всего к вашей ситуации." : "Выбери одну тему, которая ближе всего к твоей ситуации."}</p>
+
+      <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px] max-[699px]:px-5 max-[699px]:py-7 max-[379px]:px-4">
+        <h1 id="topics-heading" className="text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0] max-[379px]:text-[25px]">
+          С чем это связано?
+        </h1>
+        <p id="topics-description" className="mt-[5px] text-[12px] leading-4 text-[#151515]">
+          {formal ? "Можно выбрать одну или несколько тем, которые ближе всего к вашей ситуации." : "Можно выбрать одну или несколько тем, которые ближе всего к твоей ситуации."}
+        </p>
+
         <fieldset aria-describedby="topics-description" className="mt-8 min-w-0">
           <legend className="sr-only">Выбор одной темы обращения</legend>
           <div className="grid grid-cols-1 gap-x-3 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">

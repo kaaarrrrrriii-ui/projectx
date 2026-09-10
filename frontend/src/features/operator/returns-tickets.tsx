@@ -53,7 +53,7 @@ function FilterMenu({
 }) {
   return (
     <details className="group relative">
-      <summary className="flex h-[30px] min-w-[145px] cursor-pointer list-none items-center justify-between gap-3 rounded-[6px] border border-[#000828] bg-white px-4 text-[11px] text-[#000828] hover:border-[#4562f0] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] [&::-webkit-details-marker]:hidden">
+      <summary className="flex h-[30px] min-w-[145px] cursor-pointer list-none items-center justify-between gap-3 rounded-[6px] border border-[#808393] bg-[#f7f9fe] px-4 text-[11px] text-[#000828] hover:border-[#4562f0] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] [&::-webkit-details-marker]:hidden">
         {filterLabels[filter]}
         <svg viewBox="0 0 12 8" aria-hidden="true" className="h-2 w-3 transition-transform group-open:rotate-180" fill="none"><path d="m1 1 5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </summary>
@@ -105,7 +105,7 @@ export default function ReturnsTickets() {
 
   return (
     <section className="min-w-0 flex-1 px-5 pt-6 pb-0 sm:px-[34px]" aria-labelledby="complaints-heading">
-      <div className="w-full max-w-[828px]">
+      <div className="w-full">
         <header>
           <h1 id="complaints-heading" className="text-[24px] leading-tight font-extrabold tracking-[-0.02em] text-[#4562f0]">Жалобы</h1>
           <p className="mt-1 text-base text-[#151515]">Сначала самые ранние</p>

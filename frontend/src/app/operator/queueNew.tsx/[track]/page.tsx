@@ -18,7 +18,7 @@ export default async function OperatorTicketPage({ params, searchParams }: { par
   const initialExpert = typeof expertParam === "string" ? expertParam : "";
 
   return (
-    <main className="app-page-background flex min-h-dvh flex-col">
+    <main className="flex min-h-dvh flex-col bg-[var(--color-background)]">
       <SiteHeader compact />
       <div className="flex flex-1 items-stretch max-[799px]:flex-col">
         <OperatorSidebar active="queue" />

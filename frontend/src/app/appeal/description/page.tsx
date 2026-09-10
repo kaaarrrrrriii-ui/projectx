@@ -17,7 +17,7 @@ export default async function AppealDescription({
   const routeParams = { role: role.id, topic };
 
   return (
-    <main className="app-page-background flex min-h-dvh flex-col">
+    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col overflow-x-clip">
       <SiteHeader formal={formal} />
 
       <section
@@ -29,10 +29,12 @@ export default async function AppealDescription({
           max-[699px]:px-5
           max-[699px]:pt-8
           max-[699px]:pb-7
+          max-[379px]:px-3
+          max-[379px]:pt-6
         "
       >
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
-          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px]">
+          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px] max-[699px]:px-5 max-[699px]:py-7 max-[379px]:px-4">
             <h1
               id="description-heading"
               className="
@@ -43,6 +45,7 @@ export default async function AppealDescription({
                 text-[#4562F0]
 
                 max-[699px]:text-[28px]
+                max-[379px]:text-[25px]
               "
             >
               {formal ? "Расскажите, что происходит" : "Расскажи, что происходит"}
@@ -65,7 +68,40 @@ export default async function AppealDescription({
                 : "Опиши ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаешь, с чего начать — просто напиши, что чувствуешь."}
             </p>
 
-            <DescriptionInput formal={formal} />
+            <textarea
+            name="description"
+            aria-labelledby="description-heading"
+            aria-describedby="description-intro description-hint"
+            placeholder={
+              formal
+                ? "Здесь можно написать всё, что вас беспокоит..."
+                : "Здесь можно написать всё, что тебя беспокоит..."
+            }
+            className="
+              mt-7 block
+              min-h-[218px] w-full
+              resize-y
+              rounded-[15px]
+              border border-[#333]
+              bg-[#FCFDFF]
+              px-[13px] py-4
+
+              text-[13px]
+              leading-5
+              text-[#151515]
+
+              placeholder:text-[#85899f]
+              placeholder:opacity-100
+
+              focus-visible:outline-2
+              focus-visible:outline-offset-4
+              focus-visible:outline-[#4562F0]
+
+              max-[699px]:mt-6
+              max-[699px]:min-h-[190px]
+              max-[699px]:text-[16px]
+            "
+            />
 
             <aside
             id="description-hint"

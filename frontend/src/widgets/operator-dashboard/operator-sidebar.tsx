@@ -40,7 +40,7 @@ function NavigationGroup({
 
 export default function OperatorSidebar({ active = "home" }: { active?: OperatorSection }) {
   return (
-    <aside className="flex w-[184px] shrink-0 flex-col border-r border-[#7990ff] bg-[#f7f9fe] px-[5px] py-5 max-[799px]:w-full max-[799px]:border-r-0 max-[799px]:border-b max-[799px]:px-4 max-[799px]:py-3">
+    <aside className="flex w-[184px] shrink-0 flex-col border-r border-[#7990ff] bg-[#f7f9fe] px-[5px] py-5 min-[800px]:sticky min-[800px]:top-[80px] min-[800px]:h-[calc(100dvh-80px)] min-[800px]:self-start max-[799px]:w-full max-[799px]:border-r-0 max-[799px]:border-b max-[799px]:px-4 max-[799px]:py-3">
       <div className="mb-7 px-2 max-[799px]:mb-3">
         <p className="font-semibold text-[#4562f0]">Олег Зетник</p>
         <p className="mt-0.5 text-xs text-[#646d86]">Оператор</p>

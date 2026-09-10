@@ -11,7 +11,7 @@ const metrics = [
 export default function ExpertDashboard() {
   return (
     <section className="min-w-0 flex-1 px-5 py-6 sm:px-7 lg:px-9" aria-labelledby="expert-dashboard-heading">
-      <div className="mx-auto w-full max-w-[1180px]">
+      <div className="w-full">
         <header>
           <h1 id="expert-dashboard-heading" className="text-[clamp(24px,2.4vw,32px)] font-extrabold leading-tight tracking-[-0.025em] text-[#4562f0]">Здравствуйте, Олег!</h1>
           <p className="mt-1 text-sm text-[#30384f]">Спасибо, что помогаете. Ваша работа важна.</p>
