@@ -33,7 +33,7 @@ services:
       DB_NAME: ${POSTGRES_DB:-appdb}
       DB_SSLMODE: disable
       ATTACHMENT_STORAGE_PATH: /data/attachments
-      # JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
     depends_on:
       postgres:
         condition: service_healthy
