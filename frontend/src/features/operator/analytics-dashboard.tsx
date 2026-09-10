@@ -105,7 +105,7 @@ export default function AnalyticsDashboard() {
 
   return (
     <section className="min-w-0 flex-1 px-5 pt-8 pb-5 sm:px-[22px]" aria-labelledby="analytics-heading">
-      <div className="w-full max-w-[840px]">
+      <div className="w-full">
         <header>
           <h1 id="analytics-heading" className="text-[24px] leading-tight font-extrabold tracking-[-0.02em] text-[#4562f0]">Аналитика</h1>
         </header>
@@ -113,7 +113,7 @@ export default function AnalyticsDashboard() {
         <section aria-labelledby="period-heading" className="mt-4">
           <h2 id="period-heading" className="text-[12px] font-medium text-[#30384f]">Выбор даты</h2>
           <details className="group relative mt-1.5 w-fit">
-            <summary className="flex h-[28px] min-w-[132px] cursor-pointer list-none items-center justify-between gap-3 rounded-[6px] border border-[#000828] bg-white px-3 text-[10px] text-[#000828] outline-none hover:border-[#4562f0] focus-visible:ring-2 focus-visible:ring-[#4562f0]/20 [&::-webkit-details-marker]:hidden">
+            <summary className="flex h-[28px] min-w-[132px] cursor-pointer list-none items-center justify-between gap-3 rounded-[6px] border border-[#808393] bg-[#f7f9fe] px-3 text-[10px] text-[#000828] outline-none hover:border-[#4562f0] focus-visible:ring-2 focus-visible:ring-[#4562f0]/20 [&::-webkit-details-marker]:hidden">
               {formatShortDate(dateFrom)} – {formatShortDate(dateTo)}
               <svg viewBox="0 0 12 8" aria-hidden="true" className="h-1.5 w-2.5 transition-transform group-open:rotate-180" fill="none">
                 <path d="m1 1 5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
