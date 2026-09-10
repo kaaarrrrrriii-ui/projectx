@@ -29,6 +29,7 @@ type EligibleWorkerRecord struct {
 	ActiveTickets int
 	MaxTickets    int
 	Recommended   bool
+	Available     bool
 }
 
 type EligibleWorkersRecord struct {
@@ -49,14 +50,17 @@ type RejectionRecord struct {
 }
 
 type OperatorTicketFilter struct {
-	Queue         string
-	Search        string
-	Priority      models.TicketPriority
-	Status        models.TicketStatus
-	CategoryID    int64
-	ApplicantType models.ApplicantType
-	Limit         int
-	Offset        int
+	Queue                 string
+	Search                string
+	Priority              models.TicketPriority
+	Status                models.TicketStatus
+	CategoryID            int64
+	ApplicantType         models.ApplicantType
+	Sort                  string
+	NewOverdueBefore      time.Time
+	ResponseOverdueBefore time.Time
+	Limit                 int
+	Offset                int
 }
 
 type OperatorTicketRecord struct {
@@ -75,6 +79,8 @@ type OperatorTicketRecord struct {
 	ReturnedAt         sql.NullTime
 	PreviousWorkerID   sql.NullInt64
 	PreviousWorkerName sql.NullString
+	CrisisDetected     bool
+	IsOverdue          bool
 }
 
 type OperatorTicketPageRecord struct {
@@ -104,6 +110,15 @@ type AnalyticsRecord struct {
 	ExpertLoadPercent         float64
 	UrgentCount               int
 	ReturnedCount             int
+	OperatorLoad              []OperatorLoadRecord
+}
+
+type OperatorLoadRecord struct {
+	OperatorID    int64
+	FullName      string
+	ActionCount   int
+	AssignedCount int
+	ClosedCount   int
 }
 
 type ReportTicketRecord struct {
@@ -281,7 +296,7 @@ func replaceResponsibleTx(ctx context.Context, tx *sql.Tx, ticketID int64, statu
 	return insertEvent(ctx, tx, ticketID, actorID, "responsible_assigned", status, models.TicketStatusAssigned, previousWorkerID, sql.NullInt64{Int64: workerID, Valid: true}, changedAt)
 }
 
-func (repository *OperatorRepository) EligibleWorkers(ctx context.Context, trackID, name string, groupID int64) (EligibleWorkersRecord, error) {
+func (repository *OperatorRepository) EligibleWorkers(ctx context.Context, trackID, name string, groupID int64, onlyAvailable bool) (EligibleWorkersRecord, error) {
 	var categoryID int64
 	if err := repository.db.QueryRowContext(ctx, `SELECT category_id FROM tickets WHERE track_id = $1`, trackID).Scan(&categoryID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -327,7 +342,10 @@ func (repository *OperatorRepository) EligibleWorkers(ctx context.Context, track
 		       EXISTS (
 		           SELECT 1 FROM cats_expert_groups AS route
 		           WHERE route.cat_id = $3 AND route.group_id = u.expert_group_id
-		       ) AS recommended
+		       ) AS recommended,
+		       COUNT(tw.ticket_id) FILTER (
+		           WHERE tw.actual AND active_ticket.status IN ($4, $5, $6, $7)
+		       ) < u.max_tickets AS available
 		FROM users AS u
 		JOIN expert_groups AS eg ON eg.id = u.expert_group_id
 		LEFT JOIN tickets_workers AS tw ON tw.worker_id = u.id
@@ -336,9 +354,9 @@ func (repository *OperatorRepository) EligibleWorkers(ctx context.Context, track
 		  AND ($1 = '' OR u.full_name ILIKE '%%' || $1 || '%%')
 		  AND ($2 = 0 OR u.expert_group_id = $2)
 		GROUP BY u.id, u.full_name, eg.id, eg.title, u.max_tickets, u.expert_group_id
-		HAVING COUNT(tw.ticket_id) FILTER (
+		HAVING (NOT $8 OR COUNT(tw.ticket_id) FILTER (
 		           WHERE tw.actual AND active_ticket.status IN ($4, $5, $6, $7)
-		       ) < u.max_tickets
+		       ) < u.max_tickets)
 		ORDER BY recommended DESC, active_tickets ASC, u.full_name ASC`,
 		name,
 		groupID,
@@ -347,6 +365,7 @@ func (repository *OperatorRepository) EligibleWorkers(ctx context.Context, track
 		models.TicketStatusInProgress,
 		models.TicketStatusNeedsClarification,
 		models.TicketStatusAnswerReady,
+		onlyAvailable,
 	)
 	if err != nil {
 		return EligibleWorkersRecord{}, fmt.Errorf("list eligible workers: %w", err)
@@ -362,6 +381,7 @@ func (repository *OperatorRepository) EligibleWorkers(ctx context.Context, track
 			&worker.ActiveTickets,
 			&worker.MaxTickets,
 			&worker.Recommended,
+			&worker.Available,
 		); err != nil {
 			return EligibleWorkersRecord{}, fmt.Errorf("scan eligible worker: %w", err)
 		}
@@ -646,16 +666,13 @@ func (repository *OperatorRepository) ListTickets(ctx context.Context, filter Op
 		return OperatorTicketPageRecord{}, fmt.Errorf("count operator tickets: %w", err)
 	}
 
-	dataWhere, filterArguments := operatorTicketWhere(filter, 2)
-	arguments := []any{models.MessageTypeReturnReason}
+	dataWhere, filterArguments := operatorTicketWhere(filter, 5)
+	arguments := []any{models.MessageTypeReturnReason, models.MessageTypeSpecialist, filter.NewOverdueBefore, filter.ResponseOverdueBefore}
 	arguments = append(arguments, filterArguments...)
 	arguments = append(arguments, filter.Limit, filter.Offset)
 	limitPosition := len(arguments) - 1
 	offsetPosition := len(arguments)
-	orderBy := "t.priority DESC, t.created_at ASC, t.id ASC"
-	if filter.Queue == "returned" {
-		orderBy = "return_event.created_at ASC NULLS LAST, t.id ASC"
-	}
+	orderBy := operatorTicketOrder(filter)
 	query := `
 		SELECT t.track_id, c.id, c.name, t.status, t.morda_type, t.priority,
 		       t.created_at,
@@ -663,11 +680,19 @@ func (repository *OperatorRepository) ListTickets(ctx context.Context, filter Op
 		       responsible.worker_id, responsible.full_name,
 		       t.return_count,
 		       return_reason.text, return_event.created_at,
-		       return_event.from_worker_id, previous_worker.full_name
+		       return_event.from_worker_id, previous_worker.full_name,
+		       EXISTS (SELECT 1 FROM ticket_events crisis_event WHERE crisis_event.ticket_id=t.id AND crisis_event.event_type='crisis_detected') AS crisis_detected,
+		       CASE
+		           WHEN t.status = ` + fmt.Sprint(models.TicketStatusNew) + ` THEN t.created_at < $3
+		           WHEN t.status IN (` + fmt.Sprint(models.TicketStatusAssigned) + `,` + fmt.Sprint(models.TicketStatusInProgress) + `,` + fmt.Sprint(models.TicketStatusNeedsClarification) + `,` + fmt.Sprint(models.TicketStatusAnswerReady) + `)
+		               THEN COALESCE(responsible.assigned_at,t.created_at) < $4
+		                    AND NOT EXISTS (SELECT 1 FROM messages response_message WHERE response_message.ticket_id=t.id AND response_message.type=$2)
+		           ELSE FALSE
+		       END AS is_overdue
 		FROM tickets AS t
 		JOIN categories AS c ON c.id = t.category_id
 		LEFT JOIN LATERAL (
-			SELECT u.id AS worker_id, u.full_name
+			SELECT u.id AS worker_id, u.full_name, tw.created_at AS assigned_at
 			FROM tickets_workers AS tw
 			JOIN users AS u ON u.id = tw.worker_id
 			WHERE tw.ticket_id = t.id AND tw.actual AND tw.is_responsible
@@ -716,6 +741,8 @@ func (repository *OperatorRepository) ListTickets(ctx context.Context, filter Op
 			&item.ReturnedAt,
 			&item.PreviousWorkerID,
 			&item.PreviousWorkerName,
+			&item.CrisisDetected,
+			&item.IsOverdue,
 		); err != nil {
 			return OperatorTicketPageRecord{}, fmt.Errorf("scan operator ticket: %w", err)
 		}
@@ -727,6 +754,28 @@ func (repository *OperatorRepository) ListTickets(ctx context.Context, filter Op
 	return result, nil
 }
 
+func operatorTicketOrder(filter OperatorTicketFilter) string {
+	priority := "CASE t.priority WHEN 2 THEN 0 WHEN 1 THEN 1 ELSE 2 END"
+	switch filter.Sort {
+	case "created_at_asc":
+		return "t.created_at ASC, t.id ASC"
+	case "created_at_desc":
+		return "t.created_at DESC, t.id DESC"
+	case "priority_desc":
+		return priority + ", t.created_at ASC, t.id ASC"
+	case "waiting_desc":
+		return "t.created_at ASC, t.id ASC"
+	}
+	switch filter.Queue {
+	case "new":
+		return "crisis_detected DESC, " + priority + ", t.created_at ASC, t.id ASC"
+	case "returned":
+		return "return_event.created_at ASC NULLS LAST, t.id ASC"
+	default:
+		return priority + ", t.created_at ASC, t.id ASC"
+	}
+}
+
 func operatorTicketWhere(filter OperatorTicketFilter, firstPosition int) (string, []any) {
 	conditions := make([]string, 0, 6)
 	arguments := make([]any, 0, 5)
@@ -736,6 +785,8 @@ func operatorTicketWhere(filter OperatorTicketFilter, firstPosition int) (string
 		arguments = append(arguments, value)
 	}
 	switch filter.Queue {
+	case "new":
+		conditions = append(conditions, fmt.Sprintf("t.status = %d", models.TicketStatusNew))
 	case "assigned":
 		conditions = append(conditions, fmt.Sprintf("t.status IN (%d, %d, %d, %d)",
 			models.TicketStatusAssigned,
@@ -772,6 +823,7 @@ func (repository *OperatorRepository) Analytics(ctx context.Context, start, end 
 		Categories:     make([]NamedCountRecord, 0),
 		ApplicantTypes: make([]NumberedCountRecord, 0),
 		Statuses:       make([]NumberedCountRecord, 0),
+		OperatorLoad:   make([]OperatorLoadRecord, 0),
 	}
 	if err := repository.db.QueryRowContext(ctx, `
 		SELECT COUNT(*),
@@ -876,6 +928,31 @@ func (repository *OperatorRepository) Analytics(ctx context.Context, start, end 
 		models.TicketStatusAnswerReady,
 	).Scan(&result.ExpertLoadPercent); err != nil {
 		return AnalyticsRecord{}, fmt.Errorf("get expert load analytics: %w", err)
+	}
+	operatorRows, err := repository.db.QueryContext(ctx, `
+		SELECT u.id, u.full_name,
+		       COUNT(e.id),
+		       COUNT(e.id) FILTER (WHERE e.event_type = 'responsible_assigned'),
+		       COUNT(e.id) FILTER (WHERE e.event_type = 'operator_closed')
+		FROM users u
+		LEFT JOIN ticket_events e ON e.actor_user_id = u.id
+		    AND e.created_at >= $1 AND e.created_at < $2
+		WHERE u.role = 'operator'
+		GROUP BY u.id, u.full_name
+		ORDER BY COUNT(e.id) DESC, u.full_name`, start, end)
+	if err != nil {
+		return AnalyticsRecord{}, fmt.Errorf("get operator load analytics: %w", err)
+	}
+	defer operatorRows.Close()
+	for operatorRows.Next() {
+		var item OperatorLoadRecord
+		if err := operatorRows.Scan(&item.OperatorID, &item.FullName, &item.ActionCount, &item.AssignedCount, &item.ClosedCount); err != nil {
+			return AnalyticsRecord{}, fmt.Errorf("scan operator load analytics: %w", err)
+		}
+		result.OperatorLoad = append(result.OperatorLoad, item)
+	}
+	if err := operatorRows.Err(); err != nil {
+		return AnalyticsRecord{}, fmt.Errorf("iterate operator load analytics: %w", err)
 	}
 	return result, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"mime"
 	"net/http"
 	"strconv"
@@ -14,7 +15,7 @@ import (
 const maxOperatorRequestBytes = 64 * 1024
 
 type operatorService interface {
-	EligibleWorkers(context.Context, string, string, string) (service.EligibleWorkersResponse, error)
+	EligibleWorkers(context.Context, string, string, string, string) (service.EligibleWorkersResponse, error)
 	SetResponsibleWorker(context.Context, string, int64, int64) (service.AssignmentResponse, error)
 	AddWorker(context.Context, string, int64, int64) (service.AssignmentResponse, error)
 	RemoveWorker(context.Context, string, int64, int64) (service.AssignmentResponse, error)
@@ -24,14 +25,27 @@ type operatorService interface {
 	Report(context.Context, string, string, string) (service.GeneratedReport, error)
 }
 
+type operatorAPIService interface {
+	Dashboard(context.Context) (service.OperatorDashboardResponse, error)
+	Ticket(context.Context, string) (service.OperatorTicketDetailResponse, error)
+	UpdateTicket(context.Context, string, int64, service.OperatorTicketUpdateRequest) (service.OperatorTicketDetailResponse, error)
+	CloseTicket(context.Context, string, int64, string) (service.OperatorCloseResponse, error)
+	CanAccessAttachment(context.Context, string, int64) error
+}
+
+type operatorAttachmentService interface {
+	Open(context.Context, string, int64) (service.AttachmentFile, error)
+}
+
 type operatorWorkerRequestService interface {
 	ListWorkerRequests(context.Context, string, string, string) (service.WorkerRequestPageResponse, error)
 	CompleteWorkerRequest(context.Context, int64, int64, int64) (service.CompleteWorkerRequestResponse, error)
 }
 
 type OperatorHandler struct {
-	service operatorService
-	auth    authService
+	service     operatorService
+	auth        authService
+	attachments operatorAttachmentService
 }
 
 type workerRequest struct {
@@ -43,15 +57,28 @@ type rejectRequest struct {
 	Message    string `json:"message"`
 }
 
-func NewOperatorHandler(operatorService operatorService, auth authService) (*OperatorHandler, error) {
+type closeRequest struct {
+	Message string `json:"message"`
+}
+
+func NewOperatorHandler(operatorService operatorService, auth authService, attachments ...operatorAttachmentService) (*OperatorHandler, error) {
 	if operatorService == nil || auth == nil {
 		return nil, errors.New("operator and auth services are required")
 	}
-	return &OperatorHandler{service: operatorService, auth: auth}, nil
+	handler := &OperatorHandler{service: operatorService, auth: auth}
+	if len(attachments) > 0 {
+		handler.attachments = attachments[0]
+	}
+	return handler, nil
 }
 
 func (handler *OperatorHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/operator/tickets", handler.listTickets)
+	mux.HandleFunc("GET /api/operator/dashboard", handler.dashboard)
+	mux.HandleFunc("GET /api/operator/tickets/{track_id}", handler.ticket)
+	mux.HandleFunc("PATCH /api/operator/tickets/{track_id}", handler.updateTicket)
+	mux.HandleFunc("POST /api/operator/tickets/{track_id}/close", handler.closeTicket)
+	mux.HandleFunc("GET /api/operator/tickets/{track_id}/attachments/{attachment_id}", handler.attachment)
 	mux.HandleFunc("GET /api/operator/tickets/{track_id}/eligible-workers", handler.eligibleWorkers)
 	mux.HandleFunc("PUT /api/operator/tickets/{track_id}/responsible-worker", handler.setResponsibleWorker)
 	mux.HandleFunc("POST /api/operator/tickets/{track_id}/workers", handler.addWorker)
@@ -61,6 +88,125 @@ func (handler *OperatorHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/operator/reports", handler.report)
 	mux.HandleFunc("GET /api/operator/worker-requests", handler.listWorkerRequests)
 	mux.HandleFunc("POST /api/operator/worker-requests/{request_id}/complete", handler.completeWorkerRequest)
+}
+
+func (handler *OperatorHandler) dashboard(w http.ResponseWriter, request *http.Request) {
+	if _, ok := handler.operatorUser(w, request); !ok {
+		return
+	}
+	api, ok := handler.service.(operatorAPIService)
+	if !ok {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	response, err := api.Dashboard(request.Context())
+	if err != nil {
+		writeOperatorError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (handler *OperatorHandler) ticket(w http.ResponseWriter, request *http.Request) {
+	if _, ok := handler.operatorUser(w, request); !ok {
+		return
+	}
+	api, ok := handler.service.(operatorAPIService)
+	if !ok {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	response, err := api.Ticket(request.Context(), request.PathValue("track_id"))
+	if err != nil {
+		writeOperatorError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (handler *OperatorHandler) updateTicket(w http.ResponseWriter, request *http.Request) {
+	user, ok := handler.operatorUser(w, request)
+	if !ok {
+		return
+	}
+	request.Body = http.MaxBytesReader(w, request.Body, maxOperatorRequestBytes)
+	var payload service.OperatorTicketUpdateRequest
+	if err := decodeJSONRequest(request, &payload); err != nil {
+		writeJSONRequestError(w, err)
+		return
+	}
+	api, ok := handler.service.(operatorAPIService)
+	if !ok {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	response, err := api.UpdateTicket(request.Context(), request.PathValue("track_id"), user.ID, payload)
+	if err != nil {
+		writeOperatorError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (handler *OperatorHandler) closeTicket(w http.ResponseWriter, request *http.Request) {
+	user, ok := handler.operatorUser(w, request)
+	if !ok {
+		return
+	}
+	request.Body = http.MaxBytesReader(w, request.Body, maxOperatorRequestBytes)
+	var payload closeRequest
+	if err := decodeJSONRequest(request, &payload); err != nil {
+		writeJSONRequestError(w, err)
+		return
+	}
+	api, ok := handler.service.(operatorAPIService)
+	if !ok {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	response, err := api.CloseTicket(request.Context(), request.PathValue("track_id"), user.ID, payload.Message)
+	if err != nil {
+		writeOperatorError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (handler *OperatorHandler) attachment(w http.ResponseWriter, request *http.Request) {
+	if _, ok := handler.operatorUser(w, request); !ok {
+		return
+	}
+	if handler.attachments == nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	attachmentID, err := strconv.ParseInt(request.PathValue("attachment_id"), 10, 64)
+	if err != nil || attachmentID <= 0 {
+		writeAPIError(w, http.StatusNotFound, "attachment_not_found", "attachment not found")
+		return
+	}
+	api, ok := handler.service.(operatorAPIService)
+	if !ok {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	if err := api.CanAccessAttachment(request.Context(), request.PathValue("track_id"), attachmentID); err != nil {
+		writeOperatorError(w, err)
+		return
+	}
+	file, err := handler.attachments.Open(request.Context(), request.PathValue("track_id"), attachmentID)
+	if err != nil {
+		writeOperatorError(w, err)
+		return
+	}
+	defer file.Reader.Close()
+	w.Header().Set("Content-Type", file.MIMEType)
+	w.Header().Set("Content-Disposition", mime.FormatMediaType("inline", map[string]string{"filename": file.Name}))
+	w.Header().Set("Content-Length", strconv.FormatInt(file.SizeBytes, 10))
+	w.Header().Set("Cache-Control", "private, no-store")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.WriteHeader(http.StatusOK)
+	_, _ = io.Copy(w, file.Reader)
 }
 
 func (handler *OperatorHandler) listWorkerRequests(w http.ResponseWriter, request *http.Request) {
@@ -117,6 +263,7 @@ func (handler *OperatorHandler) eligibleWorkers(w http.ResponseWriter, request *
 		request.PathValue("track_id"),
 		request.URL.Query().Get("name"),
 		request.URL.Query().Get("expert_group_id"),
+		request.URL.Query().Get("only_available"),
 	)
 	if err != nil {
 		writeOperatorError(w, err)
@@ -205,6 +352,7 @@ func (handler *OperatorHandler) listTickets(w http.ResponseWriter, request *http
 		Queue: query.Get("queue"), Search: query.Get("search"), Priority: query.Get("priority"),
 		Status: query.Get("status"), CategoryID: query.Get("category_id"),
 		ApplicantType: query.Get("applicant_type"), Page: query.Get("page"), Limit: query.Get("limit"),
+		Sort: query.Get("sort"),
 	})
 	if err != nil {
 		writeOperatorError(w, err)
@@ -291,6 +439,8 @@ func writeOperatorError(w http.ResponseWriter, err error) {
 		writeAPIError(w, http.StatusBadRequest, "invalid_request", err.Error())
 	case errors.Is(err, service.ErrWorkerNotFound):
 		writeAPIError(w, http.StatusNotFound, "worker_not_found", "worker not found")
+	case errors.Is(err, service.ErrAdminResourceNotFound):
+		writeAPIError(w, http.StatusNotFound, "category_not_found", "category not found")
 	case errors.Is(err, service.ErrWorkerRequestNotFound):
 		writeAPIError(w, http.StatusNotFound, "worker_request_not_found", "worker request not found")
 	case errors.Is(err, service.ErrWorkerUnavailable):
@@ -305,6 +455,10 @@ func writeOperatorError(w http.ResponseWriter, err error) {
 		writeAPIError(w, http.StatusConflict, "responsible_worker_required", "assign a responsible worker before adding co-workers")
 	case errors.Is(err, service.ErrInvalidTransition):
 		writeAPIError(w, http.StatusConflict, "invalid_status_transition", "operation is not allowed for the current ticket status")
+	case errors.Is(err, service.ErrOperatorMessageRequired):
+		writeAPIError(w, http.StatusBadRequest, "message_required", "message is required")
+	case errors.Is(err, service.ErrAttachmentNotFound):
+		writeAPIError(w, http.StatusNotFound, "attachment_not_found", "attachment not found")
 	default:
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
 	}

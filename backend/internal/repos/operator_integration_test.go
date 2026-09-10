@@ -78,7 +78,7 @@ func TestOperatorWorkflowIntegration(t *testing.T) {
 	_ = ticketID
 
 	repository := NewOperatorRepository(db)
-	eligible, err := repository.EligibleWorkers(ctx, "ОТК-ABCD-2345", "", 0)
+	eligible, err := repository.EligibleWorkers(ctx, "ОТК-ABCD-2345", "", 0, true)
 	if err != nil {
 		t.Fatalf("EligibleWorkers() error = %v", err)
 	}

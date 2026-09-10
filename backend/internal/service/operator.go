@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -14,20 +15,21 @@ import (
 )
 
 var (
-	ErrWorkerNotFound        = repos.ErrWorkerNotFound
-	ErrWorkerUnavailable     = repos.ErrWorkerUnavailable
-	ErrWorkerAlreadyAssigned = repos.ErrWorkerAlreadyAssigned
-	ErrWorkerNotAssigned     = repos.ErrWorkerNotAssigned
-	ErrResponsibleWorker     = repos.ErrResponsibleWorker
-	ErrResponsibleRequired   = repos.ErrResponsibleRequired
-	ErrInvalidWorkerID       = errors.New("invalid worker id")
-	ErrInvalidQueue          = errors.New("invalid ticket queue")
-	ErrInvalidFilter         = errors.New("invalid ticket filter")
-	ErrInvalidReasonCode     = errors.New("invalid rejection reason code")
-	ErrRejectionMessage      = errors.New("rejection message is required")
-	ErrInvalidDateRange      = errors.New("invalid date range")
-	ErrInvalidReportFormat   = errors.New("invalid report format")
-	ErrWorkerRequestComplete = errors.New("worker request could not be completed")
+	ErrWorkerNotFound          = repos.ErrWorkerNotFound
+	ErrWorkerUnavailable       = repos.ErrWorkerUnavailable
+	ErrWorkerAlreadyAssigned   = repos.ErrWorkerAlreadyAssigned
+	ErrWorkerNotAssigned       = repos.ErrWorkerNotAssigned
+	ErrResponsibleWorker       = repos.ErrResponsibleWorker
+	ErrResponsibleRequired     = repos.ErrResponsibleRequired
+	ErrInvalidWorkerID         = errors.New("invalid worker id")
+	ErrInvalidQueue            = errors.New("invalid ticket queue")
+	ErrInvalidFilter           = errors.New("invalid ticket filter")
+	ErrInvalidReasonCode       = errors.New("invalid rejection reason code")
+	ErrRejectionMessage        = errors.New("rejection message is required")
+	ErrInvalidDateRange        = errors.New("invalid date range")
+	ErrInvalidReportFormat     = errors.New("invalid report format")
+	ErrWorkerRequestComplete   = errors.New("worker request could not be completed")
+	ErrOperatorMessageRequired = errors.New("operator message is required")
 )
 
 type operatorWorkerRequestRepository interface {
@@ -36,7 +38,7 @@ type operatorWorkerRequestRepository interface {
 }
 
 type operatorRepository interface {
-	EligibleWorkers(context.Context, string, string, int64) (repos.EligibleWorkersRecord, error)
+	EligibleWorkers(context.Context, string, string, int64, bool) (repos.EligibleWorkersRecord, error)
 	SetResponsibleWorker(context.Context, string, int64, int64, time.Time) (repos.AssignmentRecord, error)
 	AddWorker(context.Context, string, int64, int64, time.Time) (repos.AssignmentRecord, error)
 	RemoveWorker(context.Context, string, int64, int64, time.Time) (repos.AssignmentRecord, error)
@@ -47,9 +49,11 @@ type operatorRepository interface {
 }
 
 type OperatorService struct {
-	repository operatorRepository
-	location   *time.Location
-	now        func() time.Time
+	repository  operatorRepository
+	location    *time.Location
+	now         func() time.Time
+	newSLA      time.Duration
+	responseSLA time.Duration
 }
 
 type ExpertGroupResponse struct {
@@ -64,6 +68,7 @@ type EligibleWorkerResponse struct {
 	ActiveTickets int                 `json:"active_tickets"`
 	MaxTickets    int                 `json:"max_tickets"`
 	Recommended   bool                `json:"recommended"`
+	Available     bool                `json:"available"`
 }
 
 type EligibleWorkersResponse struct {
@@ -92,6 +97,7 @@ type TicketListRequest struct {
 	ApplicantType string
 	Page          string
 	Limit         string
+	Sort          string
 }
 
 type ResponsibleWorkerResponse struct {
@@ -112,6 +118,8 @@ type OperatorTicketResponse struct {
 	ReturnReason        string                     `json:"return_reason,omitempty"`
 	ReturnedAt          *time.Time                 `json:"returned_at,omitempty"`
 	PreviousResponsible *ResponsibleWorkerResponse `json:"previous_responsible,omitempty"`
+	CrisisDetected      bool                       `json:"crisis_detected"`
+	IsOverdue           bool                       `json:"is_overdue"`
 }
 
 type OperatorTicketPageResponse struct {
@@ -141,6 +149,15 @@ type AnalyticsResponse struct {
 	ExpertLoadPercent           float64                `json:"expert_load_percent"`
 	UrgentSharePercent          float64                `json:"urgent_share_percent"`
 	ReturnSharePercent          float64                `json:"return_share_percent"`
+	OperatorLoad                []OperatorLoadResponse `json:"operator_load"`
+}
+
+type OperatorLoadResponse struct {
+	OperatorID    int64  `json:"operator_id"`
+	FullName      string `json:"full_name"`
+	ActionCount   int    `json:"action_count"`
+	AssignedCount int    `json:"assigned_count"`
+	ClosedCount   int    `json:"closed_count"`
 }
 
 type GeneratedReport struct {
@@ -163,10 +180,22 @@ func NewOperatorService(repository operatorRepository) (*OperatorService, error)
 	if err != nil {
 		return nil, fmt.Errorf("load analytics timezone: %w", err)
 	}
-	return &OperatorService{repository: repository, location: location, now: time.Now}, nil
+	return &OperatorService{
+		repository: repository, location: location, now: time.Now,
+		newSLA:      slaFromEnv("OPERATOR_NEW_SLA_HOURS", 2),
+		responseSLA: slaFromEnv("OPERATOR_RESPONSE_SLA_HOURS", 24),
+	}, nil
 }
 
-func (service *OperatorService) EligibleWorkers(ctx context.Context, trackID, name, groupIDValue string) (EligibleWorkersResponse, error) {
+func slaFromEnv(key string, fallback int) time.Duration {
+	hours, err := strconv.Atoi(strings.TrimSpace(os.Getenv(key)))
+	if err != nil || hours <= 0 {
+		hours = fallback
+	}
+	return time.Duration(hours) * time.Hour
+}
+
+func (service *OperatorService) EligibleWorkers(ctx context.Context, trackID, name, groupIDValue, onlyAvailableValue string) (EligibleWorkersResponse, error) {
 	trackID, err := normalizeTrackID(trackID)
 	if err != nil {
 		return EligibleWorkersResponse{}, err
@@ -175,7 +204,14 @@ func (service *OperatorService) EligibleWorkers(ctx context.Context, trackID, na
 	if err != nil {
 		return EligibleWorkersResponse{}, ErrInvalidFilter
 	}
-	record, err := service.repository.EligibleWorkers(ctx, trackID, strings.TrimSpace(name), groupID)
+	onlyAvailable := true
+	if value := strings.TrimSpace(onlyAvailableValue); value != "" {
+		onlyAvailable, err = strconv.ParseBool(value)
+		if err != nil {
+			return EligibleWorkersResponse{}, ErrInvalidFilter
+		}
+	}
+	record, err := service.repository.EligibleWorkers(ctx, trackID, strings.TrimSpace(name), groupID, onlyAvailable)
 	if err != nil {
 		return EligibleWorkersResponse{}, err
 	}
@@ -192,6 +228,7 @@ func (service *OperatorService) EligibleWorkers(ctx context.Context, trackID, na
 			ExpertGroup:   ExpertGroupResponse{ID: worker.GroupID, Title: worker.GroupTitle},
 			ActiveTickets: worker.ActiveTickets, MaxTickets: worker.MaxTickets,
 			Recommended: worker.Recommended,
+			Available:   worker.Available,
 		})
 	}
 	return result, nil
@@ -251,6 +288,9 @@ func (service *OperatorService) ListTickets(ctx context.Context, request TicketL
 	if err != nil {
 		return OperatorTicketPageResponse{}, err
 	}
+	now := service.now().UTC()
+	filter.NewOverdueBefore = now.Add(-service.newSLA)
+	filter.ResponseOverdueBefore = now.Add(-service.responseSLA)
 	record, err := service.repository.ListTickets(ctx, filter)
 	if err != nil {
 		return OperatorTicketPageResponse{}, err
@@ -262,6 +302,7 @@ func (service *OperatorService) ListTickets(ctx context.Context, request TicketL
 			Status: item.Status.String(), ApplicantType: item.ApplicantType.String(), Priority: item.Priority.String(),
 			CreatedAt: item.CreatedAt.UTC(), WaitingSeconds: item.WaitingSeconds,
 			ReturnCount: item.ReturnCount, ReturnReason: item.ReturnReason.String,
+			CrisisDetected: item.CrisisDetected, IsOverdue: item.IsOverdue,
 		}
 		if item.ResponsibleID.Valid {
 			response.Responsible = &ResponsibleWorkerResponse{ID: item.ResponsibleID.Int64, FullName: item.ResponsibleName.String}
@@ -298,6 +339,7 @@ func (service *OperatorService) Analytics(ctx context.Context, dateFrom, dateTo 
 		ExpertLoadPercent:           record.ExpertLoadPercent,
 		UrgentSharePercent:          percent(record.UrgentCount, record.Total),
 		ReturnSharePercent:          percent(record.ReturnedCount, record.Total),
+		OperatorLoad:                make([]OperatorLoadResponse, 0, len(record.OperatorLoad)),
 	}
 	for _, item := range record.Categories {
 		result.Categories = append(result.Categories, DistributionResponse{ID: item.ID, Value: item.Name, Count: item.Count, Percent: percent(item.Count, record.Total)})
@@ -307,6 +349,12 @@ func (service *OperatorService) Analytics(ctx context.Context, dateFrom, dateTo 
 	}
 	for _, item := range record.Statuses {
 		result.Statuses = append(result.Statuses, DistributionResponse{Value: models.TicketStatus(item.Value).String(), Count: item.Count, Percent: percent(item.Count, record.Total)})
+	}
+	for _, item := range record.OperatorLoad {
+		result.OperatorLoad = append(result.OperatorLoad, OperatorLoadResponse{
+			OperatorID: item.OperatorID, FullName: item.FullName, ActionCount: item.ActionCount,
+			AssignedCount: item.AssignedCount, ClosedCount: item.ClosedCount,
+		})
 	}
 	return result, nil
 }
@@ -390,9 +438,14 @@ func (service *OperatorService) dateRange(dateFrom, dateTo string) (time.Time, t
 }
 
 func parseTicketFilter(request TicketListRequest) (repos.OperatorTicketFilter, int, error) {
-	filter := repos.OperatorTicketFilter{Queue: strings.TrimSpace(request.Queue), Search: strings.TrimSpace(request.Search), Limit: 20}
-	if filter.Queue != "assigned" && filter.Queue != "returned" {
+	filter := repos.OperatorTicketFilter{Queue: strings.TrimSpace(request.Queue), Search: strings.TrimSpace(request.Search), Sort: strings.TrimSpace(request.Sort), Limit: 20}
+	if filter.Queue != "new" && filter.Queue != "assigned" && filter.Queue != "returned" {
 		return repos.OperatorTicketFilter{}, 0, ErrInvalidQueue
+	}
+	switch filter.Sort {
+	case "", "created_at_asc", "created_at_desc", "priority_desc", "waiting_desc":
+	default:
+		return repos.OperatorTicketFilter{}, 0, ErrInvalidFilter
 	}
 	page, err := positiveIntOrDefault(request.Page, 1)
 	if err != nil {
@@ -404,12 +457,8 @@ func parseTicketFilter(request TicketListRequest) (repos.OperatorTicketFilter, i
 	}
 	filter.Offset = (page - 1) * filter.Limit
 	if request.Priority != "" {
-		switch request.Priority {
-		case "standard":
-			filter.Priority = models.TicketPriorityStandard
-		case "urgent":
-			filter.Priority = models.TicketPriorityUrgent
-		default:
+		filter.Priority = ticketPriorityFromString(request.Priority)
+		if filter.Priority == 0 {
 			return repos.OperatorTicketFilter{}, 0, ErrInvalidFilter
 		}
 	}

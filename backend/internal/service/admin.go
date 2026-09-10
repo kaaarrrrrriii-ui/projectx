@@ -695,12 +695,8 @@ func (service *AdminService) ListTickets(ctx context.Context, request AdminTicke
 		}
 	}
 	if request.Priority != "" {
-		switch request.Priority {
-		case "standard":
-			filter.Priority = models.TicketPriorityStandard
-		case "urgent":
-			filter.Priority = models.TicketPriorityUrgent
-		default:
+		filter.Priority = ticketPriorityFromString(request.Priority)
+		if filter.Priority == 0 {
 			return AdminTicketPageResponse{}, ErrInvalidAdminInput
 		}
 	}
@@ -752,13 +748,8 @@ func (service *AdminService) ChangePriority(ctx context.Context, trackID, priori
 	if err != nil {
 		return AdminTicketResponse{}, err
 	}
-	var value models.TicketPriority
-	switch priority {
-	case "standard":
-		value = models.TicketPriorityStandard
-	case "urgent":
-		value = models.TicketPriorityUrgent
-	default:
+	value := ticketPriorityFromString(priority)
+	if value == 0 {
 		return AdminTicketResponse{}, ErrInvalidAdminInput
 	}
 	record, err := service.repository.UpdateTicketPriority(ctx, trackID, value, actorID, service.now().UTC())

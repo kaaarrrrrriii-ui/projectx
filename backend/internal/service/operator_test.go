@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/csv"
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -28,9 +29,16 @@ type stubOperatorRepository struct {
 	completedID     int64
 	completedBy     int64
 	addedWorker     int64
+	onlyAvailable   bool
+	listFilter      repos.OperatorTicketFilter
+	dashboard       repos.OperatorDashboardRecord
+	detail          repos.OperatorTicketDetailRecord
+	update          repos.OperatorTicketUpdate
+	closedMessage   string
 }
 
-func (repository *stubOperatorRepository) EligibleWorkers(context.Context, string, string, int64) (repos.EligibleWorkersRecord, error) {
+func (repository *stubOperatorRepository) EligibleWorkers(_ context.Context, _ string, _ string, _ int64, onlyAvailable bool) (repos.EligibleWorkersRecord, error) {
+	repository.onlyAvailable = onlyAvailable
 	return repos.EligibleWorkersRecord{}, nil
 }
 
@@ -54,8 +62,31 @@ func (repository *stubOperatorRepository) Reject(context.Context, string, int64,
 	return repos.RejectionRecord{}, nil
 }
 
-func (repository *stubOperatorRepository) ListTickets(context.Context, repos.OperatorTicketFilter) (repos.OperatorTicketPageRecord, error) {
+func (repository *stubOperatorRepository) ListTickets(_ context.Context, filter repos.OperatorTicketFilter) (repos.OperatorTicketPageRecord, error) {
+	repository.listFilter = filter
 	return repos.OperatorTicketPageRecord{}, nil
+}
+
+func (repository *stubOperatorRepository) Dashboard(context.Context, time.Time, time.Time) (repos.OperatorDashboardRecord, error) {
+	return repository.dashboard, nil
+}
+
+func (repository *stubOperatorRepository) GetOperatorTicket(context.Context, string) (repos.OperatorTicketDetailRecord, error) {
+	return repository.detail, nil
+}
+
+func (repository *stubOperatorRepository) UpdateOperatorTicket(_ context.Context, _ string, _ int64, update repos.OperatorTicketUpdate, _ time.Time) error {
+	repository.update = update
+	return nil
+}
+
+func (repository *stubOperatorRepository) CloseOperatorTicket(_ context.Context, _ string, _ int64, message string, closedAt time.Time) (repos.OperatorCloseRecord, error) {
+	repository.closedMessage = message
+	return repos.OperatorCloseRecord{Status: models.TicketStatusCompleted, ClosedAt: closedAt, Message: message}, nil
+}
+
+func (*stubOperatorRepository) CanAccessOperatorAttachment(context.Context, string, int64) error {
+	return nil
 }
 
 func (repository *stubOperatorRepository) Analytics(_ context.Context, start, end time.Time) (repos.AnalyticsRecord, error) {
@@ -132,6 +163,60 @@ func TestParseTicketFilter(t *testing.T) {
 	}
 	if page != 2 || filter.Limit != 30 || filter.Offset != 30 || filter.Priority != models.TicketPriorityUrgent || filter.ApplicantType != models.ApplicantTypeTeacher {
 		t.Fatalf("filter = %+v, page = %d", filter, page)
+	}
+}
+
+func TestParseTicketFilterSupportsNewSortAndLowPriority(t *testing.T) {
+	t.Parallel()
+	filter, _, err := parseTicketFilter(TicketListRequest{Queue: "new", Priority: "low", Sort: "waiting_desc"})
+	if err != nil || filter.Priority != models.TicketPriorityLow || filter.Sort != "waiting_desc" {
+		t.Fatalf("filter = %+v, error = %v", filter, err)
+	}
+	if _, _, err := parseTicketFilter(TicketListRequest{Queue: "new", Sort: "drop table"}); !errors.Is(err, ErrInvalidFilter) {
+		t.Fatalf("invalid sort error = %v", err)
+	}
+}
+
+func TestEligibleWorkersDefaultsToAvailableOnly(t *testing.T) {
+	t.Parallel()
+	repository := &stubOperatorRepository{}
+	operator := newOperatorTestService(t, repository)
+	if _, err := operator.EligibleWorkers(context.Background(), "ОТК-ABCD-2345", "", "", ""); err != nil || !repository.onlyAvailable {
+		t.Fatalf("only_available = %v, error = %v", repository.onlyAvailable, err)
+	}
+	if _, err := operator.EligibleWorkers(context.Background(), "ОТК-ABCD-2345", "", "", "false"); err != nil || repository.onlyAvailable {
+		t.Fatalf("only_available=false = %v, error = %v", repository.onlyAvailable, err)
+	}
+}
+
+func TestOperatorDashboardAndClose(t *testing.T) {
+	t.Parallel()
+	repository := &stubOperatorRepository{dashboard: repos.OperatorDashboardRecord{NewCount: 3, CrisisCount: 1}}
+	operator := newOperatorTestService(t, repository)
+	dashboard, err := operator.Dashboard(context.Background())
+	if err != nil || dashboard.NewCount != 3 || dashboard.CrisisCount != 1 {
+		t.Fatalf("dashboard = %+v, error = %v", dashboard, err)
+	}
+	closed, err := operator.CloseTicket(context.Background(), "ОТК-ABCD-2345", 4, "  Ответ оператора  ")
+	if err != nil || closed.Status != "completed" || repository.closedMessage != "Ответ оператора" {
+		t.Fatalf("close = %+v, message = %q, error = %v", closed, repository.closedMessage, err)
+	}
+}
+
+func TestOperatorUpdateTicketMapsAtomicPatch(t *testing.T) {
+	t.Parallel()
+	repository := &stubOperatorRepository{detail: repos.OperatorTicketDetailRecord{
+		TrackID: "ОТК-ABCD-2345", Status: models.TicketStatusNew,
+		Priority: models.TicketPriorityLow, CategoryID: 8, Category: "Категория",
+		ApplicantType: models.ApplicantTypeParent,
+	}}
+	operator := newOperatorTestService(t, repository)
+	categoryID, priority, status := int64(8), "low", "rejected"
+	response, err := operator.UpdateTicket(context.Background(), "ОТК-ABCD-2345", 3, OperatorTicketUpdateRequest{
+		CategoryID: &categoryID, Priority: &priority, Status: &status, Reason: "вне компетенции",
+	})
+	if err != nil || repository.update.Priority == nil || *repository.update.Priority != models.TicketPriorityLow || repository.update.Status == nil || *repository.update.Status != models.TicketStatusRejected {
+		t.Fatalf("update = %+v, response = %+v, error = %v", repository.update, response, err)
 	}
 }
 

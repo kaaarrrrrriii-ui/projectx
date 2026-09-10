@@ -27,10 +27,8 @@ process; PostgreSQL's initialization directory only runs for a new volume.
 applicant types, adds operator/return message types, and creates the event log
 used for assignment history and timing analytics.
 
-`004_dev_seed.sql` is an idempotent development seed used by docker-compose.
-It adds the initial public categories and category-specific questions without
-changing the schema. Production reference data can continue to be managed by
-an administrator.
+`005_operator_api.sql` expands the existing priority constraint for the third
+product priority, `low`. It does not add tables or columns.
 
 For an already initialized Docker volume, apply the new migration explicitly:
 
@@ -40,3 +38,6 @@ docker compose exec -T postgres psql -U appuser -d appdb \
 docker compose exec -T postgres psql -U appuser -d appdb \
   -f /docker-entrypoint-initdb.d/004_dev_seed.sql
 ```
+
+Apply `005_operator_api.sql` through the same migration mechanism before using
+the `low` priority.

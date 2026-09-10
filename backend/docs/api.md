@@ -39,9 +39,33 @@ use the separate `/api/admin/*` endpoints documented below.
 
 `GET /api/operator/tickets/{track_id}/eligible-workers`
 
-Optional query parameters: `name`, `expert_group_id`. Experts whose active
-ticket count has reached `max_tickets` are omitted. A category route is a
+Optional query parameters: `name`, `expert_group_id`, and `only_available`
+(default `true`). When `only_available=false`, overloaded experts are returned
+with `available=false`; assigning them is still prohibited. A category route is a
 recommendation and does not prohibit assigning an expert from another group.
+
+### Dashboard and ticket card
+
+`GET /api/operator/dashboard` returns current new, distributed, returned,
+crisis and overdue counts. A new ticket is overdue after
+`OPERATOR_NEW_SLA_HOURS` (default 2); a distributed ticket without a specialist
+answer is overdue after `OPERATOR_RESPONSE_SLA_HOURS` (default 24).
+
+`GET /api/operator/tickets/{track_id}` returns the initial description,
+clarifying answers, intake attachments, active workers, routing groups, expert
+notes, crisis contact (only for a detected crisis), and audit events. It never
+returns the applicant/expert chat. Operator attachment download is available at
+`GET /api/operator/tickets/{track_id}/attachments/{attachment_id}`.
+
+`PATCH /api/operator/tickets/{track_id}` atomically changes any supplied
+`category_id`, `priority`, and `status`; `reason` is stored with audit events.
+Category and priority changes are allowed while a ticket is `new` or `returned`.
+Status changes follow the operator transition rules and `assigned` requires an
+active responsible expert.
+
+`POST /api/operator/tickets/{track_id}/close` accepts `{ "message": "..." }`.
+For a `new` or `returned` ticket it stores the public operator message,
+deactivates assignments and changes the status to `completed`.
 
 ### Responsible expert
 
@@ -81,11 +105,13 @@ and the public status response includes `resolution_message`.
 
 `GET /api/operator/tickets`
 
-Required query parameter: `queue=assigned` or `queue=returned`.
+Required query parameter: `queue=new`, `queue=assigned`, or `queue=returned`.
 
 Optional parameters: `search`, `priority`, `status`, `category_id`,
 `applicant_type`, `page`, and `limit`. The default limit is 20 and the maximum
-is 100. Overdue calculation is intentionally not part of this endpoint.
+is 100. `sort` may be `created_at_asc`, `created_at_desc`, `priority_desc`, or
+`waiting_desc`. Items include `crisis_detected` and `is_overdue`. The default
+new-queue order is crisis first, then urgent, then oldest.
 
 ### Analytics
 
@@ -94,7 +120,8 @@ is 100. Overdue calculation is intentionally not part of this endpoint.
 Calendar dates are interpreted in `Asia/Yekaterinburg`; stored instants remain
 UTC. The response contains ticket totals and distributions, average seconds to
 first assignment, first specialist response and closure, aggregate expert
-load, urgent share, and return share. Operator load is not calculated.
+load, urgent share, return share, and per-operator action, assignment and close
+counts.
 
 ### Anonymous report
 
@@ -213,7 +240,7 @@ generated immediately and are not stored. `format` may be `csv` or `xlsx`.
 
 ## Persisted enum values
 
-- Priority: `1 = standard`, `2 = urgent`.
+- Priority: `1 = standard`, `2 = urgent`, `3 = low`.
 - Applicant type: `1 = schoolchild`, `2 = parent`, `3 = teacher`.
 - Message type: `1 = applicant`, `2 = specialist`, `3 = internal_note`,
   `4 = system`, `5 = return_reason`, `6 = operator`.
