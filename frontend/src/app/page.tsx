@@ -21,10 +21,10 @@ export default function Home() {
         "
       >
         <Image
-          src="/images/main-page-girl.png"
+          src="/images/main-page-girl-hq.png"
           alt=""
-          width={607}
-          height={486}
+          width={1402}
+          height={1122}
           priority
           sizes="(max-width: 699px) 320px, 42vw"
           className="

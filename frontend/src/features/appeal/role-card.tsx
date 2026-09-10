@@ -23,7 +23,7 @@ export default function RoleCard({
 
       <span
         className="
-          flex h-full min-h-[360px] w-full flex-col
+          flex h-full min-h-[300px] w-full flex-col
           rounded-[10px]
           border border-[var(--color-text-muted)]
           bg-white
