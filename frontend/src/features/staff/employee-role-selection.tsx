@@ -66,7 +66,7 @@ export default function EmployeeRoleSelection() {
       router.push("/operator");
       return;
     }
-    router.push(selectedRole === "expert" ? "/expert" : `/staff/${selectedRole}`);
+    router.push(selectedRole === "expert" ? "/expert" : "/admin");
   }
 
   return (

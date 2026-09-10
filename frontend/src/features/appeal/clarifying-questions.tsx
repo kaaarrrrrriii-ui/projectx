@@ -3,51 +3,29 @@
 import AppealNavigation from "@/shared/ui/appeal-navigation";
 import { getAppealRoute } from "./routes";
 import { useState } from "react";
-
-type QuestionKey = "place" | "duration" | "askedForHelp";
-
-type Question = {
-  key: QuestionKey;
-  title: string;
-  options: string[];
-};
-
-const questions: Question[] = [
-  {
-    key: "place",
-    title: "Где это происходит?",
-    options: ["В школе", "Онлайн", "В другом месте"],
-  },
-  {
-    key: "duration",
-    title: "Как давно это длится?",
-    options: ["Недавно", "Давно", "Пару дней"],
-  },
-  {
-    key: "askedForHelp",
-    title: "Ты уже обращался за помощью?",
-    options: ["Нет", "Да", "Не уверен"],
-  },
-];
+import {
+  clarifyingQuestions,
+  type ClarifyingQuestionKey,
+} from "./clarifying-question-data";
 
 export default function ClarifyingQuestions({ role, topic = "", formal = false }: { role: string; topic?: string; formal?: boolean }) {
-  const [answers, setAnswers] = useState<Record<QuestionKey, string>>({
+  const [answers, setAnswers] = useState<Record<ClarifyingQuestionKey, string>>({
     place: "",
     duration: "",
     askedForHelp: "",
   });
-  const [skipped, setSkipped] = useState<Record<QuestionKey, boolean>>({
+  const [skipped, setSkipped] = useState<Record<ClarifyingQuestionKey, boolean>>({
     place: false,
     duration: false,
     askedForHelp: false,
   });
   const routeParams = { role, topic };
 
-  const setAnswer = (question: QuestionKey, answer: string) => {
+  const setAnswer = (question: ClarifyingQuestionKey, answer: string) => {
     setAnswers((current) => ({ ...current, [question]: answer }));
   };
 
-  const toggleSkipped = (question: QuestionKey) => {
+  const toggleSkipped = (question: ClarifyingQuestionKey) => {
     const nextValue = !skipped[question];
 
     setSkipped((current) => ({ ...current, [question]: nextValue }));
@@ -78,20 +56,22 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
             </header>
 
             <div className="mt-4 w-full max-w-[670px]">
-            {questions.map((question, questionIndex) => {
-              const isSkipped = skipped[question.key];
+            {clarifyingQuestions.map((question, questionIndex) => {
+              if (!question.key) return null;
+              const questionKey = question.key;
+              const isSkipped = skipped[questionKey];
 
               return (
                 <fieldset
                   className={`m-0 min-w-0 border-0 p-0 ${questionIndex > 0 ? "mt-5" : ""}`}
-                  key={question.key}
+                  key={questionKey}
                 >
                   <legend
                     className={`block w-full p-0 text-[16px] leading-5 font-medium ${
                       isSkipped ? "text-[#b1b3ba]" : "text-[#11131a]"
                     }`}
                   >
-                    {formal && question.key === "askedForHelp"
+                    {formal && questionKey === "askedForHelp"
                       ? "Вы уже обращались за помощью?"
                       : question.title}
                   </legend>
@@ -100,23 +80,23 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
                     className="mt-[7px] grid w-full grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-x-3"
                   >
                     {question.options.map((option, optionIndex) => {
-                      const inputId = `${question.key}-${optionIndex}`;
+                      const inputId = `${questionKey}-${optionIndex}`;
 
                       return (
                         <label className="min-w-0 cursor-pointer" htmlFor={inputId} key={option}>
                           <input
-                            checked={answers[question.key] === option}
+                            checked={answers[questionKey] === option}
                             className="peer sr-only"
                             disabled={isSkipped}
                             id={inputId}
-                            name={question.key}
-                            onChange={() => setAnswer(question.key, option)}
+                            name={questionKey}
+                            onChange={() => setAnswer(questionKey, option)}
                             type="radio"
                             value={option}
                           />
                           <span className="flex min-h-[30px] w-full items-center justify-center rounded-[12px] border border-[#18223f] bg-white/20 px-3 py-1 text-center text-[12px] leading-4 font-normal text-[#18213e] transition-[border-color,background-color,color] duration-150 hover:border-[#4562f0] hover:bg-[#eef1ff] peer-checked:border-[#4562f0] peer-checked:bg-[#4562f0] peer-checked:text-white peer-disabled:cursor-default peer-disabled:border-[#b9becb] peer-disabled:bg-transparent peer-disabled:text-[#b8bbc5] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-[#4562f0] motion-reduce:transition-none">
                             {formal &&
-                            question.key === "askedForHelp" &&
+                            questionKey === "askedForHelp" &&
                             option === "Не уверен"
                               ? "Не уверены"
                               : option}
@@ -134,7 +114,7 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
                     <input
                       checked={isSkipped}
                       className="peer m-0 grid size-[14px] shrink-0 cursor-pointer appearance-none place-content-center rounded-[3px] border border-[#a8adb8] bg-transparent checked:border-[#5b75ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
-                      onChange={() => toggleSkipped(question.key)}
+                      onChange={() => toggleSkipped(questionKey)}
                       type="checkbox"
                     />
                     <svg

@@ -156,7 +156,11 @@ function FilterDropdown({
   );
 }
 
-export default function QueueNew() {
+export default function QueueNew({
+  ticketBasePath = "/operator/queueNew.tsx",
+}: {
+  ticketBasePath?: string;
+}) {
   const filtersRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
@@ -351,7 +355,7 @@ export default function QueueNew() {
                           className="shrink-0 [&>span:first-of-type]:h-[17px] [&>span:first-of-type]:w-[17px] [&>span:first-of-type]:rounded-[4px] [&>span:first-of-type]:border-[#4562f0] [&>span:last-child]:sr-only"
                         />
                         <Link
-                          href={`/operator/queueNew.tsx/${encodeURIComponent(ticket.track)}`}
+                          href={`${ticketBasePath}/${encodeURIComponent(ticket.track)}`}
                           className="rounded-sm font-medium underline-offset-4 hover:text-[#4562f0] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
                         >
                           {ticket.track}
