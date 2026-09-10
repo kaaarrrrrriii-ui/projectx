@@ -23,46 +23,47 @@ export default async function AppealDescription({
         aria-labelledby="description-heading"
         className="
           flex flex-1 flex-col
-          px-[4.88%] pt-14 pb-[38px]
+          px-[4.5%] pt-[14px] pb-[38px]
 
           max-[699px]:px-5
           max-[699px]:py-8
         "
       >
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
-          <h1
-            id="description-heading"
-            className="
-              text-[36px]
-              leading-[1.2]
-              font-black
-              tracking-[-0.025em]
-              text-[#4562F0]
+          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[15px] py-6">
+            <h1
+              id="description-heading"
+              className="
+                text-[32px]
+                leading-[1.2]
+                font-black
+                tracking-[-0.025em]
+                text-[#4562F0]
 
-              max-[699px]:text-[28px]
-            "
-          >
-            {formal ? "Расскажите, что происходит" : "Расскажи, что происходит"}
-          </h1>
+                max-[699px]:text-[28px]
+              "
+            >
+              {formal ? "Расскажите, что происходит" : "Расскажи, что происходит"}
+            </h1>
 
-          <p
-            id="description-intro"
-            className="
-              mt-1
-              text-[15px]
-              leading-[22px]
-              text-[#151515]
+            <p
+              id="description-intro"
+              className="
+                mt-1
+                text-[13px]
+                leading-[18px]
+                text-[#151515]
 
-              max-[699px]:mt-2.5
-              max-[699px]:text-[14px]
-            "
-          >
-            {formal
-              ? "Опишите ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаете, с чего начать — просто напишите, что чувствуете."
-              : "Опиши ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаешь, с чего начать — просто напиши, что чувствуешь."}
-          </p>
+                max-[699px]:mt-2.5
+                max-[699px]:text-[14px]
+              "
+            >
+              {formal
+                ? "Опишите ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаете, с чего начать — просто напишите, что чувствуете."
+                : "Опиши ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаешь, с чего начать — просто напиши, что чувствуешь."}
+            </p>
 
-          <textarea
+            <textarea
             name="description"
             aria-labelledby="description-heading"
             aria-describedby="description-intro description-hint"
@@ -73,15 +74,15 @@ export default async function AppealDescription({
             }
             className="
               mt-7 block
-              min-h-[260px] w-full
+              min-h-[218px] w-full
               resize-y
               rounded-[15px]
               border border-[#333]
               bg-[#FCFDFF]
               px-[13px] py-4
 
-              text-[15px]
-              leading-6
+              text-[13px]
+              leading-5
               text-[#151515]
 
               placeholder:text-[#85899f]
@@ -94,29 +95,29 @@ export default async function AppealDescription({
               max-[699px]:mt-6
               max-[699px]:text-[16px]
             "
-          />
+            />
 
-          <aside
+            <aside
             id="description-hint"
             className="
-              mt-[38px]
-              flex min-h-[49px]
+              mt-7
+              flex min-h-[41px]
               items-center gap-2.5
               rounded-[15px]
               border border-[#677aff]
               bg-[#dfe6ff]
               px-2.5 py-[9px]
 
-              text-[15px]
-              leading-[22px]
+              text-[13px]
+              leading-[18px]
               text-[#151515]
 
               max-[699px]:mt-6
               max-[699px]:items-start
               max-[699px]:text-[14px]
             "
-          >
-            <Image
+            >
+              <Image
               src="/images/LightbulbFilament.svg"
               alt=""
               width={28}
@@ -124,12 +125,13 @@ export default async function AppealDescription({
               className="shrink-0"
             />
 
-            <p>
-              {formal
-                ? "Нет правильных или неправильных слов. Пишите так, как вам удобно. Мы внимательно читаем каждое обращение."
-                : "Нет правильных или неправильных слов. Пиши так, как тебе удобно. Мы внимательно читаем каждое обращение."}
-            </p>
-          </aside>
+              <p>
+                {formal
+                  ? "Нет правильных или неправильных слов. Пишите так, как вам удобно. Мы внимательно читаем каждое обращение."
+                  : "Нет правильных или неправильных слов. Пиши так, как тебе удобно. Мы внимательно читаем каждое обращение."}
+              </p>
+            </aside>
+          </div>
 
           <AppealNavigation
             backHref={getAppealRoute("topics", routeParams)}
