@@ -11,7 +11,7 @@ export default async function Status({
   const formal = isFormalAppealRole(role.id);
 
   return (
-    <main className="app-page-background flex min-h-dvh flex-col">
+    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col overflow-x-clip">
       <SiteHeader formal={formal} />
       <StatusChecker roleId={role.id} formal={formal} />
     </main>

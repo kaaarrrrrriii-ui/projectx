@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"log/slog"
 	"net/http"
@@ -46,6 +47,12 @@ func main() {
 	}
 
 	ticketRepository := repos.NewTicketRepository(db.DB)
+	ensureContext, ensureCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	if err := ticketRepository.EnsureCategory(ensureContext, "Не знаю, как это назвать"); err != nil {
+		ensureCancel()
+		log.Fatal("❌ ensure required public category: ", err)
+	}
+	ensureCancel()
 	messageRepository := repos.NewMessageRepository(db.DB)
 	attachmentRepository := repos.NewAttachmentRepository(db.DB)
 	userRepository := repos.NewUserRepository(db.DB)
@@ -60,11 +67,15 @@ func main() {
 	if err != nil {
 		log.Fatal("❌ initialize ticket message service: ", err)
 	}
+	submissionService, err := service.NewTicketSubmissionService(ticketRepository, attachmentPreparer, attachmentStorage)
+	if err != nil {
+		log.Fatal("❌ initialize ticket submission service: ", err)
+	}
 	attachmentService, err := service.NewTicketAttachmentService(attachmentRepository, attachmentStorage)
 	if err != nil {
 		log.Fatal("❌ initialize ticket attachment service: ", err)
 	}
-	ticketHandler, err := handlers.NewTicketHandler(ticketService, messageService, attachmentService)
+	ticketHandler, err := handlers.NewTicketHandler(ticketService, messageService, attachmentService, submissionService)
 	if err != nil {
 		log.Fatal("❌ initialize ticket handler: ", err)
 	}
@@ -112,7 +123,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:              ":" + port,
-		Handler:           mux,
+		Handler:           handlers.WithCORS(mux, getEnv("FRONTEND_ORIGIN", "http://localhost:3000")),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

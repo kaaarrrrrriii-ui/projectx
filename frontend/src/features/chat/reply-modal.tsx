@@ -22,21 +22,19 @@ type ReplyFile = {
 };
 
 function isSupportedFile(file: File) {
-  return (
-    file.type.startsWith("image/") ||
-    file.type === "application/pdf" ||
-    file.name.toLowerCase().endsWith(".pdf")
-  );
+  return file.type === "image/jpeg" || file.type === "image/png" || /\.(jpe?g|png)$/i.test(file.name);
 }
 
 export default function ReplyModal({
   formal,
   onClose,
   onSend,
+  submitting = false,
 }: {
   formal: boolean;
   onClose: () => void;
-  onSend: (message: string, fileNames: string[]) => void;
+  onSend: (message: string, files: File[]) => void;
+  submitting?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrls = useRef(new Set<string>());
@@ -60,7 +58,7 @@ export default function ReplyModal({
     const valid = supported.filter((file) => file.size <= MAX_FILE_SIZE);
 
     if (supported.length !== files.length) {
-      setError("Можно добавить только изображения или PDF.");
+      setError("Можно добавить только изображения JPEG или PNG.");
     } else if (valid.length !== supported.length) {
       setError("Размер каждого файла не должен превышать 10 МБ.");
     } else if (items.length + valid.length > MAX_FILES) {
@@ -108,7 +106,7 @@ export default function ReplyModal({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!message.trim() && items.length === 0) return;
-    onSend(message.trim(), items.map(({ file }) => file.name));
+    onSend(message.trim(), items.map(({ file }) => file));
   }
 
   return (
@@ -128,6 +126,7 @@ export default function ReplyModal({
 
         <textarea
           value={message}
+          maxLength={20_000}
           onChange={(event) => setMessage(event.target.value)}
           placeholder={
             formal
@@ -142,7 +141,7 @@ export default function ReplyModal({
           ref={inputRef}
           className="sr-only"
           type="file"
-          accept="image/*,.pdf,application/pdf"
+          accept="image/jpeg,image/png,.jpg,.jpeg,.png"
           multiple
           onChange={(event: ChangeEvent<HTMLInputElement>) => {
             if (event.target.files) addFiles(event.target.files);
@@ -180,7 +179,7 @@ export default function ReplyModal({
             {formal ? "Нажмите, чтобы выбрать файлы" : "Нажми, чтобы выбрать файлы"}
           </p>
           <p className="text-[12px] leading-4 text-[#9196a7]">
-            Можно добавить до 5 файлов (фото, скриншоты, PDF), размер до 10 МБ каждый.
+            Можно добавить до 5 файлов JPEG или PNG, размер до 10 МБ каждый.
           </p>
         </div>
 
@@ -229,11 +228,11 @@ export default function ReplyModal({
         {error && <p className="mt-2 text-[13px] text-[#b42318]" role="alert">{error}</p>}
 
         <Button
-          text="Отправить"
+          text={submitting ? "Отправляем…" : "Отправить"}
           type="submit"
           variant="primary"
           size="small"
-          disabled={!message.trim() && items.length === 0}
+          disabled={!message.trim() || submitting}
           className="mt-[18px] w-full"
         />
       </form>

@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"example.com/german/backend/internal/models"
 	"example.com/german/backend/internal/repos"
@@ -181,7 +182,11 @@ func (service *TicketService) Return(ctx context.Context, trackID, reason string
 	if err != nil {
 		return ReturnTicketResponse{}, err
 	}
-	record, err := service.repository.Return(ctx, normalized, strings.TrimSpace(reason), service.now().UTC())
+	reason = normalizeMultilineText(reason)
+	if utf8.RuneCountInString(reason) > MaxReturnReasonCharacters {
+		return ReturnTicketResponse{}, ErrTextTooLong
+	}
+	record, err := service.repository.Return(ctx, normalized, reason, service.now().UTC())
 	if err != nil {
 		return ReturnTicketResponse{}, err
 	}

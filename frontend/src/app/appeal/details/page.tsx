@@ -11,7 +11,7 @@ export default async function AppealDetails({ searchParams }: {
   const topic = typeof params.topic === "string" ? params.topic : "";
 
   return (
-    <main className="app-page-background flex min-h-dvh flex-col text-[#11131a]">
+    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col overflow-x-clip text-[#11131a]">
       <SiteHeader formal={formal} />
 
       <ClarifyingQuestions role={role.id} topic={topic} formal={formal} />

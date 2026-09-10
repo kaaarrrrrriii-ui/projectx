@@ -204,7 +204,7 @@ export default function CategoriesDashboard() {
 
   return (
     <section className="min-w-0 flex-1 px-5 pt-5 pb-8 sm:px-[26px]" aria-labelledby="categories-heading">
-      <div className="mx-auto w-full max-w-[1180px]">
+      <div className="w-full">
         <Link href="/admin" className="inline-flex rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">Вернуться назад</Link>
         <h1 id="categories-heading" className="mt-7 text-[26px] leading-tight font-extrabold tracking-[-0.02em] text-[#4562f0]">Категории</h1>
 

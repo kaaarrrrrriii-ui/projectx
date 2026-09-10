@@ -37,7 +37,7 @@ function FilterMenu({
 }) {
   return (
     <details className="group relative">
-      <summary className="flex h-9 min-w-[170px] cursor-pointer list-none items-center justify-between gap-3 rounded-[7px] border border-[#000828] bg-white px-4 text-xs text-[#000828] hover:border-[#4562f0] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] [&::-webkit-details-marker]:hidden">
+      <summary className="flex h-9 min-w-[170px] cursor-pointer list-none items-center justify-between gap-3 rounded-[7px] border border-[#808393] bg-[#f7f9fe] px-4 text-xs text-[#000828] hover:border-[#4562f0] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] [&::-webkit-details-marker]:hidden">
         {label}
         <svg viewBox="0 0 12 8" aria-hidden="true" className="h-2 w-3 transition-transform group-open:rotate-180" fill="none">
           <path d="m1 1 5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -101,7 +101,7 @@ export default function SpecialistAssignment({
 
   return (
     <section className="min-w-0 flex-1 px-5 py-6 sm:px-[30px]" aria-labelledby="assignment-heading">
-      <div className="mx-auto w-full max-w-[1180px]">
+      <div className="w-full">
         <button type="button" onClick={() => router.push(returnBasePath + "/" + encodeURIComponent(ticket.track))} className="cursor-pointer rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">
           Вернуться назад
         </button>

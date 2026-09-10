@@ -35,6 +35,8 @@ For an already initialized Docker volume, apply the new migration explicitly:
 ```sh
 docker compose exec -T postgres psql -U appuser -d appdb \
   -f /docker-entrypoint-initdb.d/003_operator_workflow.sql
+docker compose exec -T postgres psql -U appuser -d appdb \
+  -f /docker-entrypoint-initdb.d/004_dev_seed.sql
 ```
 
 Apply `005_operator_api.sql` through the same migration mechanism before using

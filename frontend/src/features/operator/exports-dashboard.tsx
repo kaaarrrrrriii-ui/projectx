@@ -64,7 +64,7 @@ export default function ExportsDashboard() {
 
   return (
     <section className="min-w-0 flex-1 px-5 pt-5 pb-7 sm:px-[28px]" aria-labelledby="exports-heading">
-      <div className="mx-auto w-full max-w-[1180px]">
+      <div className="w-full">
         <label className="relative block">
           <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 z-10 h-5 w-5 -translate-y-1/2 text-[#4562f0]" fill="none">
             <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="2" />

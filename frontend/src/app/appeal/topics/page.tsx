@@ -9,9 +9,9 @@ export default async function AppealTopics({ searchParams }: { searchParams: Pro
   const initialTopic = typeof params.topic === "string" ? params.topic : "";
 
   return (
-    <main className="app-page-background flex min-h-dvh flex-col">
+    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col overflow-x-clip">
       <SiteHeader formal={formal} />
-      <section aria-labelledby="topics-heading" className="relative isolate flex flex-1 flex-col overflow-hidden px-[4.5%] pt-9 pb-[38px] max-[699px]:px-5 max-[699px]:pt-8 max-[699px]:pb-7">
+      <section aria-labelledby="topics-heading" className="relative isolate flex flex-1 flex-col overflow-hidden px-[4.5%] pt-9 pb-[38px] max-[699px]:px-5 max-[699px]:pt-8 max-[699px]:pb-7 max-[379px]:px-3 max-[379px]:pt-6">
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
           <TopicSelection roleId={role.id} initialTopic={initialTopic} formal={formal} />
         </div>
