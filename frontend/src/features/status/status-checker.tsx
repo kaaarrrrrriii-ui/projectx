@@ -2,11 +2,19 @@
 
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
+import CloseAppealFlow from "@/features/chat/close-appeal-flow";
 import { FormEvent, useState } from "react";
 
-export default function StatusChecker({ roleId }: { roleId: string }) {
+export default function StatusChecker({
+  roleId,
+  formal,
+}: {
+  roleId: string;
+  formal: boolean;
+}) {
   const [trackNumber, setTrackNumber] = useState("");
   const [checkedTrackNumber, setCheckedTrackNumber] = useState("");
+  const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
 
   function checkStatus(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,16 +52,31 @@ export default function StatusChecker({ roleId }: { roleId: string }) {
               </div>
             </div>
             <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[46px]">
-              <Button text="Закрыть обращение" variant="secondary" size="default" className="w-full" />
+              <Button
+                text="Закрыть обращение"
+                variant="secondary"
+                size="default"
+                onClick={() => setIsCloseDialogOpen(true)}
+                className="w-full"
+              />
               <Button text="Перейти к ответу специалиста" variant="primary" size="default" link={`/chat?role=${roleId}`} className="w-full" />
             </div>
           </section>
         )}
 
         <div className="flex justify-center py-4">
-          <Button text="Вернуться на главную страницу" variant="primary" size="default" link="/" />
+          <Button text="Вернуться на главную страницу" variant="primary" size="default" link="/" className="w-full" />
         </div>
       </div>
+
+      {isCloseDialogOpen && (
+        <CloseAppealFlow
+          formal={formal}
+          trackNumber={checkedTrackNumber}
+          outcome="helped"
+          onCancel={() => setIsCloseDialogOpen(false)}
+        />
+      )}
     </section>
   );
 }

@@ -160,13 +160,13 @@ export default function SubmissionSuccess({
           </span>
         </Surface>
 
-        <div className="relative z-30 mt-10 flex justify-center max-[699px]:mt-6">
+        <div className="relative z-30 mt-10 flex w-full justify-center max-[699px]:mt-6">
           <Button
             text="Вернуться на главную страницу"
             variant="secondary"
             size="default"
             link="/"
-            className="h-[40px] w-[272px] rounded-[10px] px-5 text-[13px] font-normal"
+            className="h-[40px] w-full rounded-[10px] px-5 text-[13px] font-normal"
           />
         </div>
       </div>

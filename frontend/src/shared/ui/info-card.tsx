@@ -4,14 +4,16 @@ export default function InfoCard({
   title,
   description,
   icon,
+  className = "",
 }: {
   title: string;
   description: string;
   icon: ReactNode;
+  className?: string;
 }) {
   return (
     <article
-      className="
+      className={`
         flex min-h-[73px] items-center gap-4
         rounded-[10px]
         border border-[var(--color-primary)]
@@ -27,7 +29,8 @@ export default function InfoCard({
         max-[699px]:gap-3
         max-[699px]:px-3.5
         max-[699px]:py-4
-      "
+        ${className}
+      `}
     >
       <div
         aria-hidden="true"
