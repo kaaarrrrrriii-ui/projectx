@@ -24,6 +24,11 @@ type operatorService interface {
 	Report(context.Context, string, string, string) (service.GeneratedReport, error)
 }
 
+type operatorWorkerRequestService interface {
+	ListWorkerRequests(context.Context, string, string, string) (service.WorkerRequestPageResponse, error)
+	CompleteWorkerRequest(context.Context, int64, int64, int64) (service.CompleteWorkerRequestResponse, error)
+}
+
 type OperatorHandler struct {
 	service operatorService
 	auth    authService
@@ -54,6 +59,53 @@ func (handler *OperatorHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/operator/tickets/{track_id}/reject", handler.rejectTicket)
 	mux.HandleFunc("GET /api/operator/analytics", handler.analytics)
 	mux.HandleFunc("GET /api/operator/reports", handler.report)
+	mux.HandleFunc("GET /api/operator/worker-requests", handler.listWorkerRequests)
+	mux.HandleFunc("POST /api/operator/worker-requests/{request_id}/complete", handler.completeWorkerRequest)
+}
+
+func (handler *OperatorHandler) listWorkerRequests(w http.ResponseWriter, request *http.Request) {
+	if _, ok := handler.operatorUser(w, request); !ok {
+		return
+	}
+	requestService, ok := handler.service.(operatorWorkerRequestService)
+	if !ok {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	query := request.URL.Query()
+	response, err := requestService.ListWorkerRequests(request.Context(), query.Get("status"), query.Get("page"), query.Get("limit"))
+	if err != nil {
+		writeOperatorError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (handler *OperatorHandler) completeWorkerRequest(w http.ResponseWriter, request *http.Request) {
+	user, ok := handler.operatorUser(w, request)
+	if !ok {
+		return
+	}
+	requestID, err := strconv.ParseInt(request.PathValue("request_id"), 10, 64)
+	if err != nil || requestID <= 0 {
+		writeAPIError(w, http.StatusNotFound, "worker_request_not_found", "worker request not found")
+		return
+	}
+	payload, ok := readWorkerRequest(w, request)
+	if !ok {
+		return
+	}
+	requestService, ok := handler.service.(operatorWorkerRequestService)
+	if !ok {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
+		return
+	}
+	response, err := requestService.CompleteWorkerRequest(request.Context(), requestID, payload.WorkerID, user.ID)
+	if err != nil {
+		writeOperatorError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, response)
 }
 
 func (handler *OperatorHandler) eligibleWorkers(w http.ResponseWriter, request *http.Request) {
@@ -239,6 +291,8 @@ func writeOperatorError(w http.ResponseWriter, err error) {
 		writeAPIError(w, http.StatusBadRequest, "invalid_request", err.Error())
 	case errors.Is(err, service.ErrWorkerNotFound):
 		writeAPIError(w, http.StatusNotFound, "worker_not_found", "worker not found")
+	case errors.Is(err, service.ErrWorkerRequestNotFound):
+		writeAPIError(w, http.StatusNotFound, "worker_request_not_found", "worker request not found")
 	case errors.Is(err, service.ErrWorkerUnavailable):
 		writeAPIError(w, http.StatusConflict, "worker_unavailable", "worker has reached the active ticket limit")
 	case errors.Is(err, service.ErrWorkerAlreadyAssigned):

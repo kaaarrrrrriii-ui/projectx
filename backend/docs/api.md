@@ -104,6 +104,112 @@ stored. Each row contains only dates, category, applicant type, status,
 priority, return count, and timing metrics. Track codes, employee data,
 message text, contacts, and attachment names are excluded.
 
+### Expert worker requests
+
+`GET /api/operator/worker-requests?status=sent&page=1&limit=20` lists requests
+created by experts. `status` may be `sent` or `completed`.
+
+`POST /api/operator/worker-requests/{request_id}/complete` performs the action
+and marks the request as completed:
+
+```json
+{ "worker_id": 7 }
+```
+
+For `add_coworker`, the worker is added as a co-worker. For
+`replace_responsible`, the worker becomes the responsible expert. A request is
+marked completed only after the assignment operation succeeds.
+
+## Expert endpoints
+
+Expert endpoints require a JWT for an employee with role `expert`. An expert
+can access only tickets that have an active `tickets_workers` assignment for
+that employee. The worker id is always taken from the JWT.
+
+### Profile and dashboard
+
+- `GET /api/expert/me` returns the expert group, rating, capacity, and current
+  active ticket count.
+- `GET /api/expert/dashboard` returns personal queue, in-progress, returned,
+  urgent, and processed counts. A ticket is processed after the expert has
+  sent at least one answer.
+
+### Ticket lists
+
+`GET /api/expert/tickets` requires one of these `queue` values:
+
+- `queue` — assigned to this expert, not previously returned, and not yet
+  opened;
+- `assigned` — the expert's tickets in progress, awaiting clarification, or
+  with an answer ready;
+- `returned` — previously returned tickets reassigned by the operator and not
+  yet opened by the expert.
+
+Optional parameters are `search`, `priority`, `category_id`,
+`applicant_type`, `page`, and `limit`. The default limit is 20 and the maximum
+is 100.
+
+### Ticket card and automatic start
+
+`POST /api/expert/tickets/{track_id}/open` is called by the frontend when the
+card opens. It idempotently changes `assigned` to `in_progress`. The UI does
+not require a separate “start work” button.
+
+`GET /api/expert/tickets/{track_id}` returns the ticket, initial description,
+clarifying answers, public chat, applicant attachments, active workers,
+internal expert notes, and allowed actions.
+
+`GET /api/expert/tickets/{track_id}/attachments/{attachment_id}` downloads an
+applicant attachment after checking the expert's active assignment. Experts
+cannot attach files to their own answers.
+
+### Notes and answers
+
+`POST /api/expert/tickets/{track_id}/notes`:
+
+```json
+{ "text": "Внутренняя заметка" }
+```
+
+`POST /api/expert/tickets/{track_id}/messages`:
+
+```json
+{ "text": "Ответ заявителю" }
+```
+
+The answer is saved as a `specialist` message and atomically moves the ticket
+to `answer_ready`. Internal notes are never included in the applicant chat.
+
+### Requests to the operator
+
+`POST /api/expert/tickets/{track_id}/requests`:
+
+```json
+{
+  "request_type": "add_coworker",
+  "reason": "Нужна помощь коллеги"
+}
+```
+
+`request_type` is `add_coworker` or `replace_responsible`. The operator chooses
+the new worker. `GET /api/expert/requests?status=sent&page=1&limit=20` returns
+the current expert's request history. Experts see only the statuses `sent` and
+`completed`.
+
+The database schema is intentionally unchanged. Requests, status events, and
+expert notes use `messages.type = 3` (`internal_note`) with versioned JSON in
+`messages.text`. The initial message id is the request id; completion is an
+additional internal message that references that id.
+
+### Personal analytics and report
+
+- `GET /api/expert/analytics?date_from=2026-09-01&date_to=2026-09-10`
+- `GET /api/expert/reports?date_from=2026-09-01&date_to=2026-09-10&format=csv`
+
+The response schema and calculations match the operator analytics and report,
+but only tickets assigned to the current expert are included. Reports are
+generated immediately and are not stored. `format` may be `csv` or `xlsx`.
+
 ## Persisted enum values
 
 - Priority: `1 = standard`, `2 = urgent`.

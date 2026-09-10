@@ -135,6 +135,13 @@ func RequireOperator(user AuthUser) error {
 	return nil
 }
 
+func RequireExpert(user AuthUser) error {
+	if user.Role != "expert" {
+		return ErrForbidden
+	}
+	return nil
+}
+
 func authUser(user models.User) AuthUser {
 	return AuthUser{ID: user.ID, Username: user.Username, FullName: user.FullName, Role: user.Role}
 }

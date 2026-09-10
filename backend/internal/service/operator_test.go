@@ -24,6 +24,10 @@ type stubOperatorRepository struct {
 	analyticsStart  time.Time
 	analyticsEnd    time.Time
 	reportRecords   []repos.ReportTicketRecord
+	workerRequest   repos.WorkerRequestRecord
+	completedID     int64
+	completedBy     int64
+	addedWorker     int64
 }
 
 func (repository *stubOperatorRepository) EligibleWorkers(context.Context, string, string, int64) (repos.EligibleWorkersRecord, error) {
@@ -37,7 +41,8 @@ func (repository *stubOperatorRepository) SetResponsibleWorker(_ context.Context
 	return repository.assignment, nil
 }
 
-func (repository *stubOperatorRepository) AddWorker(context.Context, string, int64, int64, time.Time) (repos.AssignmentRecord, error) {
+func (repository *stubOperatorRepository) AddWorker(_ context.Context, _ string, workerID, _ int64, _ time.Time) (repos.AssignmentRecord, error) {
+	repository.addedWorker = workerID
 	return repository.assignment, nil
 }
 
@@ -63,6 +68,17 @@ func (repository *stubOperatorRepository) ReportTickets(context.Context, time.Ti
 	return repository.reportRecords, nil
 }
 
+func (repository *stubOperatorRepository) ListOperatorWorkerRequests(context.Context, string, int, int) (repos.WorkerRequestPageRecord, error) {
+	return repos.WorkerRequestPageRecord{Items: []repos.WorkerRequestRecord{repository.workerRequest}, Total: 1}, nil
+}
+
+func (repository *stubOperatorRepository) CompleteWorkerRequest(_ context.Context, requestID, workerID, actorID int64, _ time.Time) (repos.WorkerRequestRecord, error) {
+	repository.completedID, repository.completedBy, repository.addedWorker = requestID, actorID, workerID
+	result := repository.workerRequest
+	result.Status = "completed"
+	return result, nil
+}
+
 func newOperatorTestService(t *testing.T, repository *stubOperatorRepository) *OperatorService {
 	t.Helper()
 	result, err := NewOperatorService(repository)
@@ -85,6 +101,24 @@ func TestOperatorServiceAssignsResponsibleWorker(t *testing.T) {
 	}
 	if response.Status != "assigned" || response.WorkerID != 7 {
 		t.Fatalf("assignment response = %+v", response)
+	}
+}
+
+func TestOperatorCompletesAddCoworkerRequest(t *testing.T) {
+	t.Parallel()
+	repository := &stubOperatorRepository{
+		workerRequest: repos.WorkerRequestRecord{ID: 12, TicketID: 4, TrackID: "ОТК-ABCD-2345", RequestType: "add_coworker", Status: "sent"},
+	}
+	operator := newOperatorTestService(t, repository)
+	response, err := operator.CompleteWorkerRequest(context.Background(), 12, 9, 3)
+	if err != nil {
+		t.Fatalf("CompleteWorkerRequest() error = %v", err)
+	}
+	if repository.addedWorker != 9 || repository.completedID != 12 || repository.completedBy != 3 {
+		t.Fatalf("completion calls = worker %d, request %d, actor %d", repository.addedWorker, repository.completedID, repository.completedBy)
+	}
+	if response.Status != "completed" || response.WorkerID != 9 {
+		t.Fatalf("completion response = %+v", response)
 	}
 }
 
