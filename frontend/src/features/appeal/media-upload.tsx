@@ -117,10 +117,10 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
   return (
     <section
       aria-labelledby="media-heading"
-      className="flex flex-1 flex-col px-[4.5%] pt-9 pb-[38px] max-[699px]:px-5 max-[699px]:pt-8 max-[699px]:pb-7"
+      className="flex flex-1 flex-col px-[4.5%] pt-9 pb-[38px] max-[699px]:px-5 max-[699px]:pt-8 max-[699px]:pb-7 max-[379px]:px-3 max-[379px]:pt-6"
     >
       <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
-        <div className="flex flex-col rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px]">
+        <div className="flex flex-col rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px] max-[699px]:px-5 max-[699px]:py-7 max-[379px]:px-4">
           <h1
             id="media-heading"
             className="text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[var(--color-primary)]"
@@ -166,6 +166,9 @@ export default function MediaUpload({ role, topic = "", formal = false }: { role
               focus-visible:border-[var(--color-primary)] focus-visible:bg-[#dfe6ff]
               focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-primary)]
               motion-reduce:transition-none
+              max-[699px]:min-h-[220px]
+              max-[379px]:min-h-[190px]
+              max-[379px]:px-3
               ${
                 isDragging
                   ? "border-[var(--color-primary)] bg-[#dfe6ff]"

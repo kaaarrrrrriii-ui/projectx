@@ -16,7 +16,7 @@ export default async function AppealDescription({
   const routeParams = { role: role.id, topic };
 
   return (
-    <main className="app-page-background flex min-h-dvh flex-col">
+    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col overflow-x-clip">
       <SiteHeader formal={formal} />
 
       <section
@@ -28,10 +28,12 @@ export default async function AppealDescription({
           max-[699px]:px-5
           max-[699px]:pt-8
           max-[699px]:pb-7
+          max-[379px]:px-3
+          max-[379px]:pt-6
         "
       >
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
-          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px]">
+          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px] max-[699px]:px-5 max-[699px]:py-7 max-[379px]:px-4">
             <h1
               id="description-heading"
               className="
@@ -42,6 +44,7 @@ export default async function AppealDescription({
                 text-[#4562F0]
 
                 max-[699px]:text-[28px]
+                max-[379px]:text-[25px]
               "
             >
               {formal ? "Расскажите, что происходит" : "Расскажи, что происходит"}
@@ -94,6 +97,7 @@ export default async function AppealDescription({
               focus-visible:outline-[#4562F0]
 
               max-[699px]:mt-6
+              max-[699px]:min-h-[190px]
               max-[699px]:text-[16px]
             "
             />
