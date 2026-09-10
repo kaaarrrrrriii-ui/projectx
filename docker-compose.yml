@@ -8,9 +8,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-appdb}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
-      - ./migrations/002_ticket_workflow.sql:/docker-entrypoint-initdb.d/002_ticket_workflow.sql:ro
-      - ./migrations/003_operator_workflow.sql:/docker-entrypoint-initdb.d/003_operator_workflow.sql:ro
+      - ./migrations:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -41,29 +39,21 @@ services:
       - attachments:/data/attachments
     ports:
       - "8080:8080"
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/ready"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # Если фронт ходит к бэку с браузера — обычно нужен публичный URL
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3000
-      # Для серверных запросов из Next.js к бэкенду (внутри docker-сети)
       API_URL: http://backend:8080
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     ports:
       - "3000:3000"
 
