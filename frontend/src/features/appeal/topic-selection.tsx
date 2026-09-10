@@ -64,7 +64,7 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
     <form action={appealRoutes.description} method="get" className="flex flex-1 flex-col">
       <input type="hidden" name="role" value={roleId} />
 
-      <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-3.5 pt-6 pb-5">
+      <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px]">
         <h1 id="topics-heading" className="text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0]">
           С чем это связано?
         </h1>

@@ -37,12 +37,12 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
 
   return (
     <section
-      className="flex flex-1 flex-col px-5 pt-8 pb-7 sm:px-[4.3%] sm:pt-2 sm:pb-[38px]"
+      className="flex flex-1 flex-col px-[4.5%] pt-9 pb-[38px] max-[699px]:px-5 max-[699px]:pt-8 max-[699px]:pb-7"
       aria-labelledby="details-heading"
     >
       <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
         <form className="flex flex-1 flex-col">
-          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-3.5 py-3.5">
+          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px]">
             <header>
               <h1
                 id="details-heading"

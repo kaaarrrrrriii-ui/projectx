@@ -23,14 +23,15 @@ export default async function AppealDescription({
         aria-labelledby="description-heading"
         className="
           flex flex-1 flex-col
-          px-[4.5%] pt-[14px] pb-[38px]
+          px-[4.5%] pt-9 pb-[38px]
 
           max-[699px]:px-5
-          max-[699px]:py-8
+          max-[699px]:pt-8
+          max-[699px]:pb-7
         "
       >
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
-          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[15px] py-6">
+          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px]">
             <h1
               id="description-heading"
               className="

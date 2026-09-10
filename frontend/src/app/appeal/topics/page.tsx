@@ -11,7 +11,7 @@ export default async function AppealTopics({ searchParams }: { searchParams: Pro
   return (
     <main className="app-page-background flex min-h-dvh flex-col">
       <SiteHeader formal={formal} />
-      <section aria-labelledby="topics-heading" className="relative isolate flex flex-1 flex-col overflow-hidden px-5 pt-9 pb-8 sm:px-[4.65%] sm:pt-9 sm:pb-[38px]">
+      <section aria-labelledby="topics-heading" className="relative isolate flex flex-1 flex-col overflow-hidden px-[4.5%] pt-9 pb-[38px] max-[699px]:px-5 max-[699px]:pt-8 max-[699px]:pb-7">
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
           <TopicSelection roleId={role.id} initialTopic={initialTopic} formal={formal} />
         </div>
