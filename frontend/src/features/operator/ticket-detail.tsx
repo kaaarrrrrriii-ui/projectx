@@ -4,11 +4,12 @@ import Button from "@/shared/ui/button";
 import Link from "next/link";
 import { useState } from "react";
 import { applicantLabels, type OperatorTicket, type TicketPriority } from "./tickets";
+import { CloseTicketModal, SpecialistAssignmentModal } from "./ticket-detail-modals";
 
 const priorities: Array<{ value: TicketPriority; label: string }> = [
   { value: "urgent", label: "Срочное" },
   { value: "standard", label: "Стандартное" },
-  { value: "low", label: "Низкое" },
+  { value: "low", label: "Вопрос" },
 ];
 
 const statuses = [
@@ -18,33 +19,15 @@ const statuses = [
   { value: "clarification", label: "Нужно уточнение" },
   { value: "answer-ready", label: "Ответ готов" },
   { value: "returned", label: "Возвращено" },
+  { value: "rejected", label: "Отклонено" },
+  { value: "closed", label: "Закрыто" },
 ];
 
-const colors: Record<TicketPriority, { text: string; soft: string; solid: string; outline: string; focus: string }> = {
-  urgent: {
-    text: "text-[#d70d14]",
-    soft: "border-[#ef8b8f] bg-[#ffdfe0] text-[#d70d14]",
-    solid: "border-[#e5141b] bg-[#e5141b] text-white hover:bg-[#c81017]",
-    outline: "border-[#e5141b] bg-white text-[#e5141b] hover:bg-[#fff1f1]",
-    focus: "focus-visible:outline-[#e5141b]",
-  },
-  standard: {
-    text: "text-[#946100]",
-    soft: "border-[#e4bd52] bg-[#fff0b3] text-[#946100]",
-    solid: "border-[#e4ad2b] bg-[#e4ad2b] text-[#302100] hover:bg-[#d09a18]",
-    outline: "border-[#e4ad2b] bg-white text-[#946100] hover:bg-[#fff8df]",
-    focus: "focus-visible:outline-[#e4ad2b]",
-  },
-  low: {
-    text: "text-[#087f1a]",
-    soft: "border-[#72bf78] bg-[#dff2e0] text-[#087f1a]",
-    solid: "border-[#15952a] bg-[#15952a] text-white hover:bg-[#087f1a]",
-    outline: "border-[#15952a] bg-white text-[#087f1a] hover:bg-[#effaf0]",
-    focus: "focus-visible:outline-[#15952a]",
-  },
+const colors: Record<TicketPriority, { text: string; soft: string }> = {
+  urgent: { text: "text-[#e5141b]", soft: "bg-[#f7b6b8] text-[#d70d14]" },
+  standard: { text: "text-[#4562f0]", soft: "bg-[#dfe6ff] text-[#4562f0]" },
+  low: { text: "text-[#087f1a]", soft: "bg-[#dff2e0] text-[#087f1a]" },
 };
-
-const actionBase = "h-10 w-full cursor-pointer rounded-[8px] border px-4 text-sm font-medium transition-colors focus-visible:outline-3 focus-visible:outline-offset-3";
 
 export default function TicketDetail({
   ticket,
@@ -57,114 +40,114 @@ export default function TicketDetail({
 }) {
   const [priority, setPriority] = useState<TicketPriority>(ticket.priority);
   const [status, setStatus] = useState(ticket.status);
-  const [assignedExpert] = useState(initialExpert);
+  const [assignedExpert, setAssignedExpert] = useState(initialExpert);
   const [notice, setNotice] = useState("");
+  const [assignmentOpen, setAssignmentOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
   const accent = colors[priority];
-  const assignHref = returnBasePath + "/" + encodeURIComponent(ticket.track) + "/assign";
+
+  function assignSpecialist(specialist: string) {
+    setAssignedExpert(specialist);
+    setStatus("assigned");
+    setNotice("Исполнитель назначен");
+    setAssignmentOpen(false);
+  }
+
+  function closeTicket(reason: string) {
+    setStatus("closed");
+    setNotice(`Обращение закрыто. Причина: ${reason}`);
+    setCloseOpen(false);
+  }
 
   return (
-    <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_480px] max-[1249px]:grid-cols-1">
-      <article className="flex min-w-0 flex-col px-5 py-6 sm:px-8">
-        <Link href={returnBasePath} className="w-fit rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">
-          Вернуться назад
-        </Link>
+    <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_268px] max-[899px]:grid-cols-1">
+      <article className="flex min-w-0 flex-col px-3 py-4 sm:px-4">
+        <Link href={returnBasePath} className="w-fit rounded-sm text-sm text-[#85899b] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">Вернуться назад</Link>
 
-        <header className="mt-8 flex flex-wrap items-center gap-4">
-          <h1 className={`text-[clamp(22px,2.3vw,30px)] leading-tight font-extrabold ${accent.text}`}>
-            Обращение №{ticket.track}
-          </h1>
-          <span className={`rounded-full border px-5 py-1.5 text-xs font-medium ${accent.soft}`}>
-            {priorities.find((item) => item.value === priority)?.label}
-          </span>
+        <header className="mt-6 flex flex-wrap items-center gap-3">
+          <h1 className={`text-[clamp(20px,2.3vw,25px)] leading-tight font-extrabold ${accent.text}`}>Обращение №{ticket.track}</h1>
+          <span className={`rounded-full px-4 py-1.5 text-[10px] ${accent.soft}`}>{priorities.find((item) => item.value === priority)?.label}</span>
         </header>
-        <p className="mt-1.5 text-base text-[#151515]">Дата: {ticket.submittedAt}</p>
+        <p className="mt-1 text-sm font-medium text-[#151515]">Дата: {ticket.submittedAt}</p>
 
-        <section className="mt-8">
-          <h2 className="text-lg font-medium text-[#151515]">Тип заявителя: {applicantLabels[ticket.applicant] ?? ticket.applicant}</h2>
-          <p className="mt-2 text-sm text-[#646d86]">Тема: {ticket.category.charAt(0).toUpperCase() + ticket.category.slice(1)}</p>
+        <section className="mt-7">
+          <h2 className="text-base font-medium text-[#151515]">Тип заявителя: {applicantLabels[ticket.applicant] ?? ticket.applicant}</h2>
         </section>
 
-        <section aria-labelledby="original-text-heading" className="mt-8">
-          <h2 id="original-text-heading" className="text-lg font-medium text-[#151515]">Исходный текст</h2>
-          <div className="mt-3 min-h-[180px] rounded-[13px] border border-[#333] bg-white/75 px-4 py-3 text-sm leading-6 text-[#30384f]">
-            {ticket.description}
-          </div>
+        <section aria-labelledby="original-text-heading" className="mt-6">
+          <h2 id="original-text-heading" className="text-base font-medium text-[#151515]">Исходный текст</h2>
+          <div className="mt-2 min-h-[130px] rounded-[11px] border border-[#333] bg-white/75 px-3 py-2 text-xs leading-5 text-[#30384f]">{ticket.description}</div>
         </section>
 
-        <section aria-labelledby="answers-heading" className="mt-8">
-          <h2 id="answers-heading" className="text-lg font-medium text-[#151515]">Ответы на уточняющие вопросы:</h2>
-          <dl className="mt-3 grid gap-1 text-sm text-[#3f475d]">
+        <section aria-labelledby="answers-heading" className="mt-6">
+          <h2 id="answers-heading" className="text-base font-medium text-[#151515]">Ответы на уточняющие вопросы:</h2>
+          <dl className="mt-2 grid gap-1 text-xs text-[#3f475d]">
             {ticket.clarifications.map((item) => (
-              <div key={item.question} className="flex flex-wrap gap-1">
-                <dt>{item.question}</dt>
-                <dd className="font-medium text-[#151515]">{item.answer}</dd>
-              </div>
+              <div key={item.question} className="flex flex-wrap gap-1"><dt>{item.question}</dt><dd className="font-medium text-[#151515]">{item.answer}</dd></div>
             ))}
           </dl>
         </section>
 
-        <section aria-labelledby="files-heading" className="mt-8">
-          <h2 id="files-heading" className="text-lg font-medium text-[#151515]">Прикреплённые файлы:</h2>
+        <section aria-labelledby="files-heading" className="mt-6">
+          <h2 id="files-heading" className="text-base font-medium text-[#151515]">Прикреплённые файлы:</h2>
           {ticket.attachments.length ? (
-            <ul className="mt-3 flex flex-wrap gap-3">
-              {ticket.attachments.map((file) => (
-                <li key={file} className="flex items-center gap-2 rounded-lg border border-[#bdc7f8] bg-white/75 px-3 py-2 text-sm text-[#30384f]">
-                  <svg viewBox="0 0 20 20" aria-hidden="true" className={`h-4 w-4 ${accent.text}`} fill="none"><path d="m7 10 5-5a3 3 0 1 1 4 4l-7 7a4 4 0 0 1-6-6l7-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                  {file}
-                </li>
-              ))}
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {ticket.attachments.map((file) => <li key={file} className="text-xs text-[#30384f]">{file}</li>)}
             </ul>
-          ) : <p className="mt-3 text-sm text-[#7b849b]">Файлы не приложены</p>}
+          ) : <p className="mt-2 text-xs text-[#7b849b]">Файлы не приложены</p>}
         </section>
 
-        <Link href={returnBasePath} className="mt-auto w-fit rounded-sm pt-12 text-sm text-[#a0a6b7] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#4562f0]">
-          Вернуться назад
-        </Link>
+        <section aria-labelledby="chat-history-heading" className="mt-7 max-w-[520px]">
+          <h2 id="chat-history-heading" className="text-[22px] font-extrabold text-[#4562f0]">История чата обращения</h2>
+          <div className="mt-4 rounded-[12px] border border-[#4562f0] bg-white p-4">
+            <h3 className="text-sm text-[#4562f0]">Ответ эксперта</h3>
+            <div className="mt-3 min-h-[82px] rounded-[10px] border border-[#7990ff] bg-white" />
+          </div>
+          <div className="mt-5 rounded-[12px] border border-[#000828] bg-[#dfe6ff] p-4">
+            <h3 className="text-sm text-[#000828]">Ответ заявителя</h3>
+            <div className="mt-3 min-h-[94px] rounded-[10px] border border-[#000828] bg-[#dfe6ff]" />
+          </div>
+        </section>
       </article>
 
-      <aside aria-labelledby="edit-ticket-heading" className="flex min-h-[calc(100dvh-100px)] flex-col border-l border-[#4562f0] bg-white/55 px-6 py-6 max-[1249px]:min-h-0 max-[1249px]:border-t max-[1249px]:border-l-0">
-        <h2 id="edit-ticket-heading" className="text-xl font-medium text-[#151515]">Редактировать обращение</h2>
+      <aside aria-labelledby="edit-ticket-heading" className="flex min-h-[calc(100dvh-80px)] flex-col border border-[#4562f0] bg-white/70 px-3.5 py-5 max-[899px]:min-h-0 max-[899px]:border-r-0 max-[899px]:border-b-0 max-[899px]:border-l-0">
+        <h2 id="edit-ticket-heading" className="text-base font-medium text-[#151515]">Редактировать обращение</h2>
 
-        <section aria-label="Параметры обращения" className="mt-4 rounded-[14px] border border-[#4562f0] bg-white/80 p-3">
+        <section aria-label="Параметры обращения" className="mt-3 rounded-[12px] border border-[#4562f0] bg-white/80 p-2.5">
           <fieldset>
-            <legend className="text-sm text-[#30384f]">Приоритет</legend>
-            <div className="mt-2 grid grid-cols-3 gap-2">
+            <legend className="text-xs text-[#30384f]">Приоритет</legend>
+            <div className="mt-2 grid grid-cols-3 gap-1.5">
               {priorities.map((item) => (
-                <button key={item.value} type="button" aria-pressed={priority === item.value} onClick={() => setPriority(item.value)} className={`min-h-8 cursor-pointer rounded-full border px-3 text-[11px] whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] ${priority === item.value ? colors[item.value].soft : "border-transparent bg-[#fafbff] text-[#30384f] hover:border-[#bbc5f5]"}`}>
-                  {item.label}
-                </button>
+                <button key={item.value} type="button" aria-pressed={priority === item.value} onClick={() => setPriority(item.value)} className={`min-h-7 cursor-pointer rounded-full border border-transparent px-2 text-[9px] whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] ${priority === item.value ? colors[item.value].soft : "bg-[#fafbff] text-[#30384f] hover:border-[#bbc5f5]"}`}>{item.label}</button>
               ))}
             </div>
           </fieldset>
 
-          <label className="mt-6 block text-sm text-[#30384f]">
+          <label className="mt-5 block text-xs text-[#30384f]">
             Статус
-            <select value={status} onChange={(event) => setStatus(event.target.value)} className="mt-2 h-10 w-full rounded-[10px] border border-[#333] bg-white px-3 text-center text-sm outline-none focus:border-[#4562f0] focus:ring-2 focus:ring-[#4562f0]/15">
+            <select value={status} onChange={(event) => setStatus(event.target.value)} className="mt-2 h-8 w-full cursor-pointer rounded-[9px] border border-[#333] bg-white px-2 text-center text-[11px] outline-none focus:border-[#4562f0] focus:ring-2 focus:ring-[#4562f0]/15">
               {statuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
             </select>
           </label>
-          <Button text="Изменить" variant="primary" size="small" onClick={() => setNotice("Статус обращения изменён")} className="mt-2.5 h-9 w-full rounded-[8px] text-sm font-normal" />
 
-          <div className="mt-7">
-            <h3 className="text-sm text-[#30384f]">Исполнитель</h3>
-            <p className="mt-1.5 text-sm text-[#4562f0]">{assignedExpert || "Не назначен"}</p>
-            <Button text="Изменить исполнителя" variant="secondary" size="small" link={assignHref} className="mt-2.5 h-9 w-full rounded-[8px] text-sm font-normal" />
-            <Button text="Добавить исполнителя" variant="primary" size="small" link={assignHref} disabled={Boolean(assignedExpert)} className="mt-2.5 h-9 w-full rounded-[8px] text-sm font-normal" />
+          <div className="mt-5">
+            <h3 className="text-xs text-[#30384f]">Исполнитель</h3>
+            <p className="mt-1.5 min-h-4 text-[11px] text-[#4562f0]">{assignedExpert || "Не назначен"}</p>
+            <Button text="Изменить исполнителя" variant="secondary" size="small" onClick={() => setAssignmentOpen(true)} className="mt-2 h-8 w-full rounded-[7px] px-2 text-[10px] font-normal" />
+            <Button text="Добавить исполнителя" variant="primary" size="small" onClick={() => setAssignmentOpen(true)} disabled={Boolean(assignedExpert)} className="mt-2 h-8 w-full rounded-[7px] px-2 text-[10px] font-normal" />
           </div>
         </section>
 
-        <label className="mt-5 block text-sm text-[#30384f]">
-          Справка от исполнителя
-          <textarea className="mt-2 block min-h-[138px] w-full resize-y rounded-[13px] border border-[#333] bg-white/80 p-3 text-sm leading-5 outline-none focus:border-[#4562f0] focus:ring-2 focus:ring-[#4562f0]/15" />
-        </label>
+        {notice && <p role="status" className="mt-3 rounded-lg bg-[#eef1ff] px-3 py-2 text-[11px] leading-4 text-[#4562f0]">{notice}</p>}
 
-        {notice && <p role="status" className={`mt-4 rounded-lg border px-3 py-2 text-sm ${accent.soft}`}>{notice}</p>}
-
-        <div className="mt-auto grid gap-2.5 pt-6">
-          <button type="button" onClick={() => setNotice("Обращение закрыто")} className={`${actionBase} ${accent.solid} ${accent.focus}`}>Закрыть обращение</button>
-          <button type="button" onClick={() => setNotice("Обращение вернуто на доработку")} className={`${actionBase} ${accent.outline} ${accent.focus}`}>Вернуть на доработку</button>
+        <div className="mt-auto grid gap-2 pt-6">
+          <button type="button" onClick={() => setCloseOpen(true)} className="h-9 w-full cursor-pointer rounded-[7px] border border-[#e5141b] bg-[#e5141b] text-[11px] font-medium text-white transition-colors hover:bg-[#c81017] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e5141b]">Закрыть обращение</button>
+          <button type="button" onClick={() => setNotice("Изменения сохранены")} className="h-9 w-full cursor-pointer rounded-[7px] border border-[#e5141b] bg-white text-[11px] font-medium text-[#e5141b] transition-colors hover:bg-[#fff1f1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e5141b]">Сохранить изменения</button>
         </div>
       </aside>
+
+      {closeOpen && <CloseTicketModal onClose={() => setCloseOpen(false)} onSubmit={closeTicket} />}
+      {assignmentOpen && <SpecialistAssignmentModal category={ticket.category} onClose={() => setAssignmentOpen(false)} onAssign={assignSpecialist} />}
     </div>
   );
 }
