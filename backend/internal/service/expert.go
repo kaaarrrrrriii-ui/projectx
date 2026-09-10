@@ -240,12 +240,8 @@ func parseExpertTicketFilter(workerID int64, request ExpertTicketListRequest) (r
 	}
 	filter.Offset = (page - 1) * filter.Limit
 	if request.Priority != "" {
-		switch request.Priority {
-		case "standard":
-			filter.Priority = models.TicketPriorityStandard
-		case "urgent":
-			filter.Priority = models.TicketPriorityUrgent
-		default:
+		filter.Priority = ticketPriorityFromString(request.Priority)
+		if filter.Priority == 0 {
 			return repos.ExpertTicketFilter{}, 0, ErrInvalidFilter
 		}
 	}

@@ -235,7 +235,8 @@ func (repository *ExpertRepository) ListTickets(ctx context.Context, filter Expe
 		JOIN tickets_workers AS tw ON tw.ticket_id = t.id
 		JOIN categories AS c ON c.id = t.category_id
 		`+where+`
-		ORDER BY t.priority DESC, t.created_at ASC, t.id ASC
+		ORDER BY CASE t.priority WHEN 2 THEN 0 WHEN 1 THEN 1 ELSE 2 END,
+		         t.created_at ASC, t.id ASC
 		LIMIT $`+fmt.Sprint(limitPosition)+` OFFSET $`+fmt.Sprint(offsetPosition), args...)
 	if err != nil {
 		return ExpertTicketPageRecord{}, fmt.Errorf("list expert tickets: %w", err)

@@ -88,7 +88,7 @@ func main() {
 	if err != nil {
 		log.Fatal("❌ initialize auth handler: ", err)
 	}
-	operatorHandler, err := handlers.NewOperatorHandler(operatorService, authService)
+	operatorHandler, err := handlers.NewOperatorHandler(operatorService, authService, attachmentService)
 	if err != nil {
 		log.Fatal("❌ initialize operator handler: ", err)
 	}

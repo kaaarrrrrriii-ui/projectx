@@ -31,9 +31,11 @@ type stubOperatorService struct {
 	workerID         int64
 	actorID          int64
 	requestID        int64
+	dashboardCalled  bool
+	closedMessage    string
 }
 
-func (*stubOperatorService) EligibleWorkers(context.Context, string, string, string) (service.EligibleWorkersResponse, error) {
+func (*stubOperatorService) EligibleWorkers(context.Context, string, string, string, string) (service.EligibleWorkersResponse, error) {
 	return service.EligibleWorkersResponse{}, nil
 }
 
@@ -76,6 +78,26 @@ func (stub *stubOperatorService) CompleteWorkerRequest(_ context.Context, reques
 	stub.requestID, stub.workerID, stub.actorID = requestID, workerID, actorID
 	return service.CompleteWorkerRequestResponse{RequestID: requestID, WorkerID: workerID, Status: "completed"}, nil
 }
+
+func (stub *stubOperatorService) Dashboard(context.Context) (service.OperatorDashboardResponse, error) {
+	stub.dashboardCalled = true
+	return service.OperatorDashboardResponse{NewCount: 2}, nil
+}
+
+func (*stubOperatorService) Ticket(context.Context, string) (service.OperatorTicketDetailResponse, error) {
+	return service.OperatorTicketDetailResponse{}, nil
+}
+
+func (*stubOperatorService) UpdateTicket(context.Context, string, int64, service.OperatorTicketUpdateRequest) (service.OperatorTicketDetailResponse, error) {
+	return service.OperatorTicketDetailResponse{}, nil
+}
+
+func (stub *stubOperatorService) CloseTicket(_ context.Context, _ string, _ int64, message string) (service.OperatorCloseResponse, error) {
+	stub.closedMessage = message
+	return service.OperatorCloseResponse{Status: "completed"}, nil
+}
+
+func (*stubOperatorService) CanAccessAttachment(context.Context, string, int64) error { return nil }
 
 func TestAuthLoginHandler(t *testing.T) {
 	t.Parallel()
@@ -154,6 +176,31 @@ func TestOperatorHandlerCompletesWorkerRequest(t *testing.T) {
 	mux.ServeHTTP(response, request)
 	if response.Code != http.StatusOK || operator.requestID != 12 || operator.workerID != 7 || operator.actorID != 3 {
 		t.Fatalf("status = %d, operator = %+v, body = %s", response.Code, operator, response.Body.String())
+	}
+}
+
+func TestOperatorDashboardAndCloseRoutes(t *testing.T) {
+	t.Parallel()
+	auth := &stubAuthService{user: service.AuthUser{ID: 3, Role: "operator"}}
+	operator := &stubOperatorService{}
+	handler, _ := NewOperatorHandler(operator, auth)
+	mux := http.NewServeMux()
+	handler.RegisterRoutes(mux)
+
+	dashboardRequest := httptest.NewRequest(http.MethodGet, "/api/operator/dashboard", nil)
+	dashboardRequest.Header.Set("Authorization", "Bearer token")
+	dashboardResponse := httptest.NewRecorder()
+	mux.ServeHTTP(dashboardResponse, dashboardRequest)
+	if dashboardResponse.Code != http.StatusOK || !operator.dashboardCalled || !strings.Contains(dashboardResponse.Body.String(), `"new_count":2`) {
+		t.Fatalf("dashboard status = %d, body = %s", dashboardResponse.Code, dashboardResponse.Body.String())
+	}
+
+	closeRequest := httptest.NewRequest(http.MethodPost, "/api/operator/tickets/%D0%9E%D0%A2%D0%9A-ABCD-2345/close", strings.NewReader(`{"message":"Ответ"}`))
+	closeRequest.Header.Set("Authorization", "Bearer token")
+	closeResponse := httptest.NewRecorder()
+	mux.ServeHTTP(closeResponse, closeRequest)
+	if closeResponse.Code != http.StatusOK || operator.closedMessage != "Ответ" {
+		t.Fatalf("close status = %d, message = %q, body = %s", closeResponse.Code, operator.closedMessage, closeResponse.Body.String())
 	}
 }
 

@@ -635,7 +635,7 @@ func (repository *AdminRepository) ListTickets(ctx context.Context, f AdminTicke
 		return AdminTicketPageRecord{}, err
 	}
 	args = append(args, f.Limit, f.Offset)
-	rows, err := repository.db.QueryContext(ctx, `SELECT t.track_id,c.id,c.name,t.status,t.morda_type,t.priority,t.created_at,t.closed_at,t.return_count,r.worker_id,r.full_name,`+adminRoutingIssueSQL("t")+` FROM tickets t JOIN categories c ON c.id=t.category_id LEFT JOIN LATERAL(SELECT u.id worker_id,u.full_name FROM tickets_workers tw JOIN users u ON u.id=tw.worker_id WHERE tw.ticket_id=t.id AND tw.actual AND tw.is_responsible LIMIT 1)r ON TRUE`+where+fmt.Sprintf(` ORDER BY t.priority DESC,t.created_at,t.id LIMIT $%d OFFSET $%d`, len(args)-1, len(args)), args...)
+	rows, err := repository.db.QueryContext(ctx, `SELECT t.track_id,c.id,c.name,t.status,t.morda_type,t.priority,t.created_at,t.closed_at,t.return_count,r.worker_id,r.full_name,`+adminRoutingIssueSQL("t")+` FROM tickets t JOIN categories c ON c.id=t.category_id LEFT JOIN LATERAL(SELECT u.id worker_id,u.full_name FROM tickets_workers tw JOIN users u ON u.id=tw.worker_id WHERE tw.ticket_id=t.id AND tw.actual AND tw.is_responsible LIMIT 1)r ON TRUE`+where+fmt.Sprintf(` ORDER BY CASE t.priority WHEN 2 THEN 0 WHEN 1 THEN 1 ELSE 2 END,t.created_at,t.id LIMIT $%d OFFSET $%d`, len(args)-1, len(args)), args...)
 	if err != nil {
 		return AdminTicketPageRecord{}, err
 	}

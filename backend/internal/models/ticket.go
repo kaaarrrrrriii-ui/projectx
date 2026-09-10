@@ -22,6 +22,7 @@ type TicketPriority int
 const (
 	TicketPriorityStandard TicketPriority = iota + 1
 	TicketPriorityUrgent
+	TicketPriorityLow
 )
 
 func (priority TicketPriority) String() string {
@@ -30,6 +31,8 @@ func (priority TicketPriority) String() string {
 		return "standard"
 	case TicketPriorityUrgent:
 		return "urgent"
+	case TicketPriorityLow:
+		return "low"
 	default:
 		return "unknown"
 	}
