@@ -59,34 +59,35 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
 
   return (
     <section
-      className="flex flex-1 flex-col px-5 pt-8 pb-7 sm:px-[4.8%] sm:pt-[55px] sm:pb-[38px]"
+      className="flex flex-1 flex-col px-5 pt-8 pb-7 sm:px-[4.3%] sm:pt-2 sm:pb-[38px]"
       aria-labelledby="details-heading"
     >
       <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
-        <header>
-          <h1
-            id="details-heading"
-            className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.035em] text-[#4562f0] sm:text-[34px] sm:leading-[41px]"
-          >
-            {formal ? "Несколько уточнений" : "Пару уточнений"}
-          </h1>
-          <p className="mt-px mb-0 text-[14px] leading-5 font-normal text-[#17191f]">
-            Эти вопросы необязательные, но помогут лучше понять ситуацию.
-          </p>
-        </header>
+        <form className="flex flex-1 flex-col">
+          <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-3.5 py-3.5">
+            <header>
+              <h1
+                id="details-heading"
+                className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.035em] text-[#4562f0] sm:text-[30px] sm:leading-9"
+              >
+                {formal ? "Несколько уточнений" : "Пару уточнений"}
+              </h1>
+              <p className="mt-px mb-0 text-[14px] leading-5 font-normal text-[#17191f]">
+                Эти вопросы необязательные, но помогут лучше понять ситуацию.
+              </p>
+            </header>
 
-        <form className="mt-5 flex flex-1 flex-col">
-          <div className="w-full max-w-[772px]">
+            <div className="mt-4 w-full max-w-[670px]">
             {questions.map((question, questionIndex) => {
               const isSkipped = skipped[question.key];
 
               return (
                 <fieldset
-                  className={`m-0 min-w-0 border-0 p-0 ${questionIndex > 0 ? "mt-[34px]" : ""}`}
+                  className={`m-0 min-w-0 border-0 p-0 ${questionIndex > 0 ? "mt-5" : ""}`}
                   key={question.key}
                 >
                   <legend
-                    className={`block w-full p-0 text-[19px] leading-6 font-medium ${
+                    className={`block w-full p-0 text-[16px] leading-5 font-medium ${
                       isSkipped ? "text-[#b1b3ba]" : "text-[#11131a]"
                     }`}
                   >
@@ -96,7 +97,7 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
                   </legend>
 
                   <div
-                    className="mt-[9px] grid w-full grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-x-[10px]"
+                    className="mt-[7px] grid w-full grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-x-3"
                   >
                     {question.options.map((option, optionIndex) => {
                       const inputId = `${question.key}-${optionIndex}`;
@@ -113,7 +114,7 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
                             type="radio"
                             value={option}
                           />
-                          <span className="flex min-h-[38px] w-full items-center justify-center rounded-[14px] border border-[#18223f] bg-white/20 px-3 py-2 text-center text-[14px] leading-5 font-normal text-[#18213e] transition-[border-color,background-color,color] duration-150 hover:border-[#4562f0] hover:bg-[#eef1ff] peer-checked:border-[#4562f0] peer-checked:bg-[#4562f0] peer-checked:text-white peer-disabled:cursor-default peer-disabled:border-[#b9becb] peer-disabled:bg-transparent peer-disabled:text-[#b8bbc5] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-[#4562f0] motion-reduce:transition-none">
+                          <span className="flex min-h-[30px] w-full items-center justify-center rounded-[12px] border border-[#18223f] bg-white/20 px-3 py-1 text-center text-[12px] leading-4 font-normal text-[#18213e] transition-[border-color,background-color,color] duration-150 hover:border-[#4562f0] hover:bg-[#eef1ff] peer-checked:border-[#4562f0] peer-checked:bg-[#4562f0] peer-checked:text-white peer-disabled:cursor-default peer-disabled:border-[#b9becb] peer-disabled:bg-transparent peer-disabled:text-[#b8bbc5] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-[#4562f0] motion-reduce:transition-none">
                             {formal &&
                             question.key === "askedForHelp" &&
                             option === "Не уверен"
@@ -126,19 +127,19 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
                   </div>
 
                   <label
-                    className={`relative mt-1.5 flex w-fit cursor-pointer items-center gap-[7px] text-[14px] leading-[18px] font-normal ${
+                    className={`relative mt-1 flex w-fit cursor-pointer items-center gap-1.5 text-[12px] leading-[14px] font-normal ${
                       isSkipped ? "text-[#5470ff]" : "text-[#8e929d]"
                     }`}
                   >
                     <input
                       checked={isSkipped}
-                      className="peer m-0 grid size-[18px] shrink-0 cursor-pointer appearance-none place-content-center rounded-[5px] border border-[#a8adb8] bg-transparent checked:border-[#5b75ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
+                      className="peer m-0 grid size-[14px] shrink-0 cursor-pointer appearance-none place-content-center rounded-[3px] border border-[#a8adb8] bg-transparent checked:border-[#5b75ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
                       onChange={() => toggleSkipped(question.key)}
                       type="checkbox"
                     />
                     <svg
                       aria-hidden="true"
-                      className="pointer-events-none absolute top-[5px] left-[4px] hidden h-[7px] w-[10px] text-[#4562f0] peer-checked:block"
+                      className="pointer-events-none absolute top-[3px] left-[3px] hidden h-[7px] w-2 text-[#4562f0] peer-checked:block"
                       viewBox="0 0 10 7"
                     >
                       <path d="M1 3.5 3.6 6 9 1" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.4" />
@@ -148,6 +149,7 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
                 </fieldset>
               );
             })}
+            </div>
           </div>
 
           <AppealNavigation

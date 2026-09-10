@@ -64,9 +64,17 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
     <form action={appealRoutes.description} method="get" className="flex flex-1 flex-col">
       <input type="hidden" name="role" value={roleId} />
 
-      <fieldset aria-describedby="topics-description" className="mt-10 min-w-0 sm:mt-[84px]">
+      <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-3.5 pt-6 pb-5">
+        <h1 id="topics-heading" className="text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0]">
+          С чем это связано?
+        </h1>
+        <p id="topics-description" className="mt-[5px] text-[12px] leading-4 text-[#151515]">
+          {formal ? "Можно выбрать одну или несколько тем, которые ближе всего к вашей ситуации." : "Можно выбрать одну или несколько тем, которые ближе всего к твоей ситуации."}
+        </p>
+
+        <fieldset aria-describedby="topics-description" className="mt-10 min-w-0 sm:mt-[62px]">
         <legend className="sr-only">Выбор одной темы обращения</legend>
-        <div className="grid grid-cols-1 gap-x-4 gap-y-[22px] sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-3 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           {topics.map((topic) => (
             <TopicOption
               key={topic}
@@ -75,6 +83,7 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
               checked={selectedTopic === topic}
               onChange={setSelectedTopic}
               required
+              variant={topic === "не знаю, как это назвать" ? "secondary" : "default"}
             />
           ))}
 
@@ -97,10 +106,10 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
             </TopicOption>
           )}
         </div>
-      </fieldset>
+        </fieldset>
 
-      {isEditing ? (
-        <div className="mt-6 max-w-[620px] rounded-2xl border border-[#cbd3f5] bg-white/70 p-4">
+        {isEditing ? (
+          <div className="mt-6 max-w-[620px] rounded-2xl border border-[#cbd3f5] bg-white/70 p-4">
           <label htmlFor="custom-topic" className="mb-2 block text-sm font-medium text-[#000828]">
             {customTopic
               ? (formal ? "Измените свою тему" : "Измени свою тему")
@@ -131,13 +140,14 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
             </div>
           </div>
           {error && <p id="custom-topic-error" role="alert" className="mt-2 text-sm text-[#b42318]">{error}</p>}
-        </div>
-      ) : !customTopic ? (
-        <button type="button" onClick={openEditor} className="mt-[21px] flex w-fit cursor-pointer items-center gap-[14px] rounded-sm py-1 text-sm text-[#151515] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4562f0]">
-          <span aria-hidden="true" className="text-[28px] leading-5 font-extralight">+</span>
-          {formal ? "Добавить свою тему" : "Добавить свою тему"}
-        </button>
-      ) : null}
+          </div>
+        ) : !customTopic ? (
+          <button type="button" onClick={openEditor} className="mt-4 flex w-fit cursor-pointer items-center gap-3 rounded-sm py-1 text-[12px] text-[#151515] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4562f0]">
+            <span aria-hidden="true" className="text-xl leading-4 font-extralight">+</span>
+            {formal ? "Добавить свою тему" : "Добавить свою тему"}
+          </button>
+        ) : null}
+      </div>
 
       <AppealNavigation
         backHref={getAppealRoute("role", { role: roleId })}
