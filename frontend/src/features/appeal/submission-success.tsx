@@ -64,7 +64,7 @@ export default function SubmissionSuccess({
 
         <div
           className="
-            relative z-20 mt-[28px] w-[59.2%] max-w-[690px]
+            relative z-20 mt-[65px] w-[59.2%] max-w-[690px]
             [&_article]:min-h-[79px]
             [&_article]:gap-[13px]
             [&_article]:rounded-[12px]
@@ -78,9 +78,10 @@ export default function SubmissionSuccess({
             [&_article_p]:text-[13px]
             [&_article_p]:leading-[1.35]
             [&_article_p]:text-[#151515]
-            [&_article>div:first-child]:w-4
+            [&_article>div:first-child]:w-7
             [&_article>div:first-child]:self-center
 
+            max-[699px]:mt-5
             max-[699px]:w-full
             max-[699px]:[&_article]:min-h-[102px]
             max-[699px]:[&_article_h2]:text-[15px]
@@ -94,7 +95,14 @@ export default function SubmissionSuccess({
                 ? "Наш специалист изучит ваше обращение. Вы сможете в любое время проверить статус по трек-номеру."
                 : "Наш специалист изучит твоё обращение. Ты сможешь в любое время проверить статус по трек-номеру."
             }
-            icon={ ""
+            icon={
+              <Image
+                src="/images/LightbulbFilament.svg"
+                alt=""
+                width={28}
+                height={28}
+                className="shrink-0"
+              />
             }
           />
         </div>
@@ -122,7 +130,7 @@ export default function SubmissionSuccess({
           as="section"
           labelledBy="track-number-heading"
           className="
-            relative z-30 mt-[102px] flex min-h-[186px] w-full flex-col items-center
+            relative z-30 mt-[65px] flex min-h-[186px] w-full flex-col items-center
             justify-center px-6 py-[25px]
             [--surface-radius:12px]
             [--surface-shadow:none]
