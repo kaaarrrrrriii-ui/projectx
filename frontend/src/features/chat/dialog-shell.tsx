@@ -49,7 +49,7 @@ export default function DialogShell({
             type="button"
             onClick={onClose}
             aria-label="Закрыть окно"
-            className="absolute top-5 right-5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[34px] leading-none font-light text-[#11131a] transition-colors hover:bg-[#eef1ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] max-[499px]:top-3 max-[499px]:right-3"
+            className="absolute top-5 right-5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[34px] leading-none font-light text-[var(--color-primary)] transition-colors hover:bg-[#eef1ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] max-[499px]:top-3 max-[499px]:right-3"
           >
             ×
           </button>
