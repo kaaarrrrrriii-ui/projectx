@@ -32,8 +32,9 @@ type EligibleWorkerRecord struct {
 }
 
 type EligibleWorkersRecord struct {
-	RecommendedGroup *RecommendedGroupRecord
-	Workers          []EligibleWorkerRecord
+	RecommendedGroup  *RecommendedGroupRecord
+	RecommendedGroups []RecommendedGroupRecord
+	Workers           []EligibleWorkerRecord
 }
 
 type AssignmentRecord struct {
@@ -290,18 +291,31 @@ func (repository *OperatorRepository) EligibleWorkers(ctx context.Context, track
 	}
 
 	result := EligibleWorkersRecord{Workers: make([]EligibleWorkerRecord, 0)}
-	var recommended RecommendedGroupRecord
-	err := repository.db.QueryRowContext(ctx, `
+	recommendedRows, err := repository.db.QueryContext(ctx, `
 		SELECT eg.id, eg.title
 		FROM cats_expert_groups AS ceg
 		JOIN expert_groups AS eg ON eg.id = ceg.group_id
 		WHERE ceg.cat_id = $1
-		ORDER BY eg.id
-		LIMIT 1`, categoryID).Scan(&recommended.ID, &recommended.Title)
-	if err == nil {
-		result.RecommendedGroup = &recommended
-	} else if !errors.Is(err, sql.ErrNoRows) {
+		ORDER BY eg.title, eg.id`, categoryID)
+	if err != nil {
 		return EligibleWorkersRecord{}, fmt.Errorf("get recommended expert group: %w", err)
+	}
+	for recommendedRows.Next() {
+		var recommended RecommendedGroupRecord
+		if err := recommendedRows.Scan(&recommended.ID, &recommended.Title); err != nil {
+			recommendedRows.Close()
+			return EligibleWorkersRecord{}, fmt.Errorf("scan recommended expert group: %w", err)
+		}
+		result.RecommendedGroups = append(result.RecommendedGroups, recommended)
+	}
+	if err := recommendedRows.Close(); err != nil {
+		return EligibleWorkersRecord{}, fmt.Errorf("close recommended expert groups: %w", err)
+	}
+	if err := recommendedRows.Err(); err != nil {
+		return EligibleWorkersRecord{}, fmt.Errorf("iterate recommended expert groups: %w", err)
+	}
+	if len(result.RecommendedGroups) > 0 {
+		result.RecommendedGroup = &result.RecommendedGroups[0]
 	}
 
 	rows, err := repository.db.QueryContext(ctx, `
