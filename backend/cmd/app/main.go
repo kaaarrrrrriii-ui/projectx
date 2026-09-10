@@ -50,6 +50,7 @@ func main() {
 	attachmentRepository := repos.NewAttachmentRepository(db.DB)
 	userRepository := repos.NewUserRepository(db.DB)
 	operatorRepository := repos.NewOperatorRepository(db.DB)
+	expertRepository := repos.NewExpertRepository(db.DB)
 	ticketService, err := service.NewTicketService(ticketRepository)
 	if err != nil {
 		log.Fatal("❌ initialize ticket service: ", err)
@@ -74,6 +75,10 @@ func main() {
 	if err != nil {
 		log.Fatal("❌ initialize operator service: ", err)
 	}
+	expertService, err := service.NewExpertService(expertRepository)
+	if err != nil {
+		log.Fatal("❌ initialize expert service: ", err)
+	}
 	authHandler, err := handlers.NewAuthHandler(authService)
 	if err != nil {
 		log.Fatal("❌ initialize auth handler: ", err)
@@ -82,6 +87,10 @@ func main() {
 	if err != nil {
 		log.Fatal("❌ initialize operator handler: ", err)
 	}
+	expertHandler, err := handlers.NewExpertHandler(expertService, authService, attachmentService)
+	if err != nil {
+		log.Fatal("❌ initialize expert handler: ", err)
+	}
 
 	mux := http.NewServeMux()
 	healthHandler.RegisterRoutes(mux)
@@ -89,6 +98,7 @@ func main() {
 	ticketHandler.RegisterRoutes(mux)
 	authHandler.RegisterRoutes(mux)
 	operatorHandler.RegisterRoutes(mux)
+	expertHandler.RegisterRoutes(mux)
 
 	server := &http.Server{
 		Addr:              ":" + port,
