@@ -1,14 +1,13 @@
 "use client";
 
 import Button from "@/shared/ui/button";
-import Checkbox from "@/shared/ui/checkbox";
 import Input from "@/shared/ui/input";
 import { appealCategories } from "@/features/appeal/categories";
-import { operatorTickets, type OperatorTicket } from "@/features/operator/tickets";
+import { operatorTickets, type TicketPriority } from "@/features/operator/tickets";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type FilterKey = "priority" | "status" | "category" | "applicant";
+type FilterKey = "priority" | "category" | "applicant";
 
 type FilterOption = {
   value: string;
@@ -17,20 +16,9 @@ type FilterOption = {
 };
 
 const priorityOptions: FilterOption[] = [
-  { value: "urgent", label: "Срочный", color: "red" },
-  { value: "standard", label: "Стандартный", color: "yellow" },
-  { value: "low", label: "Низкий", color: "green" },
-];
-
-const statusOptions: FilterOption[] = [
-  { value: "new", label: "Новое" },
-  { value: "assigned", label: "Распределено" },
-  { value: "in-progress", label: "В работе" },
-  { value: "clarification", label: "Нужно уточнение" },
-  { value: "answer-ready", label: "Ответ готов" },
-  { value: "returned", label: "Возвращено" },
-  { value: "rejected", label: "Отклонено" },
-  { value: "closed", label: "Закрыто без ответа" },
+  { value: "urgent", label: "Срочное", color: "red" },
+  { value: "standard", label: "Стандартное", color: "yellow" },
+  { value: "low", label: "Низкое", color: "green" },
 ];
 
 const categoryOptions: FilterOption[] = appealCategories.map((category) => ({
@@ -46,14 +34,12 @@ const applicantOptions: FilterOption[] = [
 
 const filterGroups: Record<FilterKey, FilterOption[]> = {
   priority: priorityOptions,
-  status: statusOptions,
   category: categoryOptions,
   applicant: applicantOptions,
 };
 
 const filterLabels: Record<FilterKey, string> = {
   priority: "Выбор приоритетов",
-  status: "Выбор статусов",
   category: "Выбор категорий",
   applicant: "Выбор типа заявителя",
 };
@@ -64,10 +50,10 @@ const priorityColors = {
   green: "border-[#72bf78] bg-[#adddad] text-[#069b1e]",
 };
 
-const rowColors: Record<string, string> = {
-  urgent: "bg-[#f5b1b1]/90",
-  standard: "bg-[#fff0b3]/55",
-  low: "bg-[#adddad]/45",
+const priorityStyles: Record<TicketPriority, { text: string; badge: string }> = {
+  urgent: { text: "text-[#e5141b]", badge: "bg-[#f7b6b8] text-[#d70d14]" },
+  standard: { text: "text-[#4562f0]", badge: "bg-[#dfe6ff] text-[#4562f0]" },
+  low: { text: "text-[#087f1a]", badge: "bg-[#dff2e0] text-[#087f1a]" },
 };
 
 function getOptionLabel(filter: FilterKey, value: string) {
@@ -166,12 +152,9 @@ export default function QueueNew({
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, string[]>>({
     priority: [],
-    status: [],
     category: [],
     applicant: [],
   });
-  const [ticketItems, setTicketItems] = useState<OperatorTicket[]>(operatorTickets);
-  const [selectedTracks, setSelectedTracks] = useState<string[]>([]);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -195,15 +178,12 @@ export default function QueueNew({
   const filteredTickets = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("ru");
 
-    return ticketItems.filter((ticket) => {
+    return operatorTickets.filter((ticket) => {
       const matchesSearch =
         !normalizedSearch || ticket.track.toLocaleLowerCase("ru").includes(normalizedSearch);
       const matchesPriority =
         selectedFilters.priority.length === 0 ||
         selectedFilters.priority.includes(ticket.priority);
-      const matchesStatus =
-        selectedFilters.status.length === 0 ||
-        selectedFilters.status.includes(ticket.status);
       const matchesCategory =
         selectedFilters.category.length === 0 ||
         selectedFilters.category.includes(ticket.category);
@@ -214,12 +194,11 @@ export default function QueueNew({
       return (
         matchesSearch &&
         matchesPriority &&
-        matchesStatus &&
         matchesCategory &&
         matchesApplicant
       );
     });
-  }, [search, selectedFilters, ticketItems]);
+  }, [search, selectedFilters]);
 
   const selectedChips = (Object.keys(selectedFilters) as FilterKey[]).flatMap((filter) =>
     selectedFilters[filter].map((value) => ({ filter, value })),
@@ -238,33 +217,13 @@ export default function QueueNew({
 
   function resetFilters() {
     setSearch("");
-    setSelectedFilters({ priority: [], status: [], category: [], applicant: [] });
+    setSelectedFilters({ priority: [], category: [], applicant: [] });
     setOpenFilter(null);
   }
 
-  function toggleTrack(track: string) {
-    setSelectedTracks((current) =>
-      current.includes(track)
-        ? current.filter((item) => item !== track)
-        : [...current, track],
-    );
-  }
-
-  function updateTicket(
-    track: string,
-    field: "status" | "category",
-    value: string,
-  ) {
-    setTicketItems((current) =>
-      current.map((ticket) =>
-        ticket.track === track ? { ...ticket, [field]: value } : ticket,
-      ),
-    );
-  }
-
   return (
-      <div className="min-w-0 flex-1 px-5 pt-6 pb-0 sm:px-[30px]">
-        <div className="mx-auto w-full max-w-[1180px]">
+      <div className="min-w-0 flex-1 px-5 pt-[13px] pb-0 sm:px-[22px]">
+        <div className="w-full max-w-[840px]">
           <label className="relative block">
             <svg viewBox="0 0 24 24" aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 z-10 h-[21px] w-[21px] -translate-y-1/2 text-[#4562f0]" fill="none">
               <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="2" />
@@ -274,12 +233,12 @@ export default function QueueNew({
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               aria-label="Поиск обращения по трек-номеру"
-              className="!h-[42px] !w-full !rounded-[12px] !border-[#4562f0] !bg-white !pr-3 !pl-[42px] !text-left !text-[16px] placeholder:!text-[#9196a7] focus:!bg-white focus:!text-[#000828] focus:placeholder:!text-[#9196a7]"
+              className="!h-[40px] !w-full !rounded-[12px] !border-[#4562f0] !bg-white !pr-3 !pl-[42px] !text-left !text-[16px] placeholder:!text-[#9196a7] focus:!bg-white focus:!text-[#000828] focus:placeholder:!text-[#9196a7]"
               placeholder="Поиск обращения по треку"
             />
           </label>
 
-          <header className="mt-[29px]">
+          <header className="mt-[18px]">
             <h1 className="text-[24px] leading-[1.2] font-extrabold tracking-[-0.02em] text-[#4562f0] sm:text-[26px]">
               Очередь новых обращений
             </h1>
@@ -333,82 +292,54 @@ export default function QueueNew({
           </section>
 
           <section aria-label="Список обращений" className="mt-[18px] overflow-x-auto rounded-[13px] border border-[#4562f0] bg-white">
-            <table className="w-full min-w-[940px] table-fixed border-collapse">
+            <table className="w-full min-w-[760px] table-fixed border-collapse">
               <thead className="bg-[#dfe6ff] text-[#4562f0]">
                 <tr className="h-[53px]">
-                  <th scope="col" className="w-[23%] border-r border-[#4562f0] px-4 text-center text-[16px] font-normal">Трек-номер</th>
-                  <th scope="col" className="w-[26%] border-r border-[#4562f0] px-4 text-center text-[16px] font-normal">Категория</th>
-                  <th scope="col" className="w-[19%] border-r border-[#4562f0] px-4 text-center text-[16px] font-normal">Статус</th>
-                  <th scope="col" className="w-[17%] border-r border-[#4562f0] px-4 text-center text-[16px] font-normal">Тип заявителя</th>
-                  <th scope="col" className="w-[15%] px-4 text-center text-[16px] font-normal">Ожидает</th>
+                  <th scope="col" className="w-[29%] border-r border-[#4562f0] px-4 text-center text-[16px] font-normal">Трек-номер</th>
+                  <th scope="col" className="w-[25%] border-r border-[#4562f0] px-4 text-center text-[16px] font-normal">Категория</th>
+                  <th scope="col" className="w-[25%] border-r border-[#4562f0] px-4 text-center text-[16px] font-normal">Тип заявителя</th>
+                  <th scope="col" className="w-[21%] px-4 text-center text-[16px] font-normal">Ожидает</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredTickets.map((ticket) => (
-                  <tr key={ticket.track} className={`h-[59px] border-t border-[#4562f0] ${rowColors[ticket.priority]}`}>
-                    <td className="border-r border-[#4562f0] px-4">
-                      <div className="flex items-center gap-3 text-[13px] text-[#000828]">
-                        <Checkbox
-                          checked={selectedTracks.includes(ticket.track)}
-                          onChange={() => toggleTrack(ticket.track)}
-                          label={<span className="sr-only">Выбрать обращение {ticket.track}</span>}
-                          className="shrink-0 [&>span:first-of-type]:h-[17px] [&>span:first-of-type]:w-[17px] [&>span:first-of-type]:rounded-[4px] [&>span:first-of-type]:border-[#4562f0] [&>span:last-child]:sr-only"
-                        />
+                {filteredTickets.map((ticket) => {
+                  const priority = priorityStyles[ticket.priority];
+                  return (
+                  <tr key={ticket.track} className="h-[49px] border-t border-[#4562f0] hover:bg-[#f7f8ff]">
+                    <td className="border-r border-[#4562f0] px-3">
+                      <div className="flex items-center gap-3 text-[13px]">
                         <Link
                           href={`${ticketBasePath}/${encodeURIComponent(ticket.track)}`}
-                          className="rounded-sm font-medium underline-offset-4 hover:text-[#4562f0] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
+                          className={`rounded-sm font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] ${priority.text}`}
                         >
                           {ticket.track}
                         </Link>
+                        <span className={`rounded-full px-3 py-1 text-[10px] ${priority.badge}`}>{getOptionLabel("priority", ticket.priority)}</span>
                       </div>
                     </td>
-                    <td className="border-r border-[#4562f0] px-2 text-center">
-                      <select
-                        value={ticket.category}
-                        onChange={(event) =>
-                          updateTicket(ticket.track, "category", event.target.value)
-                        }
-                        aria-label={`Изменить категорию обращения ${ticket.track}`}
-                        className="h-[33px] w-full cursor-pointer truncate rounded-[8px] border border-[#000828] bg-white/70 px-2 text-[11px] text-[#000828] outline-none transition-colors hover:border-[#4562f0] focus:border-[#4562f0] focus:ring-2 focus:ring-[#4562f0]/20"
-                      >
-                        {categoryOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="border-r border-[#4562f0] px-2 text-center">
-                      <select
-                        value={ticket.status}
-                        onChange={(event) =>
-                          updateTicket(ticket.track, "status", event.target.value)
-                        }
-                        aria-label={`Изменить статус обращения ${ticket.track}`}
-                        className="h-[33px] w-full cursor-pointer truncate rounded-[8px] border border-[#000828] bg-white/70 px-2 text-[11px] text-[#000828] outline-none transition-colors hover:border-[#4562f0] focus:border-[#4562f0] focus:ring-2 focus:ring-[#4562f0]/20"
-                      >
-                        {statusOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="border-r border-[#4562f0] px-3 text-center text-[13px] text-[#000828]">
-                      {getOptionLabel("applicant", ticket.applicant)}
-                    </td>
+                    <td className="border-r border-[#4562f0] px-3 text-center text-[13px] text-[#30384f]">{ticket.category}</td>
+                    <td className="border-r border-[#4562f0] px-3 text-center text-[13px] text-[#30384f]">{getOptionLabel("applicant", ticket.applicant)}</td>
                     <td className="px-3 text-center text-[13px] text-[#000828]">{ticket.waiting}</td>
                   </tr>
-                ))}
+                  );
+                })}
 
                 {filteredTickets.length === 0 && (
                   <tr className="h-[105px] border-t border-[#4562f0]">
-                    <td colSpan={5} className="px-6 text-center text-[14px] text-[#646d86]">
+                    <td colSpan={4} className="px-6 text-center text-[14px] text-[#646d86]">
                       Обращения по выбранным фильтрам не найдены
                     </td>
                   </tr>
                 )}
 
+                {filteredTickets.length > 0 && Array.from({ length: Math.max(0, 7 - filteredTickets.length) }).map((_, index) => (
+                  <tr key={`empty-${index}`} aria-hidden="true" className="h-[49px] border-t border-[#4562f0]">
+                    <td className="border-r border-[#4562f0]" />
+                    <td className="border-r border-[#4562f0]" />
+                    <td className="border-r border-[#4562f0]" />
+                    <td />
+                  </tr>
+                ))}
               </tbody>
             </table>
           </section>

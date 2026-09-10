@@ -1,20 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function SiteHeader({ formal = false }: { formal?: boolean }) {
+export default function SiteHeader({ formal = false, compact = false }: { formal?: boolean; compact?: boolean }) {
   return (
     <header
-      className="
+      className={`
         relative z-20 box-border h-[100px] w-full
         rounded-b-[30px] border border-[#4562f0] bg-white
         px-5 pt-[30px] pb-[15px]
+
+        ${compact ? "min-[700px]:h-[80px] min-[700px]:rounded-none min-[700px]:px-[15px] min-[700px]:pt-[18px] min-[700px]:pb-[10px]" : ""}
 
         max-[699px]:h-[82px]
         max-[699px]:rounded-b-[24px]
         max-[699px]:px-5
         max-[699px]:pt-4
         max-[699px]:pb-2.5
-      "
+      `}
     >
       <div
         className="
@@ -50,7 +52,7 @@ export default function SiteHeader({ formal = false }: { formal?: boolean }) {
         </Link>
 
         <p
-          className="
+          className={`
             min-w-0 flex-1 text-right
             text-[clamp(14px,1.4vw,18px)]
             font-semibold
@@ -61,7 +63,8 @@ export default function SiteHeader({ formal = false }: { formal?: boolean }) {
             max-[699px]:text-xs
 
             max-[379px]:text-[9px]
-          "
+            ${compact ? "min-[700px]:text-[13px]" : ""}
+          `}
         >
           {formal
             ? "Безопасный способ рассказать о том, что вас беспокоит, и получить помощь от профессионалов."

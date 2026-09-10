@@ -1,8 +1,5 @@
-import SpecialistAssignment from "@/features/operator/specialist-assignment";
 import { getOperatorTicket } from "@/features/operator/tickets";
-import OperatorSidebar from "@/widgets/operator-dashboard/operator-sidebar";
-import SiteHeader from "@/widgets/site-header/site-header";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function SpecialistAssignmentPage({ params }: { params: Promise<{ track: string }> }) {
   const { track } = await params;
@@ -15,13 +12,5 @@ export default async function SpecialistAssignmentPage({ params }: { params: Pro
   const ticket = getOperatorTicket(decodedTrack);
   if (!ticket) notFound();
 
-  return (
-    <main className="app-page-background flex min-h-dvh flex-col">
-      <SiteHeader />
-      <div className="flex flex-1 items-stretch max-[799px]:flex-col">
-        <OperatorSidebar active="queue" />
-        <SpecialistAssignment ticket={ticket} />
-      </div>
-    </main>
-  );
+  redirect(`/operator/queueNew.tsx/${encodeURIComponent(ticket.track)}`);
 }
