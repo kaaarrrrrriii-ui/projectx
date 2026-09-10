@@ -67,19 +67,146 @@ type stubAttachmentService struct {
 	err  error
 }
 
+type stubSubmissionService struct {
+	categoriesResponse service.CategoriesResponse
+	questionsResponse  service.QuestionsResponse
+	createResponse     service.CreateTicketResponse
+	reviewResponse     service.CreateReviewResponse
+	err                error
+	createInput        service.CreateTicketInput
+	questionCategoryID int64
+	reviewTrackID      string
+	reviewRating       int
+	reviewText         string
+}
+
+func (stub *stubSubmissionService) Categories(context.Context) (service.CategoriesResponse, error) {
+	return stub.categoriesResponse, stub.err
+}
+
+func (stub *stubSubmissionService) Questions(_ context.Context, categoryID int64) (service.QuestionsResponse, error) {
+	stub.questionCategoryID = categoryID
+	return stub.questionsResponse, stub.err
+}
+
+func (stub *stubSubmissionService) Create(_ context.Context, input service.CreateTicketInput) (service.CreateTicketResponse, error) {
+	stub.createInput = input
+	return stub.createResponse, stub.err
+}
+
+func (stub *stubSubmissionService) Review(_ context.Context, trackID string, rating int, text string) (service.CreateReviewResponse, error) {
+	stub.reviewTrackID = trackID
+	stub.reviewRating = rating
+	stub.reviewText = text
+	return stub.reviewResponse, stub.err
+}
+
 func (stub *stubAttachmentService) Open(context.Context, string, int64) (service.AttachmentFile, error) {
 	return stub.file, stub.err
 }
 
 func newTicketTestMux(t *testing.T, tickets *stubTicketService, messages *stubMessageService, attachments *stubAttachmentService) *http.ServeMux {
 	t.Helper()
-	handler, err := NewTicketHandler(tickets, messages, attachments)
+	handler, err := NewTicketHandler(tickets, messages, attachments, &stubSubmissionService{})
 	if err != nil {
 		t.Fatalf("NewTicketHandler() error = %v", err)
 	}
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)
 	return mux
+}
+
+func newTicketTestMuxWithSubmissions(t *testing.T, submissions *stubSubmissionService) *http.ServeMux {
+	t.Helper()
+	handler, err := NewTicketHandler(&stubTicketService{}, &stubMessageService{}, &stubAttachmentService{}, submissions)
+	if err != nil {
+		t.Fatalf("NewTicketHandler() error = %v", err)
+	}
+	mux := http.NewServeMux()
+	handler.RegisterRoutes(mux)
+	return mux
+}
+
+func TestCreateTicketHandlerReadsMultipartSubmission(t *testing.T) {
+	t.Parallel()
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	fields := map[string]string{
+		"applicant_type": "student",
+		"category_id":    "4",
+		"description":    "Нужна помощь",
+		"custom_topic":   "Не знаю, как назвать",
+		"answers[7]":     "11",
+		"crisis_contact": "test@example.org",
+	}
+	for key, value := range fields {
+		if err := writer.WriteField(key, value); err != nil {
+			t.Fatalf("WriteField(%q) error = %v", key, err)
+		}
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("close multipart writer: %v", err)
+	}
+
+	submissions := &stubSubmissionService{createResponse: service.CreateTicketResponse{TrackID: "ОТК-ABCD-2345", Status: "new"}}
+	mux := newTicketTestMuxWithSubmissions(t, submissions)
+	request := httptest.NewRequest(http.MethodPost, "/api/tickets", &body)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	response := httptest.NewRecorder()
+	mux.ServeHTTP(response, request)
+
+	if response.Code != http.StatusCreated {
+		t.Fatalf("status = %d, body = %s", response.Code, response.Body.String())
+	}
+	input := submissions.createInput
+	if input.ApplicantType != "student" || input.CategoryID != 4 || input.Description != "Нужна помощь" || len(input.Answers) != 1 {
+		t.Fatalf("create input = %+v", input)
+	}
+	if input.Answers[0].QuestionID != 7 || input.Answers[0].AnswerID != 11 {
+		t.Fatalf("answers = %+v", input.Answers)
+	}
+}
+
+func TestCreateTicketHandlerLimitsSubmissionsPerAddress(t *testing.T) {
+	t.Parallel()
+	submissions := &stubSubmissionService{}
+	mux := newTicketTestMuxWithSubmissions(t, submissions)
+
+	for attempt := 1; attempt <= 6; attempt++ {
+		var body bytes.Buffer
+		writer := multipart.NewWriter(&body)
+		_ = writer.WriteField("applicant_type", "parent")
+		_ = writer.WriteField("category_id", "1")
+		_ = writer.Close()
+		request := httptest.NewRequest(http.MethodPost, "/api/tickets", &body)
+		request.RemoteAddr = "203.0.113.11:54321"
+		request.Header.Set("Content-Type", writer.FormDataContentType())
+		response := httptest.NewRecorder()
+		mux.ServeHTTP(response, request)
+
+		want := http.StatusCreated
+		if attempt == 6 {
+			want = http.StatusTooManyRequests
+		}
+		if response.Code != want {
+			t.Fatalf("attempt %d status = %d, want %d, body = %s", attempt, response.Code, want, response.Body.String())
+		}
+	}
+}
+
+func TestReviewHandlerForwardsText(t *testing.T) {
+	t.Parallel()
+	submissions := &stubSubmissionService{reviewResponse: service.CreateReviewResponse{ID: 9, Rating: 5, Text: "Спасибо"}}
+	mux := newTicketTestMuxWithSubmissions(t, submissions)
+	request := httptest.NewRequest(http.MethodPost, "/api/tickets/%D0%9E%D0%A2%D0%9A-ABCD-2345/review", strings.NewReader(`{"rating":5,"text":"Спасибо"}`))
+	request.Header.Set("Content-Type", "application/json")
+	response := httptest.NewRecorder()
+	mux.ServeHTTP(response, request)
+
+	if response.Code != http.StatusCreated || submissions.reviewRating != 5 || submissions.reviewText != "Спасибо" {
+		t.Fatalf("status = %d, review = %d %q, body = %s", response.Code, submissions.reviewRating, submissions.reviewText, response.Body.String())
+	}
 }
 
 func TestTicketStatusHandler(t *testing.T) {

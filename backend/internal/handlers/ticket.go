@@ -8,6 +8,7 @@ import (
 	"mime"
 	"net"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -16,8 +17,12 @@ import (
 
 const (
 	maxMessageRequestBytes = service.DefaultMaxAttachmentFiles*service.DefaultMaxAttachmentBytes + 1024*1024
+	maxCreateRequestBytes  = service.DefaultMaxAttachmentFiles*service.DefaultMaxAttachmentBytes + 1024*1024
 	maxReturnRequestBytes  = 64 * 1024
+	maxReviewRequestBytes  = 64 * 1024
 )
+
+var answerFieldPattern = regexp.MustCompile(`^answers\[(\d+)\]$`)
 
 type ticketService interface {
 	Status(context.Context, string) (service.TicketStatusResponse, error)
@@ -34,11 +39,20 @@ type ticketAttachmentService interface {
 	Open(context.Context, string, int64) (service.AttachmentFile, error)
 }
 
+type ticketSubmissionService interface {
+	Categories(context.Context) (service.CategoriesResponse, error)
+	Questions(context.Context, int64) (service.QuestionsResponse, error)
+	Create(context.Context, service.CreateTicketInput) (service.CreateTicketResponse, error)
+	Review(context.Context, string, int, string) (service.CreateReviewResponse, error)
+}
+
 type TicketHandler struct {
 	tickets     ticketService
 	messages    ticketMessageService
 	attachments ticketAttachmentService
+	submissions ticketSubmissionService
 	statusLimit *slidingWindowLimiter
+	createLimit *slidingWindowLimiter
 }
 
 type errorResponse struct {
@@ -54,29 +68,160 @@ type returnTicketRequest struct {
 	Reason string `json:"reason"`
 }
 
+type reviewTicketRequest struct {
+	Rating int    `json:"rating"`
+	Text   string `json:"text"`
+}
+
 func NewTicketHandler(
 	tickets ticketService,
 	messages ticketMessageService,
 	attachments ticketAttachmentService,
+	submissions ticketSubmissionService,
 ) (*TicketHandler, error) {
-	if tickets == nil || messages == nil || attachments == nil {
+	if tickets == nil || messages == nil || attachments == nil || submissions == nil {
 		return nil, errors.New("all ticket handler services are required")
 	}
 	return &TicketHandler{
 		tickets:     tickets,
 		messages:    messages,
 		attachments: attachments,
+		submissions: submissions,
 		statusLimit: newSlidingWindowLimiter(5, time.Minute),
+		createLimit: newSlidingWindowLimiter(5, 10*time.Minute),
 	}, nil
 }
 
 func (handler *TicketHandler) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/categories", handler.getCategories)
+	mux.HandleFunc("GET /api/categories/{category_id}/questions", handler.getQuestions)
+	mux.HandleFunc("POST /api/tickets", handler.createTicket)
 	mux.HandleFunc("GET /api/tickets/{track_id}/status", handler.getStatus)
 	mux.HandleFunc("GET /api/tickets/{track_id}/chat", handler.getChat)
 	mux.HandleFunc("POST /api/tickets/{track_id}/messages", handler.postMessage)
 	mux.HandleFunc("GET /api/tickets/{track_id}/attachments/{attachment_id}", handler.getAttachment)
 	mux.HandleFunc("POST /api/tickets/{track_id}/complete", handler.completeTicket)
 	mux.HandleFunc("POST /api/tickets/{track_id}/return", handler.returnTicket)
+	mux.HandleFunc("POST /api/tickets/{track_id}/review", handler.reviewTicket)
+}
+
+func (handler *TicketHandler) getCategories(w http.ResponseWriter, request *http.Request) {
+	response, err := handler.submissions.Categories(request.Context())
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (handler *TicketHandler) getQuestions(w http.ResponseWriter, request *http.Request) {
+	categoryID, err := strconv.ParseInt(request.PathValue("category_id"), 10, 64)
+	if err != nil || categoryID <= 0 {
+		writeAPIError(w, http.StatusNotFound, "category_not_found", "category not found")
+		return
+	}
+	response, err := handler.submissions.Questions(request.Context(), categoryID)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (handler *TicketHandler) createTicket(w http.ResponseWriter, request *http.Request) {
+	if !handler.createLimit.Allow(clientAddress(request)) {
+		w.Header().Set("Retry-After", "600")
+		writeAPIError(w, http.StatusTooManyRequests, "rate_limit_reached", "too many ticket submissions")
+		return
+	}
+	request.Body = http.MaxBytesReader(w, request.Body, maxCreateRequestBytes)
+	if err := request.ParseMultipartForm(1024 * 1024); err != nil {
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			writeAPIError(w, http.StatusRequestEntityTooLarge, "request_too_large", "request body is too large")
+			return
+		}
+		writeAPIError(w, http.StatusBadRequest, "invalid_multipart_form", "invalid multipart form")
+		return
+	}
+	if request.MultipartForm != nil {
+		defer request.MultipartForm.RemoveAll()
+	}
+
+	categoryID, err := strconv.ParseInt(request.FormValue("category_id"), 10, 64)
+	if err != nil || categoryID <= 0 {
+		writeAPIError(w, http.StatusBadRequest, "invalid_category_id", "category_id must be a positive integer")
+		return
+	}
+	answers, err := parseTicketAnswers(request.MultipartForm.Value)
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_answers", "answers must use answers[question_id]=answer_id")
+		return
+	}
+	uploads, opened, err := multipartUploads(request)
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_attachment", "cannot read attachment")
+		return
+	}
+	defer closeUploads(opened)
+
+	response, err := handler.submissions.Create(request.Context(), service.CreateTicketInput{
+		ApplicantType: request.FormValue("applicant_type"),
+		CategoryID:    categoryID,
+		Description:   request.FormValue("description"),
+		CustomTopic:   request.FormValue("custom_topic"),
+		Answers:       answers,
+		Attachments:   uploads,
+		CrisisContact: request.FormValue("crisis_contact"),
+	})
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, response)
+}
+
+func parseTicketAnswers(values map[string][]string) ([]service.TicketAnswerInput, error) {
+	answers := make([]service.TicketAnswerInput, 0)
+	for key, candidates := range values {
+		match := answerFieldPattern.FindStringSubmatch(key)
+		if match == nil {
+			continue
+		}
+		if len(candidates) != 1 {
+			return nil, errors.New("answer must have one value")
+		}
+		questionID, questionErr := strconv.ParseInt(match[1], 10, 64)
+		answerID, answerErr := strconv.ParseInt(candidates[0], 10, 64)
+		if questionErr != nil || answerErr != nil || questionID <= 0 || answerID <= 0 {
+			return nil, errors.New("invalid answer id")
+		}
+		answers = append(answers, service.TicketAnswerInput{QuestionID: questionID, AnswerID: answerID})
+	}
+	return answers, nil
+}
+
+func multipartUploads(request *http.Request) ([]service.UploadedAttachment, []io.ReadCloser, error) {
+	fileHeaders := request.MultipartForm.File["attachments[]"]
+	fileHeaders = append(fileHeaders, request.MultipartForm.File["attachments"]...)
+	uploads := make([]service.UploadedAttachment, 0, len(fileHeaders))
+	opened := make([]io.ReadCloser, 0, len(fileHeaders))
+	for _, header := range fileHeaders {
+		file, err := header.Open()
+		if err != nil {
+			closeUploads(opened)
+			return nil, nil, err
+		}
+		opened = append(opened, file)
+		uploads = append(uploads, service.UploadedAttachment{Source: file, Size: header.Size})
+	}
+	return uploads, opened, nil
+}
+
+func closeUploads(opened []io.ReadCloser) {
+	for _, file := range opened {
+		_ = file.Close()
+	}
 }
 
 func (handler *TicketHandler) getStatus(w http.ResponseWriter, request *http.Request) {
@@ -214,6 +359,20 @@ func (handler *TicketHandler) returnTicket(w http.ResponseWriter, request *http.
 	writeJSON(w, http.StatusOK, response)
 }
 
+func (handler *TicketHandler) reviewTicket(w http.ResponseWriter, request *http.Request) {
+	var payload reviewTicketRequest
+	if err := decodeJSONBody(w, request, maxReviewRequestBytes, &payload); err != nil {
+		writeJSONRequestError(w, err)
+		return
+	}
+	response, err := handler.submissions.Review(request.Context(), request.PathValue("track_id"), payload.Rating, payload.Text)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, response)
+}
+
 func writeJSONRequestError(w http.ResponseWriter, err error) {
 	var maxBytesError *http.MaxBytesError
 	if errors.As(err, &maxBytesError) {
@@ -254,6 +413,16 @@ func writeServiceError(w http.ResponseWriter, err error) {
 		writeAPIError(w, http.StatusConflict, "return_limit_reached", "ticket return limit reached")
 	case errors.Is(err, service.ErrInvalidTransition):
 		writeAPIError(w, http.StatusConflict, "invalid_status_transition", "operation is not allowed for the current ticket status")
+	case errors.Is(err, service.ErrCategoryNotFound):
+		writeAPIError(w, http.StatusNotFound, "category_not_found", "category not found")
+	case errors.Is(err, service.ErrInvalidApplicant), errors.Is(err, service.ErrInvalidCategory),
+		errors.Is(err, service.ErrInvalidAnswer), errors.Is(err, service.ErrInvalidSubmission),
+		errors.Is(err, service.ErrInvalidRating), errors.Is(err, service.ErrTextTooLong):
+		writeAPIError(w, http.StatusBadRequest, "invalid_request", err.Error())
+	case errors.Is(err, service.ErrReviewAlreadyExists):
+		writeAPIError(w, http.StatusConflict, "review_already_exists", "a review for this ticket already exists")
+	case errors.Is(err, service.ErrReviewNotAllowed):
+		writeAPIError(w, http.StatusConflict, "review_not_allowed", "ticket must be completed before it can be reviewed")
 	default:
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", http.StatusText(http.StatusInternalServerError))
 	}

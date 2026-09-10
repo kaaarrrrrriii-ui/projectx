@@ -5,13 +5,16 @@ import InfoCard from "@/shared/ui/info-card";
 import Surface from "@/shared/ui/surface";
 import Image from "next/image";
 import { useRef, useState } from "react";
+import type { CrisisContact } from "@/shared/api/public-api";
 
 export default function SubmissionSuccess({
   trackNumber,
   formal,
+  crisisContacts = [],
 }: {
   trackNumber: string;
   formal: boolean;
+  crisisContacts?: CrisisContact[];
 }) {
   const [isCopied, setIsCopied] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -106,6 +109,22 @@ export default function SubmissionSuccess({
             }
           />
         </div>
+
+        {crisisContacts.length > 0 && (
+          <section className="relative z-30 mt-5 w-[59.2%] max-w-[690px] rounded-[12px] border border-[#d92d20] bg-[#fff1f1] p-4 max-[699px]:w-full" aria-labelledby="crisis-contacts-heading">
+            <h2 id="crisis-contacts-heading" className="text-[17px] font-semibold text-[#8f1111]">Помощь доступна прямо сейчас</h2>
+            <p className="mt-1 text-[13px] text-[#451313]">Если опасность непосредственная, позвоните 112. Отправленное обращение уже сохранено.</p>
+            <ul className="mt-3 space-y-2">
+              {crisisContacts.map((contact) => (
+                <li key={`${contact.title}-${contact.phone}`} className="text-[13px] text-[#451313]">
+                  <span className="font-semibold">{contact.title}: </span>
+                  <a href={`tel:${contact.phone.replace(/[^+\d]/g, "")}`} className="font-semibold text-[#4562f0] underline">{contact.phone}</a>
+                  <span> — {contact.description}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <Image
           src="/images/girl.png"

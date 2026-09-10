@@ -99,15 +99,5 @@ func (status TicketStatus) String() string {
 }
 
 func (status TicketStatus) IsApplicantCompletable() bool {
-	switch status {
-	case TicketStatusNew,
-		TicketStatusAssigned,
-		TicketStatusInProgress,
-		TicketStatusNeedsClarification,
-		TicketStatusAnswerReady,
-		TicketStatusReturned:
-		return true
-	default:
-		return false
-	}
+	return status == TicketStatusAnswerReady
 }

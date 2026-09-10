@@ -3,6 +3,7 @@ import { getAppealRole, isFormalAppealRole } from "@/features/appeal/roles";
 import { getAppealRoute } from "@/features/appeal/routes";
 import SiteHeader from "@/widgets/site-header/site-header";
 import Image from "next/image";
+import DescriptionInput from "@/features/appeal/description-input";
 
 export default async function AppealDescription({
   searchParams,
@@ -64,39 +65,7 @@ export default async function AppealDescription({
                 : "Опиши ситуацию своими словами. Чем больше деталей, тем проще нам будет помочь. Если не знаешь, с чего начать — просто напиши, что чувствуешь."}
             </p>
 
-            <textarea
-            name="description"
-            aria-labelledby="description-heading"
-            aria-describedby="description-intro description-hint"
-            placeholder={
-              formal
-                ? "Здесь можно написать всё, что вас беспокоит..."
-                : "Здесь можно написать всё, что тебя беспокоит..."
-            }
-            className="
-              mt-7 block
-              min-h-[218px] w-full
-              resize-y
-              rounded-[15px]
-              border border-[#333]
-              bg-[#FCFDFF]
-              px-[13px] py-4
-
-              text-[13px]
-              leading-5
-              text-[#151515]
-
-              placeholder:text-[#85899f]
-              placeholder:opacity-100
-
-              focus-visible:outline-2
-              focus-visible:outline-offset-4
-              focus-visible:outline-[#4562F0]
-
-              max-[699px]:mt-6
-              max-[699px]:text-[16px]
-            "
-            />
+            <DescriptionInput formal={formal} />
 
             <aside
             id="description-hint"

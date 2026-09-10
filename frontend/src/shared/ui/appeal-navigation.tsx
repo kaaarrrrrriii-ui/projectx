@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { MouseEvent } from "react";
 import Button from "./button";
 
 type AppealNavigationProps = {
@@ -9,6 +10,9 @@ type AppealNavigationProps = {
   primaryType?: "button" | "submit";
   primaryVariant?: "primary" | "secondary";
   primaryClassName?: string;
+  primaryOnClick?: () => void;
+  primaryDisabled?: boolean;
+  onSkip?: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
 
 const navigationLinkClassName = `
@@ -26,6 +30,9 @@ export default function AppealNavigation({
   primaryType = "button",
   primaryVariant = "primary",
   primaryClassName = "",
+  primaryOnClick,
+  primaryDisabled = false,
+  onSkip,
 }: AppealNavigationProps) {
   return (
     <nav
@@ -37,6 +44,8 @@ export default function AppealNavigation({
           text={primaryText}
           link={primaryHref}
           type={primaryType}
+          onClick={primaryOnClick}
+          disabled={primaryDisabled}
           variant={primaryVariant}
           size="default"
           className={`!w-full ${primaryClassName}`}
@@ -47,7 +56,7 @@ export default function AppealNavigation({
         Вернуться назад
       </Link>
 
-      <Link href={skipHref} className={`${navigationLinkClassName} absolute bottom-0 left-1/2 -translate-x-1/2 max-[699px]:right-0 max-[699px]:left-auto max-[699px]:translate-x-0`}>
+      <Link href={skipHref} onClick={onSkip} className={`${navigationLinkClassName} absolute bottom-0 left-1/2 -translate-x-1/2 max-[699px]:right-0 max-[699px]:left-auto max-[699px]:translate-x-0`}>
         Пропустить
       </Link>
     </nav>

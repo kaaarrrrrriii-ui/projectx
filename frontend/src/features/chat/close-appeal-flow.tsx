@@ -2,10 +2,11 @@
 
 import Button from "@/shared/ui/button";
 import Image from "next/image";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import DialogShell from "./dialog-shell";
+import { completeTicket, createTicketReview, returnTicket } from "@/shared/api/public-api";
 
-type CloseStage = "feedback" | "closed" | "complaint";
+type CloseStage = "feedback" | "processing" | "closed" | "returned" | "complaint";
 
 export default function CloseAppealFlow({
   formal,
@@ -19,20 +20,98 @@ export default function CloseAppealFlow({
   onCancel: () => void;
 }) {
   const [stage, setStage] = useState<CloseStage>(
-    outcome === "not-helped" ? "feedback" : "closed",
+    outcome === "not-helped" ? "feedback" : "processing",
   );
   const [feedback, setFeedback] = useState("");
   const [complaint, setComplaint] = useState("");
   const [rating, setRating] = useState(3);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const completionStarted = useRef(false);
 
-  function submitFeedback(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (outcome !== "helped" || completionStarted.current) return;
+    completionStarted.current = true;
+    completeTicket(trackNumber)
+      .then(() => setStage("closed"))
+      .catch((reason: unknown) => {
+        setError(reason instanceof Error ? reason.message : "Не удалось закрыть обращение.");
+        setStage("processing");
+      });
+  }, [outcome, trackNumber]);
+
+  async function submitFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStage("closed");
+    setSubmitting(true);
+    setError("");
+    try {
+      await returnTicket(trackNumber, feedback);
+      setStage("returned");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Не удалось вернуть обращение.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  function submitComplaint(event: FormEvent<HTMLFormElement>) {
+  async function skipFeedback() {
+    setSubmitting(true);
+    setError("");
+    try {
+      await returnTicket(trackNumber, "");
+      setStage("returned");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Не удалось вернуть обращение.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function submitComplaint(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onCancel();
+    setSubmitting(true);
+    setError("");
+    try {
+      await createTicketReview(trackNumber, 1, complaint);
+      onCancel();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Не удалось отправить жалобу.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function submitReview() {
+    setSubmitting(true);
+    setError("");
+    try {
+      await createTicketReview(trackNumber, rating);
+      onCancel();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Не удалось отправить оценку.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (stage === "processing") {
+    return (
+      <DialogShell labelledBy="processing-heading" onClose={onCancel} showClose className="max-w-[720px]">
+        <h2 id="processing-heading" className="text-[25px] font-extrabold text-[var(--color-primary)]">{error ? "Не удалось закрыть обращение" : "Закрываем обращение…"}</h2>
+        {error && <p role="alert" className="mt-3 text-sm text-[#b42318]">{error}</p>}
+        {error && <Button text="Закрыть окно" variant="secondary" onClick={onCancel} className="mt-5 w-full" />}
+      </DialogShell>
+    );
+  }
+
+  if (stage === "returned") {
+    return (
+      <DialogShell labelledBy="returned-heading" onClose={onCancel} showClose className="max-w-[720px]">
+        <h2 id="returned-heading" className="text-[25px] font-extrabold text-[var(--color-primary)]">Обращение возвращено на доработку</h2>
+        <p className="mt-3 text-sm text-[#151515]">Оператор увидит его в очереди возвратов и решит, кому передать обращение.</p>
+        <Button text="Понятно" variant="primary" onClick={onCancel} className="mt-5 w-full" />
+      </DialogShell>
+    );
   }
 
   if (stage === "feedback") {
@@ -54,6 +133,7 @@ export default function CloseAppealFlow({
           <div className="relative mt-4">
             <textarea
               value={feedback}
+              maxLength={2000}
               onChange={(event) => setFeedback(event.target.value)}
               placeholder={
                 formal
@@ -88,19 +168,22 @@ export default function CloseAppealFlow({
           </div>
 
           <Button
-            text="Отправить"
+            text={submitting ? "Отправляем…" : "Отправить"}
             type="submit"
             variant="primary"
             size="small"
             className="mt-[18px] w-full"
+            disabled={submitting}
           />
           <button
             type="button"
-            onClick={() => setStage("closed")}
+            onClick={() => void skipFeedback()}
+            disabled={submitting}
             className="mx-auto mt-3 block cursor-pointer rounded-sm px-3 py-1 text-[13px] text-[#9196a7] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
           >
             Пропустить
           </button>
+          {error && <p role="alert" className="mt-3 text-sm text-[#b42318]">{error}</p>}
         </form>
       </DialogShell>
     );
@@ -130,15 +213,18 @@ export default function CloseAppealFlow({
             value={complaint}
             onChange={(event) => setComplaint(event.target.value)}
             aria-label="Текст жалобы"
+            maxLength={2000}
             className="mt-7 block min-h-[224px] w-full resize-y rounded-[12px] border border-[#333] bg-[#fcfdff] px-3 py-2.5 text-[14px] leading-5 outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[#4562f0]/20 max-[599px]:mt-4 max-[499px]:min-h-[180px]"
           />
           <Button
-            text="Отправить"
+            text={submitting ? "Отправляем…" : "Отправить"}
             type="submit"
             variant="primary"
             size="small"
             className="mt-7 w-full max-[599px]:mt-5"
+            disabled={!complaint.trim() || submitting}
           />
+          {error && <p role="alert" className="mt-3 text-sm text-[#b42318]">{error}</p>}
         </form>
       </DialogShell>
     );
@@ -193,14 +279,17 @@ export default function CloseAppealFlow({
             className="w-full"
           />
           <Button
-            text="Отправить"
+            text={submitting ? "Отправляем…" : "Отправить"}
             variant="primary"
             size="small"
-            onClick={onCancel}
+            onClick={() => void submitReview()}
+            disabled={submitting}
             className="w-full"
           />
         </div>
       </section>
+
+      {error && <p role="alert" className="mt-3 text-sm text-[#b42318]">{error}</p>}
 
       <section className="mt-6 rounded-[13px] border border-[var(--color-primary)] bg-[#dee7fd] p-2.5" aria-labelledby="save-track-heading">
         <div className="flex items-start gap-3 px-1">
