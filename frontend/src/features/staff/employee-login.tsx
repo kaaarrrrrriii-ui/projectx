@@ -56,7 +56,7 @@ export default function EmployeeLogin() {
             name="username"
             required
             autoComplete="username"
-            placeholder="текст текст"
+            placeholder="Логин"
             className="mt-2 block h-[44px] w-full rounded-[14px] border border-[#000828] bg-[#fcfdff] px-4 text-center text-[15px] text-[#000828] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-[#646d86] hover:border-[var(--color-primary)] focus:border-[var(--color-primary)] focus:bg-white focus:ring-2 focus:ring-[#4562f0]/20"
           />
         </label>
@@ -70,7 +70,7 @@ export default function EmployeeLogin() {
             name="password"
             required
             autoComplete="current-password"
-            placeholder="текст текст"
+            placeholder="Пароль"
             className="mt-2 block h-[44px] w-full rounded-[14px] border border-[#000828] bg-[#fcfdff] px-4 text-center text-[15px] text-[#000828] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-[#646d86] hover:border-[var(--color-primary)] focus:border-[var(--color-primary)] focus:bg-white focus:ring-2 focus:ring-[#4562f0]/20"
           />
         </label>
