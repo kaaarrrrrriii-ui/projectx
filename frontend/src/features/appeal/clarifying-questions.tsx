@@ -46,7 +46,7 @@ export default function ClarifyingQuestions({ role, topic = "", formal = false }
             <header>
               <h1
                 id="details-heading"
-                className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.035em] text-[#4562f0] sm:text-[30px] sm:leading-9"
+                className="m-0 text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0]"
               >
                 {formal ? "Несколько уточнений" : "Пару уточнений"}
               </h1>
