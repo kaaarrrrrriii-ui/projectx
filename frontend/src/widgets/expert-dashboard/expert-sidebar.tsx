@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 type NavigationItem = {
   label: string;
   href: string;
-  icon: "home" | "queue" | "assigned" | "return" | "requests" | "analytics" | "exports";
+  icon: "home" | "queue" | "assigned" | "return" | "requests" | "analytics";
 };
 
 const primaryNavigation: NavigationItem[] = [
@@ -19,7 +19,6 @@ const primaryNavigation: NavigationItem[] = [
 
 const secondaryNavigation: NavigationItem[] = [
   { label: "Аналитика", href: "/expert/analytics", icon: "analytics" },
-  { label: "Выгрузки", href: "/expert/exports", icon: "exports" },
 ];
 
 function SidebarIcon({ name }: { name: NavigationItem["icon"] }) {
@@ -30,8 +29,7 @@ function SidebarIcon({ name }: { name: NavigationItem["icon"] }) {
   if (name === "assigned") return <svg {...common}><circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.8" /><circle cx="17" cy="9" r="2" stroke="currentColor" strokeWidth="1.8" /><path d="M3.5 19c.5-4 2.4-6 5.5-6s5 2 5.5 6M15 14c3.2-.7 5 .9 5.5 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
   if (name === "return") return <svg {...common}><path d="m8 8-4 4 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><path d="M4 12h10.5a5.5 5.5 0 1 1 0 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
   if (name === "requests") return <svg {...common}><path d="M5 4h14v16H5V4Z" stroke="currentColor" strokeWidth="1.8" /><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
-  if (name === "analytics") return <svg {...common}><path d="M5 20V10m7 10V4m7 16v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>;
-  return <svg {...common}><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19v2h14v-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  return <svg {...common}><path d="M5 20V10m7 10V4m7 16v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>;
 }
 
 function NavigationGroup({ items, pathname }: { items: NavigationItem[]; pathname: string }) {
