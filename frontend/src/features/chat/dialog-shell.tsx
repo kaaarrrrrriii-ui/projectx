@@ -42,14 +42,14 @@ export default function DialogShell({
       <Surface
         as="section"
         labelledBy={labelledBy}
-        className={`relative max-h-[calc(100dvh-32px)] w-full overflow-y-auto p-7 [--surface-radius:15px] [--surface-shadow:0_18px_70px_rgba(0,8,40,0.2)] !border-[#dee7fd] !bg-white max-[499px]:max-h-[92dvh] max-[499px]:rounded-b-none max-[499px]:p-5 ${className}`}
+        className={`relative max-h-[calc(100dvh-32px)] w-full overflow-y-auto p-7 [--surface-radius:15px] [--surface-shadow:0_18px_70px_rgba(0,8,40,0.2)] !border-[#dee7fd] !bg-white max-[499px]:max-h-[92dvh] max-[499px]:rounded-b-none max-[499px]:p-5 max-[379px]:p-4 ${className}`}
       >
         {showClose && onClose && (
           <button
             type="button"
             onClick={onClose}
             aria-label="Закрыть окно"
-            className="absolute top-5 right-5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[34px] leading-none font-light text-[var(--color-primary)] transition-colors hover:bg-[#eef1ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] max-[499px]:top-3 max-[499px]:right-3"
+            className="absolute top-5 right-5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[34px] leading-none font-light text-[var(--color-primary)] transition-colors hover:bg-[#eef1ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] max-[499px]:top-3 max-[499px]:right-3 max-[379px]:h-9 max-[379px]:w-9"
           >
             ×
           </button>

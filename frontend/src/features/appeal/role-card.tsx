@@ -47,10 +47,14 @@ export default function RoleCard({
           peer-focus-visible:outline-[var(--color-primary)]
           peer-focus-visible:outline-offset-4
 
-          max-[699px]:min-h-0
-          max-[699px]:px-2
-          max-[699px]:pt-3
-          max-[699px]:pb-4
+          max-[699px]:min-h-[150px]
+          max-[699px]:flex-row
+          max-[699px]:items-center
+          max-[699px]:px-3
+          max-[699px]:py-3
+
+          max-[379px]:min-h-[124px]
+          max-[379px]:px-2.5
 
           motion-reduce:transition-none
           motion-reduce:transform-none
@@ -64,18 +68,22 @@ export default function RoleCard({
             overflow-hidden
             border border-[var(--color-text-muted)]
             bg-white
+
+            max-[699px]:mx-0
+            max-[699px]:w-[132px]
+            max-[379px]:w-[96px]
           "
         >
           <Image
             src={role.image}
             alt=""
             fill
-            sizes="(max-width: 699px) calc(100vw - 76px), (max-width: 1100px) 28vw, 320px"
+            sizes="(max-width: 379px) 96px, (max-width: 699px) 132px, (max-width: 1100px) 28vw, 320px"
             className="object-contain object-bottom"
           />
         </span>
 
-        <span className="mt-5 flex min-w-0 flex-col gap-2 px-1">
+        <span className="mt-5 flex min-w-0 flex-col gap-2 px-1 max-[699px]:mt-0 max-[699px]:pl-4 max-[379px]:gap-1 max-[379px]:pl-3">
           <span
             id={`${role.id}-title`}
             className="
@@ -85,6 +93,7 @@ export default function RoleCard({
               tracking-[-0.03em]
 
               max-[699px]:text-lg
+              max-[379px]:text-base
             "
           >
             {role.title}
@@ -97,6 +106,7 @@ export default function RoleCard({
               leading-[1.5]
 
               max-[699px]:text-xs
+              max-[379px]:text-[11px]
             "
           >
             {role.description}

@@ -13,7 +13,7 @@ export default async function AppealAttachmentsPage({
   const topic = typeof params.topic === "string" ? params.topic : "";
 
   return (
-    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col text-[var(--color-text)]">
+    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col overflow-x-clip text-[var(--color-text)]">
       <SiteHeader formal={formal} />
 
       <MediaUpload role={role.id} topic={topic} formal={formal} />

@@ -10,7 +10,7 @@ export default async function Appeal({
   const selectedRole = getAppealRole((await searchParams).role);
 
   return (
-    <main className="app-page-background flex min-h-dvh flex-col text-[clamp(14px,1.4vw,18px)]">
+    <main className="app-page-background flex min-h-dvh min-w-[320px] flex-col overflow-x-clip text-[clamp(14px,1.4vw,18px)]">
       <SiteHeader />
       <RoleSelection selectedRole={selectedRole.id} />
     </main>

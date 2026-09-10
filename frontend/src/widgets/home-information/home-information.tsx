@@ -100,12 +100,12 @@ export default function HomeInformation() {
 
         min-[1200px]:gap-9
 
-        max-[699px]:max-w-[500px]
-        max-[699px]:gap-6
-        max-[699px]:[--heading-size:clamp(24px,6vw,30px)]
+        max-[899px]:max-w-[680px]
+        max-[899px]:gap-6
+        max-[899px]:[--heading-size:clamp(24px,6vw,30px)]
       "
     >
-      <header className="relative left-[-13px] text-center max-[699px]:left-0">
+      <header className="relative left-[-13px] text-center max-[899px]:left-0">
         <PageHeading
           id="important-heading"
           title="Что важно знать?"
@@ -116,7 +116,7 @@ export default function HomeInformation() {
         className="
           mt-3 ml-auto grid w-[54.2%] gap-[14px]
           min-[1200px]:gap-[18px]
-          max-[699px]:w-full
+          max-[899px]:w-full
         "
       >
         {information.map(({ icon, ...card }) => (
@@ -145,7 +145,7 @@ export default function HomeInformation() {
         ))}
       </div>
 
-      <div className="relative top-9 left-[-13px] max-[699px]:top-0 max-[699px]:left-0">
+      <div className="relative top-9 left-[-13px] max-[899px]:top-0 max-[899px]:left-0">
         <HomeActions />
       </div>
     </section>

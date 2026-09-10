@@ -64,15 +64,15 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
     <form action={appealRoutes.description} method="get" className="flex flex-1 flex-col">
       <input type="hidden" name="role" value={roleId} />
 
-      <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px]">
-        <h1 id="topics-heading" className="text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0]">
+      <div className="rounded-[15px] border border-[var(--color-primary)] bg-[var(--color-background)] px-[30px] py-[50px] max-[699px]:px-5 max-[699px]:py-7 max-[379px]:px-4">
+        <h1 id="topics-heading" className="text-[28px] leading-[1.2] font-extrabold tracking-[-0.025em] text-[#4562f0] max-[379px]:text-[25px]">
           С чем это связано?
         </h1>
         <p id="topics-description" className="mt-[5px] text-[12px] leading-4 text-[#151515]">
           {formal ? "Можно выбрать одну или несколько тем, которые ближе всего к вашей ситуации." : "Можно выбрать одну или несколько тем, которые ближе всего к твоей ситуации."}
         </p>
 
-        <fieldset aria-describedby="topics-description" className="mt-10 min-w-0 sm:mt-[62px]">
+        <fieldset aria-describedby="topics-description" className="mt-7 min-w-0 sm:mt-[62px]">
         <legend className="sr-only">Выбор одной темы обращения</legend>
         <div className="grid grid-cols-1 gap-x-3 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           {topics.map((topic) => (
@@ -109,7 +109,7 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
         </fieldset>
 
         {isEditing ? (
-          <div className="mt-6 max-w-[620px] rounded-2xl border border-[#cbd3f5] bg-white/70 p-4">
+          <div className="mt-6 max-w-[620px] rounded-2xl border border-[#cbd3f5] bg-white/70 p-4 max-[379px]:p-3">
           <label htmlFor="custom-topic" className="mb-2 block text-sm font-medium text-[#000828]">
             {customTopic
               ? (formal ? "Измените свою тему" : "Измени свою тему")
@@ -134,7 +134,7 @@ export default function TopicSelection({ roleId, initialTopic = "", formal = fal
               aria-describedby={error ? "custom-topic-error" : undefined}
               className="flex-1 text-left"
             />
-            <div className="flex gap-2">
+            <div className="flex gap-2 max-[379px]:[&>*]:min-w-0 max-[379px]:[&>*]:flex-1 max-[379px]:[&>*]:px-3">
               <Button text="Сохранить" variant="primary" size="small" onClick={saveCustomTopic} />
               <Button text="Отмена" variant="secondary" size="small" onClick={() => { setIsEditing(false); setError(""); }} />
             </div>

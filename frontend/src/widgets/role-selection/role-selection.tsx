@@ -26,6 +26,9 @@ export default function RoleSelection({
         max-[699px]:pt-[30px]
         max-[699px]:pb-[max(32px,env(safe-area-inset-bottom))]
         max-[699px]:[--heading-size:28px]
+        max-[379px]:px-3
+        max-[379px]:pt-6
+        max-[379px]:[--heading-size:26px]
       "
     >
       <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-9 max-[699px]:max-w-[540px] max-[699px]:gap-6">
