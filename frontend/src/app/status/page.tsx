@@ -13,7 +13,7 @@ export default async function Status({
   return (
     <main className="app-page-background flex min-h-dvh flex-col">
       <SiteHeader formal={formal} />
-      <StatusChecker roleId={role.id} />
+      <StatusChecker roleId={role.id} formal={formal} />
     </main>
   );
 }

@@ -27,6 +27,7 @@ const information = [
 
 function HomeActions() {
   const mobileButtonClasses = `
+    text-[13px]
     max-[699px]:h-12
     max-[699px]:rounded-xl
     max-[699px]:px-8
@@ -37,7 +38,7 @@ function HomeActions() {
   return (
     <div
       className="
-        mt-4 flex flex-col items-center gap-2.5
+        mt-[22px] flex flex-col items-center gap-2.5
         min-[1200px]:mt-6
         max-[699px]:mt-0
         max-[699px]:gap-3.5
@@ -45,7 +46,7 @@ function HomeActions() {
     >
       <div
         className="
-          flex justify-center gap-5
+          flex justify-center gap-[30px]
           max-[699px]:w-full
           max-[699px]:gap-3
           max-[699px]:[&>a]:flex-1
@@ -104,7 +105,7 @@ export default function HomeInformation() {
         max-[699px]:[--heading-size:clamp(24px,6vw,30px)]
       "
     >
-      <header className="text-center">
+      <header className="relative left-[-13px] text-center max-[699px]:left-0">
         <PageHeading
           id="important-heading"
           title="Что важно знать?"
@@ -113,7 +114,7 @@ export default function HomeInformation() {
 
       <div
         className="
-          ml-auto grid w-[54.2%] gap-3
+          mt-3 ml-auto grid w-[54.2%] gap-[14px]
           min-[1200px]:gap-[18px]
           max-[699px]:w-full
         "
@@ -122,6 +123,16 @@ export default function HomeInformation() {
           <InfoCard
             key={icon}
             {...card}
+            className="
+              min-h-[85px] gap-[22px] px-[22px]
+              transition-[transform,box-shadow,background-color]
+              duration-200 ease-out
+              hover:-translate-y-0.5
+              hover:bg-white/80
+              hover:shadow-[4px_6px_14px_rgba(69,98,240,0.16)]
+              motion-reduce:transform-none
+              motion-reduce:transition-none
+            "
             icon={
               <Image
                 src={`/images/${icon}.svg`}
@@ -134,7 +145,9 @@ export default function HomeInformation() {
         ))}
       </div>
 
-      <HomeActions />
+      <div className="relative top-9 left-[-13px] max-[699px]:top-0 max-[699px]:left-0">
+        <HomeActions />
+      </div>
     </section>
   );
 }

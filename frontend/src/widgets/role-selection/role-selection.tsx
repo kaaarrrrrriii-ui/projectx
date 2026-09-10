@@ -3,6 +3,7 @@ import { appealRoutes } from "@/features/appeal/routes";
 import RoleCard from "@/features/appeal/role-card";
 import Button from "@/shared/ui/button";
 import PageHeading from "@/shared/ui/page-heading";
+import Link from "next/link";
 
 export default function RoleSelection({
   selectedRole,
@@ -13,7 +14,7 @@ export default function RoleSelection({
     <section
       aria-labelledby="role-heading"
       className="
-        mx-auto flex w-full max-w-[1440px] flex-col gap-9
+        mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-9
         px-[clamp(24px,5vw,72px)]
         pt-[42px]
         pb-[max(40px,env(safe-area-inset-bottom))]
@@ -82,6 +83,19 @@ export default function RoleSelection({
           "
         />
       </form>
+
+      <Link
+        href="/"
+        className="
+          mt-auto w-fit rounded-[3px]
+          text-sm leading-5 text-[#85899b]
+          transition-colors hover:text-[#4562f0]
+          focus-visible:outline-2 focus-visible:outline-offset-4
+          focus-visible:outline-[#4562f0]
+        "
+      >
+        Вернуться назад
+      </Link>
     </section>
   );
 }

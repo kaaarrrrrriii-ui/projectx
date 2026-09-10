@@ -12,7 +12,7 @@ export default function Home() {
           relative isolate mx-auto flex w-full max-w-[1600px] flex-1
           items-center
           px-[clamp(32px,4.7vw,72px)]
-          pt-[44px] pb-5
+          py-5
 
           max-[699px]:flex-col
           max-[699px]:px-5
@@ -21,22 +21,27 @@ export default function Home() {
         "
       >
         <Image
-          src="/images/welcomeIMG.png"
+          src="/images/main-page-girl.png"
           alt=""
-          width={407}
-          height={636}
+          width={607}
+          height={486}
           priority
-          sizes="(max-width: 699px) 240px, 35vw"
+          sizes="(max-width: 699px) 320px, 42vw"
           className="
-            pointer-events-none
-            absolute bottom-0 left-0 -z-10
-            h-auto w-[34.3%]
+            absolute top-1/2 left-[clamp(20px,3.1vw,58px)] z-0
+            h-auto w-[clamp(400px,42.2vw,607px)]
+            -translate-y-1/2
+            transition-[filter] duration-300 ease-out
+            hover:drop-shadow-[0_0_18px_rgba(69,98,240,0.28)]
+            motion-reduce:transition-none
 
             max-[699px]:static
             max-[699px]:order-1
-            max-[699px]:mt-[-50px]
-            max-[699px]:w-[240px]
-            max-[699px]:max-w-[80%]
+            max-[699px]:mx-auto
+            max-[699px]:mt-5
+            max-[699px]:w-[320px]
+            max-[699px]:max-w-full
+            max-[699px]:translate-y-0
           "
         />
 
