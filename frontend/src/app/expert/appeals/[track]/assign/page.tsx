@@ -1,11 +1,6 @@
-import { notFound } from "next/navigation";
-import SpecialistAssignment from "@/features/operator/specialist-assignment";
-import { getExpertAppeal } from "@/features/expert/expert-data";
+import { redirect } from "next/navigation";
 
 export default async function ExpertAssignmentPage({ params }: { params: Promise<{ track: string }> }) {
   const { track } = await params;
-  const appeal = getExpertAppeal(decodeURIComponent(track));
-  if (!appeal) notFound();
-
-  return <SpecialistAssignment ticket={appeal} returnBasePath="/expert/appeals" />;
+  redirect(`/expert/appeals/${encodeURIComponent(decodeURIComponent(track))}`);
 }

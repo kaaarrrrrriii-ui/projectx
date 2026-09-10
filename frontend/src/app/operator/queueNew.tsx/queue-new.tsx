@@ -3,7 +3,7 @@
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import { appealCategories } from "@/features/appeal/categories";
-import { operatorTickets, type TicketPriority } from "@/features/operator/tickets";
+import { getAdminTickets, getOperatorTickets, type OperatorTicket } from "@/shared/api/staff-api";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -29,7 +29,7 @@ const categoryOptions: FilterOption[] = appealCategories.map((category) => ({
 const applicantOptions: FilterOption[] = [
   { value: "schoolchild", label: "Школьник" },
   { value: "parent", label: "Родитель" },
-  { value: "student", label: "Студент" },
+  { value: "teacher", label: "Педагог" },
 ];
 
 const filterGroups: Record<FilterKey, FilterOption[]> = {
@@ -50,7 +50,7 @@ const priorityColors = {
   green: "border-[#72bf78] bg-[#adddad] text-[#069b1e]",
 };
 
-const priorityStyles: Record<TicketPriority, { text: string; badge: string }> = {
+const priorityStyles: Record<OperatorTicket["priority"], { text: string; badge: string }> = {
   urgent: { text: "text-[#e5141b]", badge: "bg-[#f7b6b8] text-[#d70d14]" },
   standard: { text: "text-[#4562f0]", badge: "bg-[#dfe6ff] text-[#4562f0]" },
   low: { text: "text-[#087f1a]", badge: "bg-[#dff2e0] text-[#087f1a]" },
@@ -58,6 +58,12 @@ const priorityStyles: Record<TicketPriority, { text: string; badge: string }> = 
 
 function getOptionLabel(filter: FilterKey, value: string) {
   return filterGroups[filter].find((option) => option.value === value)?.label ?? value;
+}
+
+function formatWaiting(seconds: number) {
+  if (seconds < 60) return "меньше минуты";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} мин.`;
+  return `${Math.floor(seconds / 3600)} ч. ${Math.floor((seconds % 3600) / 60)} мин.`;
 }
 
 function FilterDropdown({
@@ -84,7 +90,7 @@ function FilterDropdown({
         aria-expanded={open}
         aria-controls={menuId}
         onClick={onOpen}
-        className="flex h-[33px] min-w-[157px] cursor-pointer items-center justify-between gap-3 rounded-[7px] border border-[#808393] bg-[#f7f9fe] px-4 text-[12px] leading-4 text-[#000828] transition-colors hover:border-[#4562f0] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
+        className="flex h-10 min-w-[180px] cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#4562f0] bg-white px-4 text-[13px] leading-4 text-[#30384f] transition-colors hover:bg-[#eef1ff] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]"
       >
         <span>{filterLabels[filter]}</span>
         <svg
@@ -102,7 +108,7 @@ function FilterDropdown({
           id={menuId}
           role="listbox"
           aria-multiselectable="true"
-          className={`absolute top-[41px] left-0 z-50 grid max-h-[330px] min-w-full gap-2 overflow-y-auto rounded-[13px] border border-[#8799f8] bg-white p-3 shadow-[0_14px_35px_rgba(0,8,40,0.14)] ${
+          className={`absolute top-12 left-0 z-50 grid max-h-[330px] min-w-full gap-2 overflow-y-auto rounded-[13px] border border-[#8799f8] bg-white p-3 shadow-[0_14px_35px_rgba(0,8,40,0.14)] ${
             filter === "priority"
               ? "w-[250px]"
               : filter === "category"
@@ -144,17 +150,29 @@ function FilterDropdown({
 
 export default function QueueNew({
   ticketBasePath = "/operator/queueNew.tsx",
+  mode = "operator",
 }: {
   ticketBasePath?: string;
+  mode?: "operator" | "admin";
 }) {
   const filtersRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
+  const [tickets, setTickets] = useState<OperatorTicket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [openFilter, setOpenFilter] = useState<FilterKey | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterKey, string[]>>({
     priority: [],
     category: [],
     applicant: [],
   });
+
+  useEffect(() => {
+    (mode === "admin" ? getAdminTickets() : getOperatorTickets("new"))
+      .then((page) => setTickets(page.items))
+      .catch(() => setLoadError("Не удалось загрузить очередь обращений"))
+      .finally(() => setLoading(false));
+  }, [mode]);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -178,18 +196,18 @@ export default function QueueNew({
   const filteredTickets = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("ru");
 
-    return operatorTickets.filter((ticket) => {
+    return tickets.filter((ticket) => {
       const matchesSearch =
-        !normalizedSearch || ticket.track.toLocaleLowerCase("ru").includes(normalizedSearch);
+        !normalizedSearch || ticket.track_id.toLocaleLowerCase("ru").includes(normalizedSearch);
       const matchesPriority =
         selectedFilters.priority.length === 0 ||
         selectedFilters.priority.includes(ticket.priority);
       const matchesCategory =
         selectedFilters.category.length === 0 ||
-        selectedFilters.category.includes(ticket.category);
+        selectedFilters.category.includes(ticket.category.name.toLocaleLowerCase("ru"));
       const matchesApplicant =
         selectedFilters.applicant.length === 0 ||
-        selectedFilters.applicant.includes(ticket.applicant);
+        selectedFilters.applicant.includes(ticket.applicant_type);
 
       return (
         matchesSearch &&
@@ -198,7 +216,7 @@ export default function QueueNew({
         matchesApplicant
       );
     });
-  }, [search, selectedFilters]);
+  }, [search, selectedFilters, tickets]);
 
   const selectedChips = (Object.keys(selectedFilters) as FilterKey[]).flatMap((filter) =>
     selectedFilters[filter].map((value) => ({ filter, value })),
@@ -264,7 +282,7 @@ export default function QueueNew({
                 size="small"
                 onClick={resetFilters}
                 disabled={!hasFilters}
-                className="ml-auto h-[33px] rounded-[7px] px-4 text-[12px] font-normal max-[699px]:ml-0"
+                className="ml-auto h-10 rounded-xl px-4 text-[13px] font-normal max-[699px]:ml-0"
               />
             </div>
 
@@ -302,32 +320,32 @@ export default function QueueNew({
                 </tr>
               </thead>
               <tbody>
-                {filteredTickets.map((ticket) => {
+                {!loading && filteredTickets.map((ticket) => {
                   const priority = priorityStyles[ticket.priority];
                   return (
-                  <tr key={ticket.track} className="h-[49px] border-t border-[#4562f0] hover:bg-[#f7f8ff]">
+                  <tr key={ticket.track_id} className="h-[49px] border-t border-[#4562f0] hover:bg-[#f7f8ff]">
                     <td className="border-r border-[#4562f0] px-3">
                       <div className="flex items-center gap-3 text-[13px]">
                         <Link
-                          href={`${ticketBasePath}/${encodeURIComponent(ticket.track)}`}
+                          href={`${ticketBasePath}/${encodeURIComponent(ticket.track_id)}`}
                           className={`rounded-sm font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] ${priority.text}`}
                         >
-                          {ticket.track}
+                          {ticket.track_id}
                         </Link>
                         <span className={`rounded-full px-3 py-1 text-[10px] ${priority.badge}`}>{getOptionLabel("priority", ticket.priority)}</span>
                       </div>
                     </td>
-                    <td className="border-r border-[#4562f0] px-3 text-center text-[13px] text-[#30384f]">{ticket.category}</td>
-                    <td className="border-r border-[#4562f0] px-3 text-center text-[13px] text-[#30384f]">{getOptionLabel("applicant", ticket.applicant)}</td>
-                    <td className="px-3 text-center text-[13px] text-[#000828]">{ticket.waiting}</td>
+                    <td className="border-r border-[#4562f0] px-3 text-center text-[13px] text-[#30384f]">{ticket.category.name}</td>
+                    <td className="border-r border-[#4562f0] px-3 text-center text-[13px] text-[#30384f]">{getOptionLabel("applicant", ticket.applicant_type)}</td>
+                    <td className="px-3 text-center text-[13px] text-[#000828]">{formatWaiting(ticket.waiting_seconds)}</td>
                   </tr>
                   );
                 })}
 
-                {filteredTickets.length === 0 && (
+                {(loading || loadError || filteredTickets.length === 0) && (
                   <tr className="h-[105px] border-t border-[#4562f0]">
                     <td colSpan={4} className="px-6 text-center text-[14px] text-[#646d86]">
-                      Обращения по выбранным фильтрам не найдены
+                      {loading ? "Загружаем обращения…" : loadError || "Обращения по выбранным фильтрам не найдены"}
                     </td>
                   </tr>
                 )}

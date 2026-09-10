@@ -8,7 +8,8 @@ import DialogShell from "@/features/chat/dialog-shell";
 import Button from "@/shared/ui/button";
 import Input from "@/shared/ui/input";
 import Link from "next/link";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { deleteAdminCategory, getAdminCategories } from "@/shared/api/staff-api";
 import {
   adminCategories,
   specialistOptions,
@@ -17,6 +18,7 @@ import {
 
 type CategoryConfig = {
   id: number;
+  backendId?: number;
   category: string;
   specialist: SpecialistOption;
   questionIds: string[];
@@ -167,6 +169,19 @@ export default function CategoriesDashboard() {
   const [questionModalCategory, setQuestionModalCategory] = useState<string | null>(null);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null | undefined>(undefined);
   const [saved, setSaved] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    getAdminCategories()
+      .then((page) => setConfigs(page.items.map((item) => ({
+        id: item.id,
+        backendId: item.id,
+        category: item.name.toLocaleLowerCase("ru"),
+        specialist: defaultSpecialist(item.name.toLocaleLowerCase("ru")),
+        questionIds: item.questions.map((question) => String(question.id)),
+      }))))
+      .catch((reason) => setMessage(reason instanceof Error ? reason.message : "Не удалось загрузить категории"));
+  }, []);
 
   const usedCategories = useMemo(() => new Set(configs.map((item) => item.category)), [configs]);
   const nextCategory = adminCategories.find((category) => !usedCategories.has(category));
@@ -202,6 +217,18 @@ export default function CategoriesDashboard() {
     setSaved(false);
   }
 
+  async function removeCategory(config: CategoryConfig) {
+    if (!window.confirm(`Удалить категорию «${config.category}»?`)) return;
+    setMessage("");
+    try {
+      if (config.backendId) await deleteAdminCategory(config.backendId);
+      setConfigs((current) => current.filter((item) => item.id !== config.id));
+      setMessage("Категория удалена");
+    } catch (reason) {
+      setMessage(reason instanceof Error ? reason.message : "Категорию нельзя удалить");
+    }
+  }
+
   return (
     <section className="min-w-0 flex-1 px-5 pt-5 pb-8 sm:px-[26px]" aria-labelledby="categories-heading">
       <div className="w-full">
@@ -210,7 +237,7 @@ export default function CategoriesDashboard() {
 
         <section aria-label="Настройка категорий" className="mt-7 overflow-x-auto rounded-[13px] border border-[#4562f0] bg-white/85">
           <table className="w-full min-w-[760px] table-fixed border-collapse">
-            <thead className="bg-[#dfe6ff] text-[#4562f0]"><tr className="h-[52px]"><th scope="col" className="w-[34%] border-r border-[#4562f0] px-4 text-center font-normal">Категория</th><th scope="col" className="w-[32%] border-r border-[#4562f0] px-4 text-center font-normal">Специализация</th><th scope="col" className="w-[34%] px-4 text-center font-normal">Список уточняющих вопросов</th></tr></thead>
+            <thead className="bg-[#dfe6ff] text-[#4562f0]"><tr className="h-[52px]"><th scope="col" className="w-[30%] border-r border-[#4562f0] px-4 text-center font-normal">Категория</th><th scope="col" className="w-[28%] border-r border-[#4562f0] px-4 text-center font-normal">Специализация</th><th scope="col" className="w-[28%] border-r border-[#4562f0] px-4 text-center font-normal">Список уточняющих вопросов</th><th scope="col" className="w-[14%] px-4 text-center font-normal">Действия</th></tr></thead>
             <tbody>
               {configs.map((config) => (
                 <tr key={config.id} className="h-[62px] border-t border-[#4562f0] hover:bg-[#f7f8ff]">
@@ -224,7 +251,8 @@ export default function CategoriesDashboard() {
                       {specialistOptions.map((specialist) => <option key={specialist} value={specialist}>{specialist}</option>)}
                     </select>
                   </td>
-                  <td className="px-4 text-center"><button type="button" onClick={() => setQuestionModalCategory(config.category)} className="inline-flex min-w-[128px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4562f0] px-4 py-2 text-xs text-white transition-colors hover:bg-[#4f71fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]">Выбрать ({config.questionIds.length})</button></td>
+                  <td className="border-r border-[#4562f0] px-4 text-center"><button type="button" onClick={() => setQuestionModalCategory(config.category)} className="inline-flex min-w-[128px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4562f0] px-4 py-2 text-xs text-white transition-colors hover:bg-[#4f71fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0]">Выбрать ({config.questionIds.length})</button></td>
+                  <td className="px-3 text-center"><button type="button" onClick={() => void removeCategory(config)} className="cursor-pointer rounded-[8px] border border-[#d70d14] px-3 py-2 text-xs text-[#d70d14] hover:bg-[#fff1f1]">Удалить</button></td>
                 </tr>
               ))}
             </tbody>
@@ -232,6 +260,8 @@ export default function CategoriesDashboard() {
         </section>
 
         <button type="button" onClick={() => { if (nextCategory) ensureCategoryConfig(nextCategory); setSaved(false); }} disabled={!nextCategory} className="mt-4 cursor-pointer rounded-md px-1 py-1 text-sm text-[#30384f] hover:text-[#4562f0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4562f0] disabled:cursor-default disabled:text-[#a0a6b7]">+ {nextCategory ? "Добавить ещё категорию" : "Все категории добавлены"}</button>
+
+        {message && <p role="status" className="mt-4 rounded-xl bg-[#eef1ff] px-4 py-3 text-sm text-[#30384f]">{message}</p>}
 
         <div className="mt-12 flex flex-col items-center gap-3">
           <Button text="Сохранить изменения" variant="primary" onClick={() => setSaved(true)} />

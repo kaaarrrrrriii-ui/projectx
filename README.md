@@ -8,7 +8,7 @@
 
 Анонимный сервис для тех, кто столкнулся с травлей, конфликтом или давлением — и хочет, чтобы его услышали.
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
@@ -53,8 +53,8 @@
 ---
 | Слой | Технологии |
 |---|---|
-| **Frontend** | <img src="https://nextjs.org/static/favicon/favicon-32x32.png" width="20" height="20" alt="Next.js Logo"> Next.js 15 (App Router), <img src="https://www.typescriptlang.org/favicon-32x32.png" width="20" height="20" alt="TypeScript Logo"> TypeScript, <img src="https://react.dev/favicon-32x32.png" width="20" height="20" alt="React Logo"> React, CSS-токены, PWA-ready |
-| **Backend** | <img src="https://go.dev/images/favicon-gopher.png" width="20" height="20" alt="Go Logo"> Go 1.26, net/http, `pgx`, JWT-авторизация |
+| **Frontend** | <img src="https://nextjs.org/static/favicon/favicon-32x32.png" width="20" height="20" alt="Next.js Logo"> Next.js 16 (App Router), <img src="https://www.typescriptlang.org/favicon-32x32.png" width="20" height="20" alt="TypeScript Logo"> TypeScript, <img src="https://react.dev/favicon-32x32.png" width="20" height="20" alt="React Logo"> React, CSS-токены, PWA-ready |
+| **Backend** | <img src="https://go.dev/images/favicon-gopher.png" width="20" height="20" alt="Go Logo"> Go 1.26, net/http, `database/sql` + `lib/pq`, JWT-авторизация |
 | **База данных** | <img src="https://www.postgresql.org/favicon.ico" width="20" height="20" alt="PostgreSQL Logo"> PostgreSQL 16, SQL-миграции |
 | **Инфраструктура** | <img src="https://www.docker.com/favicon.ico" width="20" height="20" alt="Docker Logo"> Docker, Docker Compose, multi-stage сборки |
 ---
@@ -64,7 +64,7 @@
 ### TL;DR — одна команда
 
 ```bash
-git clone <repo-url> projectx && cd projectx && cp .env.example .env && docker compose up --build
+git clone <repo-url> projectx && cd projectx && docker compose up --build
 ```
 
 Через ~30 секунд:
@@ -92,13 +92,13 @@ git clone <repo-url> projectx
 cd projectx
 ```
 
-#### 3. Переменные окружения
+#### 3. Переменные окружения (необязательно для локального MVP)
 
 ```bash
 cp .env.example .env
 ```
 
-Открой `.env` и задай **обязательный** `JWT_SECRET`:
+Compose содержит development-defaults и запускается без `.env`. Для собственного секрета скопируй example и измени `JWT_SECRET`:
 
 ```env
 JWT_SECRET=change-me-to-a-long-random-string
@@ -121,9 +121,9 @@ docker compose up --build
 
 Что произойдёт:
 
-1. Поднимется PostgreSQL и применит миграции из `migrations/`
+1. Поднимется PostgreSQL и применит миграции из `backend/migrations/`
 2. Соберётся Go-бэкенд (multi-stage, `CGO_ENABLED=0`)
-3. Соберётся Next.js-фронтенд (`output: standalone`)
+3. Соберётся Next.js-фронтенд
 4. Бэкенд дождётся healthcheck'а Postgres, фронт — healthcheck'а бэкенда
 
 #### 5. Проверка
@@ -198,7 +198,6 @@ projectx/
 │       ├── features/       # фичи по ролям
 │       ├── widgets/        # крупные блоки UI
 │       └── shared/         # UI-кит, API-клиент, стили
-├── migrations/             # SQL-миграции для docker-entrypoint
 ├── docker-compose.yml
 ├── ТЗ.md                   # техническое задание
 └── README.md

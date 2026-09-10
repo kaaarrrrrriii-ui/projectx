@@ -62,9 +62,9 @@ type CreatedReviewRecord struct {
 func (repository *TicketRepository) EnsureCategory(ctx context.Context, name string) error {
 	_, err := repository.db.ExecContext(ctx, `
 		INSERT INTO categories (name)
-		SELECT $1
+		SELECT $1::text
 		WHERE NOT EXISTS (
-			SELECT 1 FROM categories WHERE lower(name) = lower($1)
+			SELECT 1 FROM categories WHERE lower(name) = lower($1::text)
 		)`, name)
 	if err != nil {
 		return fmt.Errorf("ensure required category: %w", err)

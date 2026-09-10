@@ -100,6 +100,7 @@ export default function HomeInformation() {
 
         min-[1200px]:gap-9
 
+        max-[899px]:order-1
         max-[899px]:max-w-[680px]
         max-[899px]:gap-6
         max-[899px]:[--heading-size:clamp(24px,6vw,30px)]

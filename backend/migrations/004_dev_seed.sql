@@ -79,4 +79,80 @@ BEGIN
     END LOOP;
 END $$;
 
+-- Minimal, repeatable staff data for the Docker MVP demo. Passwords are
+-- bcrypt hashes for the documented development-only credentials.
+INSERT INTO expert_groups (title)
+SELECT 'Операторы'
+WHERE NOT EXISTS (SELECT 1 FROM expert_groups WHERE lower(title) = lower('Операторы'));
+
+INSERT INTO expert_groups (title)
+SELECT 'Психологи и консультанты'
+WHERE NOT EXISTS (SELECT 1 FROM expert_groups WHERE lower(title) = lower('Психологи и консультанты'));
+
+INSERT INTO expert_groups (title)
+SELECT 'Администраторы'
+WHERE NOT EXISTS (SELECT 1 FROM expert_groups WHERE lower(title) = lower('Администраторы'));
+
+INSERT INTO cats_expert_groups (group_id, cat_id)
+SELECT groups.id, categories.id
+FROM expert_groups AS groups
+CROSS JOIN categories
+WHERE groups.title = 'Психологи и консультанты'
+ON CONFLICT (group_id, cat_id) DO NOTHING;
+
+INSERT INTO users (username, password_hash, role, expert_group_id, full_name, max_tickets)
+SELECT
+    'operator@otklik.local',
+    '$2a$10$vhsmd4y.jrN/ntRomYWHje7nD.QY0xt6URK.zeE31YXFtPnvbcssW',
+    'operator',
+    id,
+    'Олег Зетник',
+    0
+FROM expert_groups
+WHERE title = 'Операторы'
+ON CONFLICT (username) DO UPDATE SET
+    password_hash = EXCLUDED.password_hash,
+    role = EXCLUDED.role,
+    expert_group_id = EXCLUDED.expert_group_id,
+    full_name = EXCLUDED.full_name,
+    max_tickets = EXCLUDED.max_tickets;
+
+INSERT INTO users (username, password_hash, role, expert_group_id, full_name, max_tickets)
+SELECT
+    account.username,
+    '$2a$10$lsjKtD/.KFxiUqqfPoYtc.PuSv.zGid0MoPtjUsynjRBf3DhydDEW',
+    'expert',
+    groups.id,
+    account.full_name,
+    10
+FROM expert_groups AS groups
+CROSS JOIN (VALUES
+    ('psy@otklik.local', 'Елена Байкова'),
+    ('law@otklik.local', 'Илья Воронов')
+) AS account(username, full_name)
+WHERE groups.title = 'Психологи и консультанты'
+ON CONFLICT (username) DO UPDATE SET
+    password_hash = EXCLUDED.password_hash,
+    role = EXCLUDED.role,
+    expert_group_id = EXCLUDED.expert_group_id,
+    full_name = EXCLUDED.full_name,
+    max_tickets = EXCLUDED.max_tickets;
+
+INSERT INTO users (username, password_hash, role, expert_group_id, full_name, max_tickets)
+SELECT
+    'admin@otklik.local',
+    '$2a$10$cSHIuCpdxjS.lukZXhF3QertTryOYm1GAuGho1RSmNBdupOegRBle',
+    'admin',
+    id,
+    'Администратор',
+    0
+FROM expert_groups
+WHERE title = 'Администраторы'
+ON CONFLICT (username) DO UPDATE SET
+    password_hash = EXCLUDED.password_hash,
+    role = EXCLUDED.role,
+    expert_group_id = EXCLUDED.expert_group_id,
+    full_name = EXCLUDED.full_name,
+    max_tickets = EXCLUDED.max_tickets;
+
 COMMIT;

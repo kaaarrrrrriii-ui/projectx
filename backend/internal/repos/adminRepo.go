@@ -427,7 +427,7 @@ func (repository *AdminRepository) GetCategory(ctx context.Context, id int64) (A
 }
 func (repository *AdminRepository) CreateCategory(ctx context.Context, name string) (AdminCategoryRecord, error) {
 	var id int64
-	err := repository.db.QueryRowContext(ctx, `INSERT INTO categories(name) SELECT $1 WHERE NOT EXISTS(SELECT 1 FROM categories WHERE lower(name)=lower($1)) RETURNING id`, name).Scan(&id)
+	err := repository.db.QueryRowContext(ctx, `INSERT INTO categories(name) SELECT $1::text WHERE NOT EXISTS(SELECT 1 FROM categories WHERE lower(name)=lower($1::text)) RETURNING id`, name).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return AdminCategoryRecord{}, ErrNameExists
 	}
@@ -437,7 +437,7 @@ func (repository *AdminRepository) CreateCategory(ctx context.Context, name stri
 	return repository.GetCategory(ctx, id)
 }
 func (repository *AdminRepository) UpdateCategory(ctx context.Context, id int64, name string) (AdminCategoryRecord, error) {
-	res, err := repository.db.ExecContext(ctx, `UPDATE categories SET name=$2 WHERE id=$1 AND NOT EXISTS(SELECT 1 FROM categories WHERE lower(name)=lower($2) AND id<>$1)`, id, name)
+	res, err := repository.db.ExecContext(ctx, `UPDATE categories SET name=$2::text WHERE id=$1 AND NOT EXISTS(SELECT 1 FROM categories WHERE lower(name)=lower($2::text) AND id<>$1)`, id, name)
 	if err != nil {
 		return AdminCategoryRecord{}, err
 	}
@@ -452,8 +452,14 @@ func (repository *AdminRepository) UpdateCategory(ctx context.Context, id int64,
 	return repository.GetCategory(ctx, id)
 }
 func (repository *AdminRepository) DeleteCategory(ctx context.Context, id int64) error {
+	tx, err := repository.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	var name string
-	if err := repository.db.QueryRowContext(ctx, `SELECT name FROM categories WHERE id=$1`, id).Scan(&name); errors.Is(err, sql.ErrNoRows) {
+	if err := tx.QueryRowContext(ctx, `SELECT name FROM categories WHERE id=$1 FOR UPDATE`, id).Scan(&name); errors.Is(err, sql.ErrNoRows) {
 		return ErrAdminResourceNotFound
 	} else if err != nil {
 		return err
@@ -461,14 +467,26 @@ func (repository *AdminRepository) DeleteCategory(ctx context.Context, id int64)
 	if strings.EqualFold(strings.TrimSpace(name), "Не знаю, как это назвать") {
 		return ErrAdminResourceInUse
 	}
-	res, err := repository.db.ExecContext(ctx, `DELETE FROM categories c WHERE id=$1 AND NOT EXISTS(SELECT 1 FROM tickets WHERE category_id=c.id) AND NOT EXISTS(SELECT 1 FROM questions WHERE cat_id=c.id) AND NOT EXISTS(SELECT 1 FROM cats_expert_groups WHERE cat_id=c.id)`, id)
-	if err != nil {
+	var used bool
+	if err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM tickets WHERE category_id=$1)`, id).Scan(&used); err != nil {
 		return err
 	}
-	if n, _ := res.RowsAffected(); n == 0 {
+	if used {
 		return ErrAdminResourceInUse
 	}
-	return nil
+	if _, err = tx.ExecContext(ctx, `DELETE FROM cats_expert_groups WHERE cat_id=$1`, id); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM answers WHERE question_id IN (SELECT id FROM questions WHERE cat_id=$1)`, id); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM questions WHERE cat_id=$1`, id); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM categories WHERE id=$1`, id); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (repository *AdminRepository) ReplaceCategoryGroups(ctx context.Context, categoryID int64, groupIDs []int64) (AdminCategoryRecord, error) {

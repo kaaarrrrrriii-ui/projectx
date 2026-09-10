@@ -5,7 +5,7 @@ export default function SiteHeader({ formal = false, compact = false }: { formal
   return (
     <header
       className={`
-        relative z-20 box-border h-[100px] w-full
+        sticky top-0 z-50 box-border h-[100px] w-full shrink-0
         rounded-b-[30px] border border-[#4562f0] bg-white
         px-5 pt-[30px] pb-[15px]
 

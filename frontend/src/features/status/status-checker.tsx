@@ -63,10 +63,10 @@ export default function StatusChecker({ roleId, formal }: { roleId: string; form
               <span className="text-xl font-medium text-[#4562f0]">{ticket.track_id}</span>
             </header>
             <div className="mt-7">
-              <p className="text-2xl leading-[1.4] font-extrabold text-black max-[699px]:text-lg">Статус: Ответ специалиста готов</p>
+              <p className="text-2xl leading-[1.4] font-extrabold text-black max-[699px]:text-lg">Статус: {statusLabels[ticket.status] ?? ticket.status}</p>
               <div className="mt-7 flex flex-col gap-1 text-xl leading-[1.5] font-medium text-[#151515] max-[699px]:text-base">
-                <p>Дата отправки: 09.09.2026</p>
-                <p>Категория: Кибербуллинг</p>
+                <p>Дата отправки: {new Date(ticket.created_at).toLocaleDateString("ru-RU")}</p>
+                <p>Категория: {ticket.category.name}</p>
               </div>
             </div>
             <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-[46px]">

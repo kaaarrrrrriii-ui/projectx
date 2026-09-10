@@ -683,8 +683,8 @@ func (repository *OperatorRepository) ListTickets(ctx context.Context, filter Op
 		       return_event.from_worker_id, previous_worker.full_name,
 		       EXISTS (SELECT 1 FROM ticket_events crisis_event WHERE crisis_event.ticket_id=t.id AND crisis_event.event_type='crisis_detected') AS crisis_detected,
 		       CASE
-		           WHEN t.status = ` + fmt.Sprint(models.TicketStatusNew) + ` THEN t.created_at < $3
-		           WHEN t.status IN (` + fmt.Sprint(models.TicketStatusAssigned) + `,` + fmt.Sprint(models.TicketStatusInProgress) + `,` + fmt.Sprint(models.TicketStatusNeedsClarification) + `,` + fmt.Sprint(models.TicketStatusAnswerReady) + `)
+		           WHEN t.status = ` + fmt.Sprint(int(models.TicketStatusNew)) + ` THEN t.created_at < $3
+		           WHEN t.status IN (` + fmt.Sprint(int(models.TicketStatusAssigned)) + `,` + fmt.Sprint(int(models.TicketStatusInProgress)) + `,` + fmt.Sprint(int(models.TicketStatusNeedsClarification)) + `,` + fmt.Sprint(int(models.TicketStatusAnswerReady)) + `)
 		               THEN COALESCE(responsible.assigned_at,t.created_at) < $4
 		                    AND NOT EXISTS (SELECT 1 FROM messages response_message WHERE response_message.ticket_id=t.id AND response_message.type=$2)
 		           ELSE FALSE

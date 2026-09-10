@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { StaffIdentity, StaffLogout } from "@/features/staff/staff-session";
 
 type NavigationItem = {
   label: string;
@@ -59,20 +60,14 @@ export default function ExpertSidebar() {
 
   return (
     <aside className="flex w-[224px] shrink-0 flex-col border-r border-[#a9b3ff] bg-[#f7f9fe]/95 px-4 py-5 min-[800px]:sticky min-[800px]:top-[100px] min-[800px]:h-[calc(100dvh-100px)] min-[800px]:self-start max-[799px]:w-full max-[799px]:border-r-0 max-[799px]:border-b max-[799px]:px-4 max-[799px]:py-3">
-      <div className="mb-7 px-2 max-[799px]:mb-3">
-        <p className="font-semibold text-[#4562f0]">Олег Зетник</p>
-        <p className="mt-0.5 text-xs text-[#30384f]">Эксперт</p>
-        <p className="text-xs text-[#8c93a8]">Буллинг</p>
-      </div>
+      <StaffIdentity role="expert" label="Эксперт" fallback="Эксперт" />
 
       <nav aria-label="Навигация эксперта" className="flex flex-col gap-6 max-[799px]:flex-row max-[799px]:gap-1 max-[799px]:overflow-x-auto max-[799px]:pb-1">
         <NavigationGroup items={primaryNavigation} pathname={pathname} />
         <NavigationGroup items={secondaryNavigation} pathname={pathname} />
       </nav>
 
-      <Link href="/" className="mt-auto flex min-h-10 items-center justify-center rounded-xl border border-[#4562f0] px-4 text-sm font-medium text-[#4562f0] transition-colors hover:bg-[#4562f0] hover:text-white max-[799px]:hidden">
-        Выйти
-      </Link>
+      <StaffLogout className="max-[799px]:hidden" />
     </aside>
   );
 }

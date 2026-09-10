@@ -8,7 +8,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-appdb}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d:ro
+      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -31,7 +31,7 @@ services:
       DB_NAME: ${POSTGRES_DB:-appdb}
       DB_SSLMODE: disable
       ATTACHMENT_STORAGE_PATH: /data/attachments
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      JWT_SECRET: ${JWT_SECRET:-development-secret-change-before-production}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
     depends_on:
       postgres:
@@ -40,6 +40,11 @@ services:
       - attachments:/data/attachments
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
 
   frontend:
     build:
@@ -54,7 +59,8 @@ services:
       API_URL: http://backend:8080
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "3000:3000"
 
